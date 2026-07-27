@@ -55,12 +55,12 @@ const suggestions = [
 
 export function UserHomePage() {
   return (
-    <div className="overflow-hidden">
-      <section className="relative border-b border-primary/20 bg-[#003b8f] text-white dark:border-white/10 dark:bg-[#071f4f]">
-        <div className="knowledge-network absolute inset-0 opacity-[0.08]" />
-        <div className="absolute top-12 right-[-6rem] size-72 rounded-full border border-white/8" />
-        <div className="absolute top-28 right-[-2rem] size-44 rounded-full border border-white/8" />
-        <div className="absolute bottom-[-7rem] left-[-4rem] size-64 rounded-full border border-white/6" />
+    <div className="home-content overflow-hidden">
+      <section className="home-hero relative border-b border-primary/20 bg-[#003b8f] text-white dark:border-white/[0.06]">
+        <div className="knowledge-network absolute inset-0 opacity-[0.08] dark:opacity-[0.035]" />
+        <div className="absolute top-12 right-[-6rem] size-72 rounded-full border border-white/8 dark:border-primary/10" />
+        <div className="absolute top-28 right-[-2rem] size-44 rounded-full border border-white/8 dark:border-primary/10" />
+        <div className="absolute bottom-[-7rem] left-[-4rem] size-64 rounded-full border border-white/6 dark:border-white/[0.04]" />
         <div className="relative mx-auto flex min-h-[420px] max-w-5xl flex-col justify-center px-4 py-8 text-center md:min-h-[clamp(356px,28.2vw,540px)] md:px-6 md:py-2">
           <Badge className="mx-auto mb-4 border border-white/18 bg-white/10 text-white shadow-sm hover:bg-white/10">
             <Sparkles aria-hidden="true" className="text-knowledge" />
@@ -75,7 +75,7 @@ export function UserHomePage() {
           </p>
 
           <form
-            className="mx-auto mt-6 flex w-full max-w-3xl items-center gap-2 rounded-2xl border bg-card p-2 shadow-[0_18px_55px_rgb(0_20_70_/_0.22)] dark:shadow-[0_18px_55px_rgb(0_0_0_/_0.28)]"
+            className="mx-auto mt-6 flex w-full max-w-3xl items-center gap-2 rounded-2xl border bg-card p-2 shadow-[0_18px_55px_rgb(0_20_70_/_0.22)] dark:border-white/[0.06] dark:bg-card dark:shadow-[0_22px_65px_rgb(0_0_0_/_0.24)]"
             onSubmit={(event) => event.preventDefault()}
           >
             <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary">
@@ -86,7 +86,7 @@ export function UserHomePage() {
             </div>
             <Input
               aria-label="Hỏi UniSage"
-              className="h-12 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0"
+              className="h-12 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0 dark:bg-transparent"
               placeholder="Đặt câu hỏi về học vụ..."
             />
             <Button asChild className="size-11 shrink-0" size="icon">
@@ -102,7 +102,7 @@ export function UserHomePage() {
             </span>
             {suggestions.map((suggestion) => (
               <Link
-                className="rounded-full border border-white/16 bg-white/8 px-3 py-1.5 text-xs text-white/78 transition-colors hover:border-white/30 hover:bg-white/14 hover:text-white"
+                className="rounded-full border border-white/16 bg-white/8 px-3 py-1.5 text-xs text-white/78 transition-colors hover:border-white/30 hover:bg-white/14 hover:text-white dark:border-white/[0.09] dark:bg-white/[0.045] dark:text-white/72 dark:hover:border-primary/35 dark:hover:bg-primary/10"
                 key={suggestion}
                 to={ROUTES.chat}
               >
@@ -116,7 +116,7 @@ export function UserHomePage() {
       <section className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16">
         <div className="mb-7 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
+            <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase dark:text-info">
               Khám phá UniSage
             </p>
             <h2 className="mt-2 text-2xl font-bold">
@@ -137,7 +137,7 @@ export function UserHomePage() {
 
             return (
               <Card
-                className="group relative overflow-hidden border bg-card shadow-none transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg"
+                className="group relative overflow-hidden border bg-card shadow-none transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg dark:border-white/[0.06] dark:bg-card dark:hover:border-primary/30 dark:hover:bg-muted"
                 key={item.label}
               >
                 <div
@@ -150,7 +150,7 @@ export function UserHomePage() {
                   }
                 />
                 <CardContent className="p-6">
-                  <div className="mb-5 grid size-11 place-items-center rounded-xl bg-secondary text-primary">
+                  <div className="mb-5 grid size-11 place-items-center rounded-xl bg-secondary text-primary dark:text-info">
                     <Icon aria-hidden="true" className="size-5" />
                   </div>
                   <h3 className="font-semibold">{item.label}</h3>
@@ -159,7 +159,7 @@ export function UserHomePage() {
                   </p>
                   <Link
                     aria-label={`Khám phá ${item.label}`}
-                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary"
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary dark:text-info"
                     to={index === 3 ? ROUTES.tickets : ROUTES.knowledge}
                   >
                     Khám phá
@@ -175,7 +175,7 @@ export function UserHomePage() {
         </div>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-          <Card className="border-0 bg-[#153898] text-white shadow-none dark:bg-[#173f9e]">
+          <Card className="border-0 bg-[#153898] text-white shadow-none dark:border dark:border-primary/20 dark:bg-[#192238]">
             <CardContent className="relative overflow-hidden p-7 md:p-8">
               <div className="absolute -top-16 -right-10 size-56 rounded-full border border-white/10" />
               <div className="absolute -top-6 -right-4 size-36 rounded-full border border-white/10" />
@@ -190,9 +190,9 @@ export function UserHomePage() {
             </CardContent>
           </Card>
 
-          <Card className="border bg-accent shadow-none">
+          <Card className="border bg-accent shadow-none dark:border-white/[0.06] dark:bg-card">
             <CardContent className="p-7 md:p-8">
-              <div className="mb-8 grid size-11 place-items-center rounded-xl bg-card text-accent-foreground">
+              <div className="mb-8 grid size-11 place-items-center rounded-xl bg-card text-accent-foreground dark:bg-muted">
                 <FileQuestion aria-hidden="true" className="size-5" />
               </div>
               <h2 className="text-xl font-bold">Vẫn cần người hỗ trợ?</h2>

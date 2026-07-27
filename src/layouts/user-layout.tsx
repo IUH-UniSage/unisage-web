@@ -59,7 +59,7 @@ export function UserLayout() {
   return (
     <div className="min-h-svh bg-background">
       <header className="sticky top-0 z-30 shadow-[0_8px_24px_rgb(21_56_152_/_0.08)]">
-        <div className="hidden bg-[#153898] text-white lg:block dark:bg-[#081f54]">
+        <div className="hidden bg-[#153898] text-white lg:block dark:border-b dark:border-white/[0.05] dark:bg-[#171717]">
           <div className="mx-auto flex h-10 max-w-[1200px] items-center justify-between px-4 text-[11px] font-medium">
             <p className="truncate tracking-[0.02em]">
               Trường Đại học Công nghiệp Thành phố Hồ Chí Minh
@@ -78,7 +78,7 @@ export function UserLayout() {
           </div>
         </div>
 
-        <div className="border-b border-primary/10 bg-[#153898] lg:bg-card dark:bg-[#081f54] lg:dark:bg-card">
+        <div className="border-b border-primary/10 bg-[#153898] lg:bg-card dark:bg-[#171717] lg:dark:border-white/[0.05] lg:dark:bg-card/95 lg:dark:backdrop-blur-xl">
           <div className="mx-auto flex h-20 max-w-[1200px] items-center px-4">
             <Link
               aria-label="Trang chủ UniSage"
