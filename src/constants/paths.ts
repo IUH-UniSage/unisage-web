@@ -1,4 +1,5 @@
 export const ROUTE_SEGMENTS = {
+  accessControl: "access-control",
   auth: "auth",
   chat: "chat",
   documents: "documents",
@@ -19,6 +20,7 @@ export const ROUTE_SEGMENTS = {
 
 export const ROUTES = {
   admin: "/admin",
+  adminAccessControl: "/admin/access-control",
   adminDocuments: "/admin/documents",
   adminHealth: "/admin/health",
   adminLogs: "/admin/logs",

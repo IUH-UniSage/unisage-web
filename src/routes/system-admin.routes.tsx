@@ -15,6 +15,12 @@ const AdminOverviewPage = lazy(async () => {
   return { default: AdminOverviewPage }
 })
 
+const AccessControlPage = lazy(async () => {
+  const { AccessControlPage } =
+    await import("@/pages/system-admin/access-control-page")
+  return { default: AccessControlPage }
+})
+
 export const systemAdminRoutes: RouteObject = {
   path: ROUTES.admin,
   element: (
@@ -36,6 +42,18 @@ export const systemAdminRoutes: RouteObject = {
           strategy="any"
         >
           <WorkspacePlaceholderPage title="Quản lý người dùng" />
+        </PermissionRoute>
+      ),
+    },
+    {
+      path: ROUTE_SEGMENTS.accessControl,
+      element: (
+        <PermissionRoute
+          fallbackTo={ROUTES.admin}
+          requiredPermissions={PERMISSION_POLICIES.adminAccessControl}
+          strategy="all"
+        >
+          <AccessControlPage />
         </PermissionRoute>
       ),
     },

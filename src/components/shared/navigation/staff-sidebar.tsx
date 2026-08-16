@@ -9,6 +9,7 @@ import {
   HeartPulse,
   Settings,
   ShieldCheck,
+  ShieldPlus,
   UploadCloud,
   Users,
 } from "lucide-react"
@@ -29,6 +30,7 @@ type NavigationItem = {
   icon: LucideIcon
   label: string
   requiredPermissions?: readonly PermissionRequirement[]
+  requiredStrategy?: "all" | "any"
   to: string
 }
 
@@ -74,6 +76,13 @@ const navigation: Record<StaffWorkspace, NavigationItem[]> = {
       to: ROUTES.adminUsers,
     },
     {
+      icon: ShieldPlus,
+      label: "Vai trò & phân quyền",
+      requiredPermissions: PERMISSION_POLICIES.adminAccessControl,
+      requiredStrategy: "all",
+      to: ROUTES.adminAccessControl,
+    },
+    {
       icon: BookOpen,
       label: "Quản trị tài liệu",
       requiredPermissions: PERMISSION_POLICIES.adminDocuments,
@@ -117,12 +126,15 @@ export function StaffSidebar({
   onNavigate,
   workspace,
 }: StaffSidebarProps) {
-  const { canAny } = usePermissions()
+  const { canAny, canEvery } = usePermissions()
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
   const visibleNavigation = navigation[workspace].filter(
-    ({ requiredPermissions }) =>
-      !requiredPermissions || canAny(requiredPermissions)
+    ({ requiredPermissions, requiredStrategy = "any" }) =>
+      !requiredPermissions ||
+      (requiredStrategy === "all"
+        ? canEvery(requiredPermissions)
+        : canAny(requiredPermissions))
   )
 
   return (
