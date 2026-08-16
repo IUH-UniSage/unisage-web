@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write UniSage PR"
+  short_description: "Draft evidence-backed UniSage pull requests"
+  default_prompt: "Use $pr to draft or improve this UniSage pull request."
