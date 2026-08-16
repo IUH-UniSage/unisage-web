@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import type { PropsWithChildren } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { authApi } from "@/features/auth/api/auth-api"
 import {
   AuthContext,
   type AuthenticationStatus,
@@ -13,6 +12,12 @@ import {
   createSessionFromLogin,
   createSessionFromSelectedProfile,
 } from "@/features/auth/lib/auth-session"
+import {
+  useLoginMutation,
+  useLogoutMutation,
+  useRefreshSessionMutation,
+  useSelectProfileMutation,
+} from "@/features/auth/queries/use-mutations"
 import type {
   AuthSession,
   LoginRequest,
@@ -30,6 +35,10 @@ function readCachedSession(): AuthSession | null {
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient()
+  const { mutateAsync: requestLogin } = useLoginMutation()
+  const { mutateAsync: requestLogout } = useLogoutMutation()
+  const { mutateAsync: refreshSession } = useRefreshSessionMutation()
+  const { mutateAsync: requestProfileSelection } = useSelectProfileMutation()
   const [initialSession] = useState(readCachedSession)
   const [session, setSession] = useState<AuthSession | null>(initialSession)
   const [status, setStatus] = useState<AuthenticationStatus>(
@@ -62,8 +71,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     let active = true
 
-    authApi
-      .refresh()
+    refreshSession()
       .then(() => {
         if (active) setStatus("authenticated")
       })
@@ -74,7 +82,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       active = false
     }
-  }, [clearSession, initialSession])
+  }, [clearSession, initialSession, refreshSession])
 
   useEffect(() => {
     const handleExpiredSession = () => clearSession()
@@ -89,7 +97,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const login = useCallback(
     async (input: LoginRequest): Promise<LoginResult> => {
-      const response = await authApi.login(input)
+      const response = await requestLogin(input)
 
       if (response.profiles.length === 0) {
         throw new Error("Tài khoản chưa có hồ sơ sử dụng UniSage.")
@@ -119,28 +127,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
         session: null,
       }
     },
-    [persistSession]
+    [persistSession, requestLogin]
   )
 
   const selectProfile = useCallback(
     async (userId: string): Promise<AuthSession> => {
-      const response = await authApi.selectProfile(userId)
+      const response = await requestProfileSelection(userId)
       const nextSession = createSessionFromSelectedProfile(response, userId)
       persistSession(nextSession)
       setPendingProfileSelection(null)
 
       return nextSession
     },
-    [persistSession]
+    [persistSession, requestProfileSelection]
   )
 
   const logout = useCallback(async () => {
     try {
-      await authApi.logout()
+      await requestLogout()
     } finally {
       clearSession()
     }
-  }, [clearSession])
+  }, [clearSession, requestLogout])
 
   const value = useMemo(
     () => ({

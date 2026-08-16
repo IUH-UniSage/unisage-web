@@ -1,6 +1,8 @@
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form"
 import axios from "axios"
 
+import { ApiResponseError } from "@/lib/api-response"
+
 export type ApiErrorResponse = {
   code?: number | string
   data?: Record<string, unknown> | null
@@ -52,6 +54,7 @@ export function getErrorMessage(
 }
 
 export function getFieldErrors(error: unknown): Record<string, string> {
+  if (error instanceof ApiResponseError) return error.errors ?? {}
   if (!axios.isAxiosError<ApiErrorResponse>(error)) return {}
 
   const payload = error.response?.data
