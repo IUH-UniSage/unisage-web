@@ -31,12 +31,6 @@ const actionLabels: Record<string, string> = {
   UPDATE: "Cập nhật",
 }
 
-const roleLabels: Record<string, string> = {
-  INGEST_ADMIN: "Quản trị tri thức",
-  SUPER_ADMIN: "Quản trị hệ thống",
-  USER: "Người dùng",
-}
-
 const actionSuffixes = [
   "TOGGLE_ACTIVE",
   "CREATE",
@@ -52,7 +46,7 @@ export type PermissionGroup = {
   resource: string
 }
 
-function splitPermissionName(name: string) {
+export function splitPermissionName(name: string) {
   const action = actionSuffixes.find((suffix) => name.endsWith(`_${suffix}`))
 
   if (!action) return { action: name, resource: name }
@@ -72,8 +66,17 @@ export function getResourceLabel(resource: string) {
   return resourceLabels[resource] ?? resource.replaceAll("_", " ")
 }
 
-export function getRoleLabel(name: string) {
-  return roleLabels[name] ?? name.replaceAll("_", " ")
+export function formatAuditDate(value: string | null | undefined) {
+  if (!value) return "Chưa có"
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date)
 }
 
 export function groupPermissions(
@@ -122,14 +125,4 @@ export function groupPermissions(
         "vi"
       )
     )
-}
-
-export function equalPermissionSets(
-  left: readonly string[],
-  right: readonly string[]
-) {
-  if (left.length !== right.length) return false
-
-  const rightSet = new Set(right)
-  return left.every((id) => rightSet.has(id))
 }

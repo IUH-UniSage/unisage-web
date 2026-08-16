@@ -75,4 +75,16 @@ describe("access-control schemas", () => {
       }).permissionIds
     ).toEqual([permission.id])
   })
+
+  it("rejects role names that do not follow the backend key format", () => {
+    expect(() =>
+      updateRoleRequestSchema.parse({
+        description: null,
+        isActive: true,
+        isSystemRole: false,
+        name: "content reviewer",
+        permissionIds: [],
+      })
+    ).toThrow()
+  })
 })

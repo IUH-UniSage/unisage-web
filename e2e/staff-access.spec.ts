@@ -64,18 +64,22 @@ test("shows an access denied state without a redirect loop", async ({
   ).toBeVisible()
 })
 
-test("manages role permissions without horizontal overflow", async ({
+test("manages roles and browses permissions without horizontal overflow", async ({
   page,
-}) => {
+}, testInfo) => {
   await authenticateAs(page, "SUPER_ADMIN")
   await mockAccessControl(page)
   await page.goto("/admin/access-control")
 
   await expect(
-    page.getByRole("heading", { name: "Vai trò & phân quyền" })
+    page.getByRole("heading", { name: "Danh sách vai trò" })
   ).toBeVisible()
+  const roleResults =
+    testInfo.project.name === "desktop-chromium"
+      ? page.getByRole("table")
+      : page.locator("article")
   await expect(
-    page.getByText("Vai trò hệ thống", { exact: true })
+    roleResults.getByText("SUPER_ADMIN", { exact: true })
   ).toBeVisible()
 
   const viewportWidth = await page.evaluate(
@@ -86,17 +90,57 @@ test("manages role permissions without horizontal overflow", async ({
   )
   expect(pageWidth).toBe(viewportWidth)
 
+  await page.getByRole("button", { name: "Chỉnh sửa SUPER_ADMIN" }).click()
+  await expect(
+    page.getByRole("dialog", { name: "Chỉnh sửa vai trò" })
+  ).toBeVisible()
+
   const updatePermission = page.getByRole("checkbox", {
     name: "Cho phép ROLE_UPDATE",
   })
   await expect(updatePermission).not.toBeChecked()
   await updatePermission.check()
-  await page.getByRole("button", { name: "Lưu phân quyền" }).click()
+  await page.getByRole("button", { name: "Lưu thay đổi" }).click()
 
-  await expect(page.getByText("Đã cập nhật quyền của vai trò.")).toBeVisible()
-  await expect(updatePermission).toBeChecked()
+  await expect(page.getByText("Đã cập nhật vai trò.")).toBeVisible()
 
+  await page.getByLabel("Tìm tên vai trò").fill("viewer")
+  await expect(roleResults.getByText("VIEWER", { exact: true })).toBeVisible()
+  await expect(
+    roleResults.getByText("SUPER_ADMIN", { exact: true })
+  ).toHaveCount(0)
+
+  await page.getByRole("tab", { name: "Cấu hình quyền hạn" }).click()
+  await expect(
+    page.getByRole("heading", { name: "Danh sách quyền hạn" })
+  ).toBeVisible()
   await page.getByLabel("Tìm quyền hạn").fill("permission")
-  await expect(page.getByText("PERMISSION_READ")).toBeVisible()
-  await expect(page.getByText("ROLE_READ")).toHaveCount(0)
+  const permissionResults =
+    testInfo.project.name === "desktop-chromium"
+      ? page.getByRole("table")
+      : page.locator("article")
+  await expect(permissionResults.getByText("PERMISSION_READ")).toBeVisible()
+  await expect(permissionResults.getByText("ROLE_READ")).toHaveCount(0)
+})
+
+test("creates a role with assigned permissions", async ({ page }, testInfo) => {
+  await authenticateAs(page, "SUPER_ADMIN")
+  await mockAccessControl(page)
+  await page.goto("/admin/access-control")
+
+  await page.getByRole("button", { name: "Thêm vai trò mới" }).click()
+  const dialog = page.getByRole("dialog", { name: "Thêm vai trò mới" })
+  await dialog.getByLabel("Tên vai trò").fill("CONTENT_REVIEWER")
+  await dialog.getByLabel("Mô tả").fill("Kiểm tra nội dung trước khi xuất bản.")
+  await dialog.getByRole("checkbox", { name: "Cho phép ROLE_READ" }).check()
+  await dialog.getByRole("button", { name: "Tạo vai trò" }).click()
+
+  await expect(page.getByText("Đã tạo vai trò mới.")).toBeVisible()
+  const roleResults =
+    testInfo.project.name === "desktop-chromium"
+      ? page.getByRole("table")
+      : page.locator("article")
+  await expect(
+    roleResults.getByText("CONTENT_REVIEWER", { exact: true })
+  ).toBeVisible()
 })

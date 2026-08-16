@@ -2,7 +2,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { accessControlApi } from "@/features/access-control/api/access-control-api"
 import { accessControlKeys } from "@/features/access-control/queries/keys"
-import type { UpdateRoleRequest } from "@/features/access-control/schemas/access-control-schemas"
+import type {
+  CreateRoleRequest,
+  UpdateRoleRequest,
+} from "@/features/access-control/schemas/access-control-schemas"
+
+export function useCreateRoleMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.roles(),
+      successMessage: "Đã tạo vai trò mới.",
+    },
+    mutationFn: (input: CreateRoleRequest) =>
+      accessControlApi.createRole(input),
+  })
+}
 
 type UpdateRoleVariables = {
   input: UpdateRoleRequest
@@ -15,7 +29,7 @@ export function useUpdateRoleMutation() {
   return useMutation({
     meta: {
       invalidatesQuery: accessControlKeys.roles(),
-      successMessage: "Đã cập nhật quyền của vai trò.",
+      successMessage: "Đã cập nhật vai trò.",
     },
     mutationFn: ({ input, roleId }: UpdateRoleVariables) =>
       accessControlApi.updateRole(roleId, input),
@@ -36,5 +50,25 @@ export function useUpdateRoleMutation() {
             : current
       )
     },
+  })
+}
+
+export function useDeleteRoleMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.roles(),
+      successMessage: "Đã vô hiệu hóa vai trò.",
+    },
+    mutationFn: (roleId: string) => accessControlApi.deleteRole(roleId),
+  })
+}
+
+export function useRecoverRoleMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.roles(),
+      successMessage: "Đã khôi phục vai trò.",
+    },
+    mutationFn: (roleId: string) => accessControlApi.recoverRole(roleId),
   })
 }
