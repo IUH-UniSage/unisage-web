@@ -1,0 +1,135 @@
+import type { AccessPermission } from "@/features/access-control/schemas/access-control-schemas"
+
+const resourceLabels: Record<string, string> = {
+  ACCOUNT: "Tài khoản",
+  AUDIT_LOG: "Nhật ký kiểm toán",
+  CATEGORY: "Danh mục",
+  CHATBOT_CONFIG: "Cấu hình chatbot",
+  CHATBOT_POOL: "Cụm chatbot",
+  CONVERSATION: "Cuộc trò chuyện",
+  DOCUMENT: "Tài liệu",
+  DOCUMENT_CHUNK: "Đoạn tài liệu",
+  DOCUMENT_PROCESS_LOG: "Nhật ký xử lý",
+  DOC_PACKAGE: "Gói tri thức",
+  EMBEDDED_MODEL: "Mô hình nhúng",
+  INGEST: "Nạp dữ liệu",
+  LLM_TRACE_LOG: "Truy vết mô hình",
+  MESSAGE: "Tin nhắn",
+  PERMISSION: "Quyền hạn",
+  ROLE: "Vai trò",
+  SUPER_ADMIN: "Quản trị toàn hệ thống",
+  USER: "Người dùng",
+}
+
+const actionLabels: Record<string, string> = {
+  ALL: "Toàn quyền",
+  CREATE: "Tạo mới",
+  DELETE: "Xóa",
+  READ: "Xem",
+  SEND: "Gửi",
+  TOGGLE_ACTIVE: "Bật / tắt",
+  UPDATE: "Cập nhật",
+}
+
+const roleLabels: Record<string, string> = {
+  INGEST_ADMIN: "Quản trị tri thức",
+  SUPER_ADMIN: "Quản trị hệ thống",
+  USER: "Người dùng",
+}
+
+const actionSuffixes = [
+  "TOGGLE_ACTIVE",
+  "CREATE",
+  "UPDATE",
+  "DELETE",
+  "READ",
+  "SEND",
+  "ALL",
+] as const
+
+export type PermissionGroup = {
+  items: AccessPermission[]
+  resource: string
+}
+
+function splitPermissionName(name: string) {
+  const action = actionSuffixes.find((suffix) => name.endsWith(`_${suffix}`))
+
+  if (!action) return { action: name, resource: name }
+
+  return {
+    action,
+    resource: name.slice(0, -(action.length + 1)),
+  }
+}
+
+export function getPermissionLabel(permission: AccessPermission) {
+  const { action } = splitPermissionName(permission.name)
+  return actionLabels[action] ?? action
+}
+
+export function getResourceLabel(resource: string) {
+  return resourceLabels[resource] ?? resource.replaceAll("_", " ")
+}
+
+export function getRoleLabel(name: string) {
+  return roleLabels[name] ?? name.replaceAll("_", " ")
+}
+
+export function groupPermissions(
+  permissions: AccessPermission[],
+  searchQuery: string
+): PermissionGroup[] {
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase("vi")
+  const groups = new Map<string, AccessPermission[]>()
+
+  permissions
+    .filter((permission) => {
+      if (!permission.isActive) return false
+      if (!normalizedSearch) return true
+
+      const { action, resource } = splitPermissionName(permission.name)
+      const searchable = [
+        permission.name,
+        getPermissionLabel(permission),
+        getResourceLabel(resource),
+        action,
+      ]
+        .join(" ")
+        .toLocaleLowerCase("vi")
+
+      return searchable.includes(normalizedSearch)
+    })
+    .forEach((permission) => {
+      const { resource } = splitPermissionName(permission.name)
+      const current = groups.get(resource) ?? []
+      current.push(permission)
+      groups.set(resource, current)
+    })
+
+  return [...groups.entries()]
+    .map(([resource, items]) => ({
+      items: items.sort((left, right) => {
+        const levelDifference =
+          (left.accessLevel ?? 0) - (right.accessLevel ?? 0)
+        return left.name.localeCompare(right.name) || levelDifference
+      }),
+      resource,
+    }))
+    .sort((left, right) =>
+      getResourceLabel(left.resource).localeCompare(
+        getResourceLabel(right.resource),
+        "vi"
+      )
+    )
+}
+
+export function equalPermissionSets(
+  left: readonly string[],
+  right: readonly string[]
+) {
+  if (left.length !== right.length) return false
+
+  const rightSet = new Set(right)
+  return left.every((id) => rightSet.has(id))
+}
