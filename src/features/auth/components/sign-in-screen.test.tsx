@@ -78,7 +78,10 @@ function renderSignIn() {
 
 async function submitCredentials() {
   const user = userEvent.setup()
-  await user.type(screen.getByLabelText("Mã tài khoản"), "SV001")
+  await user.type(
+    screen.getByLabelText("Mã sinh viên hoặc mã giảng viên"),
+    "SV001"
+  )
   await user.type(screen.getByLabelText("Mật khẩu"), "Secret@123")
   await user.click(screen.getByRole("button", { name: "Đăng nhập" }))
 }
@@ -102,7 +105,7 @@ describe("sign-in integration", () => {
           {
             code: 1006,
             data: null,
-            message: "Mã tài khoản hoặc mật khẩu không chính xác.",
+            message: "Mã sinh viên/giảng viên hoặc mật khẩu không chính xác.",
           },
           { status: 401 }
         )
@@ -113,7 +116,7 @@ describe("sign-in integration", () => {
     await submitCredentials()
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Mã tài khoản hoặc mật khẩu không chính xác."
+      "Mã sinh viên/giảng viên hoặc mật khẩu không chính xác."
     )
     expect(
       screen.getByRole("heading", { name: "Đăng nhập UniSage" })

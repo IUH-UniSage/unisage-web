@@ -20,7 +20,10 @@ const authenticatedAccountSchema = z.object({
 })
 
 export const loginRequestSchema = z.object({
-  code: z.string().trim().min(1, "Vui lòng nhập mã tài khoản."),
+  code: z
+    .string()
+    .trim()
+    .min(1, "Vui lòng nhập mã sinh viên hoặc mã giảng viên."),
   password: z.string().min(1, "Vui lòng nhập mật khẩu."),
 })
 

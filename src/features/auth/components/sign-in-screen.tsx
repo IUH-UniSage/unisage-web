@@ -51,20 +51,21 @@ export function SignInPage() {
           Đăng nhập UniSage
         </h2>
         <p className="mt-2.5 text-sm leading-6 text-muted-foreground">
-          Sử dụng mã tài khoản được nhà trường cấp để vào không gian làm việc.
+          Sử dụng mã sinh viên hoặc mã giảng viên được nhà trường cấp để vào
+          không gian làm việc.
         </p>
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
-          <Label htmlFor="code">Mã tài khoản</Label>
+          <Label htmlFor="code">Mã sinh viên hoặc mã giảng viên</Label>
           <Input
             aria-invalid={Boolean(errors.code)}
             autoComplete="username"
             autoFocus
             className="h-11 bg-card"
             id="code"
-            placeholder="Nhập mã sinh viên hoặc mã nhân sự"
+            placeholder="Nhập mã sinh viên hoặc mã giảng viên"
             {...register("code")}
           />
           {errors.code ? (
