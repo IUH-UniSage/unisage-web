@@ -8,5 +8,4 @@ export { USER_ROLES } from "@/features/auth/lib/role-routing"
 export type {
   AuthSession,
   PermissionInfo,
-  UserProfile,
 } from "@/features/auth/schemas/auth-schemas"

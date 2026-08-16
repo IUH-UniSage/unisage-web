@@ -40,7 +40,7 @@ export const accessControlApi = {
   async getPermissions(): Promise<AccessPermissionPage> {
     const response = await httpClient.get<ApiResponse<AccessPermissionPage>>(
       "/rbac/permissions",
-      { params: { page: 0, size: LIST_PAGE_SIZE } }
+      { params: { limit: LIST_PAGE_SIZE, page: 1 } }
     )
 
     return readSuccessData(response.data, accessPermissionPageSchema)
@@ -49,7 +49,7 @@ export const accessControlApi = {
   async getRoles(): Promise<AccessRolePage> {
     const response = await httpClient.get<ApiResponse<AccessRolePage>>(
       "/rbac/roles",
-      { params: { page: 0, size: LIST_PAGE_SIZE } }
+      { params: { limit: LIST_PAGE_SIZE, page: 1 } }
     )
 
     return readSuccessData(response.data, accessRolePageSchema)

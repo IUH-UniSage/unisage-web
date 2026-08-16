@@ -1,30 +1,30 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { PropsWithChildren } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 
 import {
   AuthContext,
   type AuthenticationStatus,
-  type LoginResult,
-  type PendingProfileSelection,
 } from "@/features/auth/model/auth-context"
-import {
-  createSessionFromLogin,
-  createSessionFromSelectedProfile,
-} from "@/features/auth/lib/auth-session"
+import { createSessionFromResponse } from "@/features/auth/lib/auth-session"
 import {
   useLoginMutation,
   useLogoutMutation,
   useRefreshSessionMutation,
-  useSelectProfileMutation,
 } from "@/features/auth/queries/use-mutations"
 import type {
   AuthSession,
   LoginRequest,
+  RefreshResponse,
 } from "@/features/auth/schemas/auth-schemas"
-import { authSessionSchema } from "@/features/auth/schemas/auth-schemas"
+import {
+  authSessionSchema,
+  refreshResponseSchema,
+} from "@/features/auth/schemas/auth-schemas"
+import { readSuccessData } from "@/lib/api-response"
 import {
   AUTH_SESSION_EXPIRED_EVENT,
+  AUTH_SESSION_REFRESHED_EVENT,
   clearLegacyAuthentication,
 } from "@/lib/axios-client"
 import { STORAGE_KEYS, storage } from "@/utils/local-storage"
@@ -38,14 +38,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const { mutateAsync: requestLogin } = useLoginMutation()
   const { mutateAsync: requestLogout } = useLogoutMutation()
   const { mutateAsync: refreshSession } = useRefreshSessionMutation()
-  const { mutateAsync: requestProfileSelection } = useSelectProfileMutation()
   const [initialSession] = useState(readCachedSession)
   const [session, setSession] = useState<AuthSession | null>(initialSession)
   const [status, setStatus] = useState<AuthenticationStatus>(
     initialSession ? "loading" : "unauthenticated"
   )
-  const [pendingProfileSelection, setPendingProfileSelection] =
-    useState<PendingProfileSelection | null>(null)
+  const refreshRequest = useRef<Promise<RefreshResponse> | null>(null)
 
   const persistSession = useCallback((nextSession: AuthSession) => {
     storage.set(STORAGE_KEYS.userProfile, nextSession)
@@ -56,7 +54,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const clearSession = useCallback(() => {
     clearLegacyAuthentication()
     storage.remove(STORAGE_KEYS.userProfile)
-    setPendingProfileSelection(null)
     setSession(null)
     setStatus("unauthenticated")
     queryClient.clear()
@@ -70,10 +67,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
 
     let active = true
+    refreshRequest.current ??= refreshSession()
 
-    refreshSession()
-      .then(() => {
-        if (active) setStatus("authenticated")
+    refreshRequest.current
+      .then((response) => {
+        if (active) persistSession(createSessionFromResponse(response))
       })
       .catch(() => {
         if (active) clearSession()
@@ -82,64 +80,46 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       active = false
     }
-  }, [clearSession, initialSession, refreshSession])
+  }, [clearSession, initialSession, persistSession, refreshSession])
 
   useEffect(() => {
     const handleExpiredSession = () => clearSession()
+    const handleRefreshedSession = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return
+
+      try {
+        const response = readSuccessData(event.detail, refreshResponseSchema)
+        persistSession(createSessionFromResponse(response))
+      } catch {
+        clearSession()
+      }
+    }
 
     window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleExpiredSession)
-    return () =>
+    window.addEventListener(
+      AUTH_SESSION_REFRESHED_EVENT,
+      handleRefreshedSession
+    )
+    return () => {
       window.removeEventListener(
         AUTH_SESSION_EXPIRED_EVENT,
         handleExpiredSession
       )
-  }, [clearSession])
+      window.removeEventListener(
+        AUTH_SESSION_REFRESHED_EVENT,
+        handleRefreshedSession
+      )
+    }
+  }, [clearSession, persistSession])
 
   const login = useCallback(
-    async (input: LoginRequest): Promise<LoginResult> => {
+    async (input: LoginRequest): Promise<AuthSession> => {
       const response = await requestLogin(input)
-
-      if (response.profiles.length === 0) {
-        throw new Error("Tài khoản chưa có hồ sơ sử dụng UniSage.")
-      }
-
-      if (response.profiles.length === 1 && response.accessToken) {
-        const nextSession = createSessionFromLogin(
-          response,
-          response.profiles[0]
-        )
-        persistSession(nextSession)
-
-        return {
-          requiresProfileSelection: false,
-          session: nextSession,
-        }
-      }
-
-      setPendingProfileSelection({
-        code: response.code,
-        email: response.email,
-        profiles: response.profiles,
-      })
-
-      return {
-        requiresProfileSelection: true,
-        session: null,
-      }
-    },
-    [persistSession, requestLogin]
-  )
-
-  const selectProfile = useCallback(
-    async (userId: string): Promise<AuthSession> => {
-      const response = await requestProfileSelection(userId)
-      const nextSession = createSessionFromSelectedProfile(response, userId)
+      const nextSession = createSessionFromResponse(response)
       persistSession(nextSession)
-      setPendingProfileSelection(null)
-
       return nextSession
     },
-    [persistSession, requestProfileSelection]
+    [persistSession, requestLogin]
   )
 
   const logout = useCallback(async () => {
@@ -154,13 +134,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     () => ({
       login,
       logout,
-      pendingProfileSelection,
-      resetPendingProfileSelection: () => setPendingProfileSelection(null),
-      selectProfile,
       session,
       status,
     }),
-    [login, logout, pendingProfileSelection, selectProfile, session, status]
+    [login, logout, session, status]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

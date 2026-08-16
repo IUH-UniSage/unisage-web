@@ -35,6 +35,18 @@ describe("API response helpers", () => {
     ).toEqual(data)
   })
 
+  it("When a successful response omits data, then it remains valid", () => {
+    expect(
+      readApiResponse(
+        {
+          code: 1000,
+          message: "Successful",
+        },
+        z.null()
+      ).data
+    ).toBeUndefined()
+  })
+
   it("preserves Backend code and field errors when a response fails", () => {
     let thrownError: unknown
 

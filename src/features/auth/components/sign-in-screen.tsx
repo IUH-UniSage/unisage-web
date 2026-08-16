@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthPageShell } from "@/features/auth/components/auth-page-shell"
-import { ProfileSelection } from "@/features/auth/components/profile-selection"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import { getRoleHome } from "@/features/auth/lib/role-routing"
 import type { LoginRequest } from "@/features/auth/schemas/auth-schemas"
@@ -17,15 +16,8 @@ import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 export function SignInPage() {
   const navigate = useNavigate()
-  const {
-    login,
-    pendingProfileSelection,
-    resetPendingProfileSelection,
-    selectProfile,
-  } = useAuth()
+  const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
-  const [selectingUserId, setSelectingUserId] = useState<string | null>(null)
-  const [profileError, setProfileError] = useState<string>()
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -41,47 +33,13 @@ export function SignInPage() {
 
   const onSubmit = async (values: LoginRequest) => {
     try {
-      const result = await login(values)
-
-      if (result.session) {
-        await navigate(getRoleHome(result.session.role), { replace: true })
-      }
+      const session = await login(values)
+      await navigate(getRoleHome(session.role), { replace: true })
     } catch (error) {
       if (!applyFieldErrors(error, setError)) {
         setError("root", { message: getErrorMessage(error) })
       }
     }
-  }
-
-  const handleSelectProfile = async (userId: string) => {
-    setSelectingUserId(userId)
-    setProfileError(undefined)
-
-    try {
-      const session = await selectProfile(userId)
-      await navigate(getRoleHome(session.role), { replace: true })
-    } catch (error) {
-      setProfileError(getErrorMessage(error))
-      setSelectingUserId(null)
-    }
-  }
-
-  if (pendingProfileSelection) {
-    return (
-      <AuthPageShell>
-        <ProfileSelection
-          errorMessage={profileError}
-          onBack={() => {
-            setProfileError(undefined)
-            setSelectingUserId(null)
-            resetPendingProfileSelection()
-          }}
-          onSelect={(userId) => void handleSelectProfile(userId)}
-          pendingProfileSelection={pendingProfileSelection}
-          selectingUserId={selectingUserId}
-        />
-      </AuthPageShell>
-    )
   }
 
   return (

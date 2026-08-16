@@ -31,11 +31,3 @@ export function useRefreshSessionMutation() {
     mutationKey: authKeys.refresh(),
   })
 }
-
-export function useSelectProfileMutation() {
-  return useMutation({
-    meta: authMutationMeta,
-    mutationFn: (userId: string) => authApi.selectProfile(userId),
-    mutationKey: authKeys.selectProfile(),
-  })
-}

@@ -4,7 +4,7 @@ import type { InternalAxiosRequestConfig } from "axios"
 import { STORAGE_KEYS, storage } from "@/utils/local-storage"
 
 const baseURL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api/v1"
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8081/api/v1"
 
 export const httpClient = axios.create({
   baseURL,
@@ -29,6 +29,7 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
 }
 
 export const AUTH_SESSION_EXPIRED_EVENT = "unisage:auth-session-expired"
+export const AUTH_SESSION_REFRESHED_EVENT = "unisage:auth-session-refreshed"
 
 let refreshRequest: Promise<unknown> | null = null
 
@@ -62,9 +63,19 @@ httpClient.interceptors.response.use(
     config._authRetry = true
 
     try {
-      refreshRequest ??= refreshClient.post("/auth/refresh").finally(() => {
-        refreshRequest = null
-      })
+      refreshRequest ??= refreshClient
+        .post("/auth/refresh")
+        .then((response) => {
+          window.dispatchEvent(
+            new CustomEvent(AUTH_SESSION_REFRESHED_EVENT, {
+              detail: response.data,
+            })
+          )
+          return response
+        })
+        .finally(() => {
+          refreshRequest = null
+        })
 
       await refreshRequest
       return httpClient.request(config)

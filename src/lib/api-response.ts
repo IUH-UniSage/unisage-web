@@ -20,7 +20,7 @@ export class ApiResponseError extends Error {
 export const apiResponseSchema = <T>(dataSchema: ZodType<T>) =>
   z.object({
     code: z.number(),
-    data: dataSchema.nullable(),
+    data: dataSchema.nullish(),
     errors: z.record(z.string(), z.string()).nullish(),
     message: z.string(),
   })
@@ -44,7 +44,7 @@ export function readSuccessData<T>(
 ): T {
   const response = readApiResponse(payload, dataSchema)
 
-  if (response.data === null) {
+  if (response.data == null) {
     throw new ApiResponseError(response)
   }
 

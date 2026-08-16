@@ -4,14 +4,11 @@ import type {
   AuthResponse,
   LoginRequest,
   RefreshResponse,
-  SelectProfileResponse,
 } from "@/features/auth/schemas/auth-schemas"
 import {
   authResponseSchema,
   loginRequestSchema,
   refreshResponseSchema,
-  selectProfileRequestSchema,
-  selectProfileResponseSchema,
 } from "@/features/auth/schemas/auth-schemas"
 import { readApiResponse, readSuccessData } from "@/lib/api-response"
 import { httpClient } from "@/lib/axios-client"
@@ -39,15 +36,5 @@ export const authApi = {
       await httpClient.post<ApiResponse<RefreshResponse>>("/auth/refresh")
 
     return readSuccessData(response.data, refreshResponseSchema)
-  },
-
-  async selectProfile(userId: string): Promise<SelectProfileResponse> {
-    const request = selectProfileRequestSchema.parse({ userId })
-    const response = await httpClient.post<ApiResponse<SelectProfileResponse>>(
-      "/auth/select-profile",
-      request
-    )
-
-    return readSuccessData(response.data, selectProfileResponseSchema)
   },
 }
