@@ -1,5 +1,4 @@
-import { Construction } from "lucide-react"
-
+import { FeatureComingSoon } from "@/components/shared/feature-coming-soon"
 import { Card, CardContent } from "@/components/ui/card"
 
 type WorkspacePlaceholderPageProps = {
@@ -12,15 +11,11 @@ export function WorkspacePlaceholderPage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 md:px-6">
       <Card>
-        <CardContent className="flex flex-col items-center py-12 text-center">
-          <div className="mb-5 grid size-14 place-items-center rounded-xl bg-secondary">
-            <Construction aria-hidden="true" className="size-6 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold">{title}</h1>
-          <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-            Nền tảng định tuyến và không gian làm việc đã sẵn sàng. Tính năng
-            này sẽ được hoàn thiện trong giai đoạn tương ứng.
-          </p>
+        <CardContent className="py-12">
+          <FeatureComingSoon
+            description="Không gian này đang được hoàn thiện và sẽ sớm có mặt trên UniSage."
+            title={title}
+          />
         </CardContent>
       </Card>
     </div>

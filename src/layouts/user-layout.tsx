@@ -109,38 +109,55 @@ export function UserLayout() {
             <div className="ml-auto flex shrink-0 items-center gap-1">
               <div className="hidden items-center gap-1 lg:flex">
                 <ThemeToggle />
-                <Button
-                  asChild
-                  aria-label="Thông báo"
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Link to={ROUTES.notifications}>
-                    <Bell aria-hidden="true" />
-                  </Link>
-                </Button>
-                <Button asChild className="rounded-full p-0" variant="ghost">
-                  <Link aria-label="Mở hồ sơ cá nhân" to={ROUTES.profile}>
-                    <Avatar className="size-9">
-                      {session?.avatarUrl ? (
-                        <AvatarImage
-                          alt=""
-                          referrerPolicy="no-referrer"
-                          src={session.avatarUrl}
-                        />
-                      ) : null}
-                      <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
-                        {session ? getInitials(session.fullName) : "US"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Link>
-                </Button>
-                <LogoutButton
-                  aria-label="Đăng xuất"
-                  label=""
-                  size="icon"
-                  variant="ghost"
-                />
+                {session ? (
+                  <>
+                    <Button
+                      asChild
+                      aria-label="Thông báo"
+                      size="icon"
+                      variant="ghost"
+                    >
+                      <Link to={ROUTES.notifications}>
+                        <Bell aria-hidden="true" />
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      className="rounded-full p-0"
+                      variant="ghost"
+                    >
+                      <Link aria-label="Mở hồ sơ cá nhân" to={ROUTES.profile}>
+                        <Avatar className="size-9">
+                          {session.avatarUrl ? (
+                            <AvatarImage
+                              alt=""
+                              referrerPolicy="no-referrer"
+                              src={session.avatarUrl}
+                            />
+                          ) : null}
+                          <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
+                            {getInitials(session.fullName)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Link>
+                    </Button>
+                    <LogoutButton
+                      aria-label="Đăng xuất"
+                      label=""
+                      size="icon"
+                      variant="ghost"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Button asChild size="sm" variant="ghost">
+                      <Link to={ROUTES.signIn}>Đăng nhập</Link>
+                    </Button>
+                    <Button asChild size="sm">
+                      <Link to={ROUTES.signUp}>Đăng ký</Link>
+                    </Button>
+                  </>
+                )}
               </div>
 
               <Sheet>
@@ -185,28 +202,43 @@ export function UserLayout() {
                   </div>
 
                   <div className="mt-auto border-t border-primary/10 p-5">
-                    <Link
-                      className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
-                      to={ROUTES.notifications}
-                    >
-                      <Bell aria-hidden="true" className="size-4" />
-                      Thông báo
-                    </Link>
-                    <Link
-                      className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
-                      to={ROUTES.profile}
-                    >
-                      <UserRound aria-hidden="true" className="size-4" />
-                      Hồ sơ và quyền truy cập
-                    </Link>
+                    {session ? (
+                      <>
+                        <Link
+                          className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
+                          to={ROUTES.notifications}
+                        >
+                          <Bell aria-hidden="true" className="size-4" />
+                          Thông báo
+                        </Link>
+                        <Link
+                          className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
+                          to={ROUTES.profile}
+                        >
+                          <UserRound aria-hidden="true" className="size-4" />
+                          Hồ sơ và quyền truy cập
+                        </Link>
+                      </>
+                    ) : (
+                      <div className="grid gap-3">
+                        <Button asChild>
+                          <Link to={ROUTES.signIn}>Đăng nhập</Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                          <Link to={ROUTES.signUp}>Đăng ký tài khoản</Link>
+                        </Button>
+                      </div>
+                    )}
                     <div className="mt-3 flex min-h-11 items-center justify-between border-t border-primary/10 pt-3 text-sm font-medium text-primary">
                       <span>Giao diện</span>
                       <ThemeToggle />
                     </div>
-                    <LogoutButton
-                      className="mt-2 w-full justify-start"
-                      variant="ghost"
-                    />
+                    {session ? (
+                      <LogoutButton
+                        className="mt-2 w-full justify-start"
+                        variant="ghost"
+                      />
+                    ) : null}
                   </div>
                 </SheetContent>
               </Sheet>

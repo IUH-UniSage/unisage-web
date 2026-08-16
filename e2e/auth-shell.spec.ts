@@ -35,7 +35,7 @@ const workspaceRoutes = [
     path: "/login",
   },
   {
-    heading: "Tài khoản do nhà trường cấp",
+    heading: "Đăng ký tài khoản",
     name: "registration",
     path: "/register",
     role: null,
@@ -81,7 +81,7 @@ test("redirects the legacy registration route", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/register$/)
   await expect(
-    page.getByRole("heading", { name: "Tài khoản do nhà trường cấp" })
+    page.getByRole("heading", { name: "Đăng ký tài khoản" })
   ).toBeVisible()
 })
 

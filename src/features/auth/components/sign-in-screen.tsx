@@ -2,11 +2,12 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ROUTES } from "@/constants/paths"
 import { AuthPageShell } from "@/features/auth/components/auth-page-shell"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import { getRoleHome } from "@/features/auth/lib/role-routing"
@@ -72,12 +73,7 @@ export function SignInPage() {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <Label htmlFor="password">Mật khẩu</Label>
-            <span className="text-xs text-muted-foreground">
-              Liên hệ CNTT nếu quên mật khẩu
-            </span>
-          </div>
+          <Label htmlFor="password">Mật khẩu</Label>
           <div className="relative">
             <Input
               aria-invalid={Boolean(errors.password)}
@@ -128,6 +124,16 @@ export function SignInPage() {
           <ArrowRight aria-hidden="true" />
         </Button>
       </form>
+
+      <p className="mt-5 text-center text-sm text-muted-foreground">
+        Chưa có tài khoản?{" "}
+        <Link
+          className="font-semibold text-primary underline-offset-4 hover:underline"
+          to={ROUTES.signUp}
+        >
+          Đăng ký
+        </Link>
+      </p>
 
       <div className="mt-5 border-t pt-5 text-center text-xs leading-5 text-muted-foreground">
         Tài khoản UniSage do nhà trường cấp và quản lý. Không chia sẻ thông tin
