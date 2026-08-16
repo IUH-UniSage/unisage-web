@@ -1,6 +1,76 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
+
+const sessionByRole = {
+  INGEST_ADMIN: {
+    code: "NV001",
+    fullName: "Nguyễn Văn Ingest",
+    role: "INGEST_ADMIN",
+  },
+  SUPER_ADMIN: {
+    code: "AD001",
+    fullName: "Trần Ngọc Huyền",
+    role: "SUPER_ADMIN",
+  },
+  USER: {
+    code: "SV001",
+    fullName: "Nguyễn Minh Anh",
+    role: "USER",
+  },
+} as const
+
+async function authenticateAs(
+  page: Page,
+  role: keyof typeof sessionByRole = "USER"
+) {
+  const account = sessionByRole[role]
+  const session = {
+    avatarUrl: null,
+    code: account.code,
+    email: `${account.code.toLowerCase()}@example.edu.vn`,
+    fullName: account.fullName,
+    isSystemRole: role !== "USER",
+    permissions: [
+      {
+        accessLevel: 5,
+        id: "a931f2ee-e2b1-45cf-9299-6f96f8a8db89",
+        name: role === "INGEST_ADMIN" ? "INGEST_ALL" : "DOCUMENT_READ",
+      },
+    ],
+    role,
+    userId: "a76398bd-c8ac-4fa8-803e-0a91e207347c",
+  }
+
+  await page.addInitScript(
+    ({ cachedSession, storageKey }) => {
+      window.localStorage.setItem(storageKey, JSON.stringify(cachedSession))
+    },
+    {
+      cachedSession: session,
+      storageKey: "unisage_user_profile",
+    }
+  )
+  await page.route("**/api/v1/auth/refresh", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      json: {
+        code: 1000,
+        data: {
+          accessToken: "access-token",
+          code: account.code,
+          email: session.email,
+          profiles: [],
+          refreshToken: "refresh-token",
+          refreshTokenExpirationMs: 60_000,
+        },
+        message: "Successful",
+      },
+      status: 200,
+    })
+  })
+}
 
 test("renders the user home without horizontal overflow", async ({ page }) => {
+  await authenticateAs(page)
   await page.goto("/")
 
   await expect(
@@ -22,6 +92,7 @@ test("renders the user home without horizontal overflow", async ({ page }) => {
 test("uses a dedicated chat shell and keeps the composer visible", async ({
   page,
 }) => {
+  await authenticateAs(page)
   await page.goto("/chat")
 
   await expect(
@@ -47,6 +118,7 @@ test("opens a saved conversation and returns to new chat", async ({
 }, testInfo) => {
   test.skip(testInfo.project.name === "mobile-chromium")
 
+  await authenticateAs(page)
   await page.goto("/chat")
   await page
     .getByRole("button", {
@@ -78,6 +150,7 @@ test("filters history and toggles desktop panels", async ({
 }, testInfo) => {
   test.skip(testInfo.project.name === "mobile-chromium")
 
+  await authenticateAs(page)
   await page.goto("/chat")
 
   const historyViewport = page
@@ -119,6 +192,7 @@ test("manages a conversation without share or archive actions", async ({
 }, testInfo) => {
   test.skip(testInfo.project.name === "mobile-chromium")
 
+  await authenticateAs(page)
   await page.goto("/chat")
   await page
     .getByRole("button", {
@@ -153,6 +227,7 @@ test("manages a conversation without share or archive actions", async ({
 test("opens the mobile chat history drawer", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop-chromium")
 
+  await authenticateAs(page)
   await page.goto("/chat")
   await expect(
     page.getByRole("button", { name: "Tùy chọn cuộc trò chuyện" })
@@ -182,6 +257,7 @@ test("opens the mobile chat history drawer", async ({ page }, testInfo) => {
 test("links only to supported user workspaces", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile-chromium")
 
+  await authenticateAs(page)
   await page.goto("/")
 
   const navigation = page.getByRole("navigation", {
@@ -203,6 +279,7 @@ test("links only to supported user workspaces", async ({ page }, testInfo) => {
 test("opens the mobile navigation drawer", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop-chromium")
 
+  await authenticateAs(page)
   await page.goto("/")
   await page.getByRole("button", { name: "Mở điều hướng" }).click()
 
@@ -227,6 +304,53 @@ test("opens the mobile navigation drawer", async ({ page }, testInfo) => {
   await expect(drawer).not.toBeVisible()
 })
 
+test("redirects unauthenticated users to login", async ({ page }) => {
+  await page.goto("/admin")
+
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(
+    page.getByRole("heading", { name: "Đăng nhập UniSage" })
+  ).toBeVisible()
+})
+
+test("redirects a user away from another role workspace", async ({ page }) => {
+  await authenticateAs(page)
+  await page.goto("/admin")
+
+  await expect(page).toHaveURL(/\/$/)
+  await expect(
+    page.getByRole("heading", {
+      name: "Hôm nay UniSage có thể giúp bạn hiểu điều gì?",
+    })
+  ).toBeVisible()
+})
+
+test("logs out and clears the cached profile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile-chromium")
+
+  await authenticateAs(page)
+  await page.route("**/api/v1/auth/logout", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      json: {
+        code: 1000,
+        data: null,
+        message: "Successful",
+      },
+      status: 200,
+    })
+  })
+  await page.goto("/")
+  await page.getByRole("button", { name: "Đăng xuất" }).click()
+
+  await expect(page).toHaveURL(/\/login$/)
+  expect(
+    await page.evaluate(() =>
+      window.localStorage.getItem("unisage_user_profile")
+    )
+  ).toBeNull()
+})
+
 const workspaceRoutes = [
   {
     heading: "Đăng nhập UniSage",
@@ -234,24 +358,30 @@ const workspaceRoutes = [
     path: "/login",
   },
   {
-    heading: "Tạo tài khoản",
+    heading: "Tài khoản do nhà trường cấp",
     name: "registration",
     path: "/register",
+    role: null,
   },
   {
     heading: "Tổng quan nạp tài liệu",
     name: "ingester",
     path: "/ingester",
+    role: "INGEST_ADMIN",
   },
   {
     heading: "Tổng quan hệ thống",
     name: "system admin",
     path: "/admin",
+    role: "SUPER_ADMIN",
   },
 ] as const
 
 for (const workspace of workspaceRoutes) {
   test(`renders the ${workspace.name} workspace`, async ({ page }) => {
+    if ("role" in workspace && workspace.role) {
+      await authenticateAs(page, workspace.role)
+    }
     await page.goto(workspace.path)
 
     await expect(
@@ -274,7 +404,7 @@ test("redirects the legacy registration route", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/register$/)
   await expect(
-    page.getByRole("heading", { name: "Tạo tài khoản" })
+    page.getByRole("heading", { name: "Tài khoản do nhà trường cấp" })
   ).toBeVisible()
 })
 

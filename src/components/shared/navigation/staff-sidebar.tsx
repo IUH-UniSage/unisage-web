@@ -7,7 +7,6 @@ import {
   FileText,
   Gauge,
   HeartPulse,
-  LogOut,
   Settings,
   ShieldCheck,
   UploadCloud,
@@ -18,6 +17,7 @@ import { NavLink } from "react-router-dom"
 import { BrandLogo } from "@/components/shared/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/constants/paths"
+import { LogoutButton } from "@/features/auth/components/logout-button"
 import { cn } from "@/lib/utils"
 
 export type StaffWorkspace = "ingester" | "system-admin"
@@ -122,13 +122,10 @@ export function StaffSidebar({
           <CircleHelp aria-hidden="true" />
           Hỗ trợ
         </Button>
-        <Button
+        <LogoutButton
           className="w-full justify-start text-white/76 hover:bg-white/10 hover:text-white"
           variant="ghost"
-        >
-          <LogOut aria-hidden="true" />
-          Đăng xuất
-        </Button>
+        />
       </div>
     </aside>
   )

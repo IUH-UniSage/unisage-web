@@ -2,44 +2,86 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { Link } from "react-router-dom"
-import { toast } from "sonner"
-import { z } from "zod"
+import { useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ROUTES } from "@/constants/paths"
 import { AuthPageShell } from "@/features/auth/components/auth-page-shell"
-
-const signInSchema = z.object({
-  email: z.email("Vui lòng nhập email trường hợp lệ."),
-  password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự."),
-  remember: z.boolean(),
-})
-
-type SignInValues = z.infer<typeof signInSchema>
+import { ProfileSelection } from "@/features/auth/components/profile-selection"
+import { useAuth } from "@/features/auth/hooks/use-auth"
+import { getRoleHome } from "@/features/auth/lib/role-routing"
+import type { LoginRequest } from "@/features/auth/schemas/auth-schemas"
+import { loginRequestSchema } from "@/features/auth/schemas/auth-schemas"
+import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 export function SignInPage() {
+  const navigate = useNavigate()
+  const {
+    login,
+    pendingProfileSelection,
+    resetPendingProfileSelection,
+    selectProfile,
+  } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [selectingUserId, setSelectingUserId] = useState<string | null>(null)
+  const [profileError, setProfileError] = useState<string>()
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
-    setValue,
-    watch,
-  } = useForm<SignInValues>({
+    setError,
+  } = useForm<LoginRequest>({
     defaultValues: {
-      email: "",
+      code: "",
       password: "",
-      remember: false,
     },
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(loginRequestSchema),
   })
 
-  const onSubmit = () => {
-    toast.info("Chức năng đăng nhập sẽ hoạt động khi kết nối API.")
+  const onSubmit = async (values: LoginRequest) => {
+    try {
+      const result = await login(values)
+
+      if (result.session) {
+        await navigate(getRoleHome(result.session.role), { replace: true })
+      }
+    } catch (error) {
+      if (!applyFieldErrors(error, setError)) {
+        setError("root", { message: getErrorMessage(error) })
+      }
+    }
+  }
+
+  const handleSelectProfile = async (userId: string) => {
+    setSelectingUserId(userId)
+    setProfileError(undefined)
+
+    try {
+      const session = await selectProfile(userId)
+      await navigate(getRoleHome(session.role), { replace: true })
+    } catch (error) {
+      setProfileError(getErrorMessage(error))
+      setSelectingUserId(null)
+    }
+  }
+
+  if (pendingProfileSelection) {
+    return (
+      <AuthPageShell>
+        <ProfileSelection
+          errorMessage={profileError}
+          onBack={() => {
+            setProfileError(undefined)
+            setSelectingUserId(null)
+            resetPendingProfileSelection()
+          }}
+          onSelect={(userId) => void handleSelectProfile(userId)}
+          pendingProfileSelection={pendingProfileSelection}
+          selectingUserId={selectingUserId}
+        />
+      </AuthPageShell>
+    )
   }
 
   return (
@@ -50,39 +92,33 @@ export function SignInPage() {
           Đăng nhập UniSage
         </h2>
         <p className="mt-2.5 text-sm leading-6 text-muted-foreground">
-          Sử dụng tài khoản trường để tiếp tục vào không gian làm việc.
+          Sử dụng mã tài khoản được nhà trường cấp để vào không gian làm việc.
         </p>
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
-          <Label htmlFor="email">Email trường</Label>
+          <Label htmlFor="code">Mã tài khoản</Label>
           <Input
-            aria-invalid={Boolean(errors.email)}
-            autoComplete="email"
+            aria-invalid={Boolean(errors.code)}
+            autoComplete="username"
+            autoFocus
             className="h-11 bg-card"
-            id="email"
-            placeholder="sinhvien@truong.edu.vn"
-            type="email"
-            {...register("email")}
+            id="code"
+            placeholder="Nhập mã sinh viên hoặc mã nhân sự"
+            {...register("code")}
           />
-          {errors.email ? (
-            <p className="text-xs text-destructive">{errors.email.message}</p>
+          {errors.code ? (
+            <p className="text-xs text-destructive">{errors.code.message}</p>
           ) : null}
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-4">
             <Label htmlFor="password">Mật khẩu</Label>
-            <button
-              className="text-xs font-semibold text-primary hover:underline"
-              onClick={() =>
-                toast.info("Chức năng khôi phục mật khẩu chưa được kết nối.")
-              }
-              type="button"
-            >
-              Quên mật khẩu?
-            </button>
+            <span className="text-xs text-muted-foreground">
+              Liên hệ CNTT nếu quên mật khẩu
+            </span>
           </div>
           <div className="relative">
             <Input
@@ -116,42 +152,28 @@ export function SignInPage() {
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Checkbox
-            checked={watch("remember")}
-            id="remember"
-            onCheckedChange={(checked) =>
-              setValue("remember", checked === true, {
-                shouldDirty: true,
-              })
-            }
-          />
-          <Label
-            className="font-normal text-muted-foreground"
-            htmlFor="remember"
+        {errors.root?.message ? (
+          <p
+            className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive"
+            role="alert"
           >
-            Duy trì đăng nhập trên thiết bị này
-          </Label>
-        </div>
+            {errors.root.message}
+          </p>
+        ) : null}
 
-        <Button className="h-11 w-full text-sm" disabled={isSubmitting}>
-          Đăng nhập
+        <Button
+          className="h-11 w-full text-sm"
+          disabled={isSubmitting}
+          type="submit"
+        >
+          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
           <ArrowRight aria-hidden="true" />
         </Button>
       </form>
 
-      <p className="mt-5 text-center text-sm text-muted-foreground">
-        Chưa có tài khoản?{" "}
-        <Link
-          className="font-semibold text-primary hover:underline"
-          to={ROUTES.signUp}
-        >
-          Tạo tài khoản
-        </Link>
-      </p>
-
       <div className="mt-5 border-t pt-5 text-center text-xs leading-5 text-muted-foreground">
-        Cần hỗ trợ truy cập tài khoản? Liên hệ bộ phận CNTT của trường.
+        Tài khoản UniSage do nhà trường cấp và quản lý. Không chia sẻ thông tin
+        đăng nhập với người khác.
       </div>
     </AuthPageShell>
   )

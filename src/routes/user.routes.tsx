@@ -2,9 +2,11 @@ import { lazy } from "react"
 import type { RouteObject } from "react-router-dom"
 
 import { ROUTE_SEGMENTS, ROUTES } from "@/constants/paths"
+import { USER_ROLES } from "@/features/auth/lib/role-routing"
 import { ChatLayout } from "@/layouts/chat-layout"
 import { UserLayout } from "@/layouts/user-layout"
 import { WorkspacePlaceholderPage } from "@/pages/shared/workspace-placeholder-page"
+import { PrivateRoute } from "@/routes/private-route"
 
 const UserHomePage = lazy(async () => {
   const { UserHomePage } = await import("@/pages/user/user-home-page")
@@ -19,7 +21,11 @@ const ChatPage = lazy(async () => {
 export const userRoutes: RouteObject[] = [
   {
     path: ROUTES.home,
-    element: <UserLayout />,
+    element: (
+      <PrivateRoute allowedRoles={[USER_ROLES.user]}>
+        <UserLayout />
+      </PrivateRoute>
+    ),
     children: [
       {
         index: true,
@@ -45,7 +51,11 @@ export const userRoutes: RouteObject[] = [
   },
   {
     path: ROUTES.chat,
-    element: <ChatLayout />,
+    element: (
+      <PrivateRoute allowedRoles={[USER_ROLES.user]}>
+        <ChatLayout />
+      </PrivateRoute>
+    ),
     children: [
       {
         index: true,

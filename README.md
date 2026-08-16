@@ -36,11 +36,15 @@ npm run storybook:build
 ## Foundation routes
 
 - `/login` - sign in (`/auth/login` redirects here for compatibility)
-- `/register` - create an account (`/auth/register` redirects here)
+- `/register` - account provisioning guidance (`/auth/register` redirects here)
 - `/` - user home
 - `/chat` - chat workspace
 - `/ingester` - document ingestion dashboard
 - `/admin` - System Admin overview
+
+User, ingester, chat, and admin routes require a valid Backend session. The
+frontend uses the Backend's `HttpOnly` access and refresh cookies and keeps only
+non-secret selected-profile metadata in local storage.
 
 Architecture decisions and the Stitch implementation map live in
 `docs/architecture.md` and `docs/route-screen-matrix.md`.

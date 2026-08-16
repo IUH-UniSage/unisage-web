@@ -118,17 +118,19 @@ API exists. Avoid importing private internals across feature boundaries.
 
 ## Routing and access
 
-Route objects are split by workspace. `PrivateRoute` and `PermissionRoute`
-provide typed guard contracts, but they are not attached yet because the auth
-API and session source are not available. This keeps the visual preview
-accessible without pretending that a user is authenticated.
+Route objects are split by workspace. `AuthProvider` restores the cookie-backed
+Backend session, `PrivateRoute` enforces authentication and role boundaries,
+and `PermissionRoute` reads exact server-derived permission names.
 
-When auth is connected:
+Workspace routing follows the Backend roles:
 
-1. Add an auth provider inside `app-providers.tsx`.
-2. Pass its explicit authentication status to `PrivateRoute`.
-3. Pass server-derived permissions to `PermissionRoute`.
-4. Apply guards in each workspace route module.
+1. `USER` enters the user and chat workspaces.
+2. `INGEST_ADMIN` enters the ingestion workspace.
+3. `SUPER_ADMIN` enters the system administration workspace.
+
+The access and refresh tokens remain in `HttpOnly` cookies. Local storage keeps
+only the selected profile needed for route presentation while the Backend
+remains the authorization source of truth.
 
 ## Data flow
 

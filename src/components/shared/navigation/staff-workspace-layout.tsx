@@ -7,7 +7,7 @@ import {
 } from "@/components/shared/navigation/staff-sidebar"
 import { SearchAndActions } from "@/components/shared/search-and-actions"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -16,12 +16,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { useAuth } from "@/features/auth/hooks/use-auth"
+import { getInitials } from "@/features/auth/lib/auth-session"
 
 type StaffWorkspaceLayoutProps = {
   workspace: StaffWorkspace
 }
 
 export function StaffWorkspaceLayout({ workspace }: StaffWorkspaceLayoutProps) {
+  const { session } = useAuth()
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
 
@@ -72,8 +75,15 @@ export function StaffWorkspaceLayout({ workspace }: StaffWorkspaceLayoutProps) {
             <Bell aria-hidden="true" />
           </Button>
           <Avatar className="size-9">
+            {session?.avatarUrl ? (
+              <AvatarImage
+                alt=""
+                referrerPolicy="no-referrer"
+                src={session.avatarUrl}
+              />
+            ) : null}
             <AvatarFallback className="bg-secondary text-xs font-semibold text-primary">
-              HT
+              {session ? getInitials(session.fullName) : "US"}
             </AvatarFallback>
           </Avatar>
         </header>

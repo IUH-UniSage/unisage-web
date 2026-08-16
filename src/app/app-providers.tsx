@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { AuthProvider } from "@/features/auth/model/auth-provider"
 import { queryClient } from "@/lib/query-client"
 import { STORAGE_KEYS } from "@/utils/local-storage"
 
@@ -17,10 +18,12 @@ export function AppProviders({ children }: PropsWithChildren) {
       storageKey={STORAGE_KEYS.theme}
     >
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          {children}
-          <Toaster position="bottom-right" richColors />
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            {children}
+            <Toaster position="bottom-right" richColors />
+          </TooltipProvider>
+        </AuthProvider>
         {import.meta.env.DEV ? <ReactQueryDevtools /> : null}
       </QueryClientProvider>
     </ThemeProvider>

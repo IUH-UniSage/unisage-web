@@ -3,7 +3,7 @@ import { Link, Outlet } from "react-router-dom"
 
 import { BrandLogo } from "@/components/shared/brand/brand-logo"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -14,6 +14,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { ROUTES } from "@/constants/paths"
+import { LogoutButton } from "@/features/auth/components/logout-button"
+import { useAuth } from "@/features/auth/hooks/use-auth"
+import { getInitials } from "@/features/auth/lib/auth-session"
 
 const userNavigation = [
   {
@@ -56,6 +59,8 @@ function UserNavigation({ mobile = false }: { mobile?: boolean }) {
 }
 
 export function UserLayout() {
+  const { session } = useAuth()
+
   return (
     <div className="min-h-svh bg-background">
       <header className="sticky top-0 z-30 shadow-[0_8px_24px_rgb(21_56_152_/_0.08)]">
@@ -117,12 +122,25 @@ export function UserLayout() {
                 <Button asChild className="rounded-full p-0" variant="ghost">
                   <Link aria-label="Mở hồ sơ cá nhân" to={ROUTES.profile}>
                     <Avatar className="size-9">
+                      {session?.avatarUrl ? (
+                        <AvatarImage
+                          alt=""
+                          referrerPolicy="no-referrer"
+                          src={session.avatarUrl}
+                        />
+                      ) : null}
                       <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
-                        HT
+                        {session ? getInitials(session.fullName) : "US"}
                       </AvatarFallback>
                     </Avatar>
                   </Link>
                 </Button>
+                <LogoutButton
+                  aria-label="Đăng xuất"
+                  label=""
+                  size="icon"
+                  variant="ghost"
+                />
               </div>
 
               <Sheet>
@@ -185,6 +203,10 @@ export function UserLayout() {
                       <span>Giao diện</span>
                       <ThemeToggle />
                     </div>
+                    <LogoutButton
+                      className="mt-2 w-full justify-start"
+                      variant="ghost"
+                    />
                   </div>
                 </SheetContent>
               </Sheet>

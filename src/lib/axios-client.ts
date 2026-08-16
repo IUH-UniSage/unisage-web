@@ -1,9 +1,13 @@
 import axios from "axios"
+import type { InternalAxiosRequestConfig } from "axios"
 
 import { STORAGE_KEYS, storage } from "@/utils/local-storage"
 
+const baseURL =
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api/v1"
+
 export const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL,
   timeout: 30_000,
   withCredentials: true,
   headers: {
@@ -11,32 +15,62 @@ export const httpClient = axios.create({
   },
 })
 
-export function getAccessToken(): string | null {
-  return storage.get<string>(STORAGE_KEYS.accessToken)
+const refreshClient = axios.create({
+  baseURL,
+  timeout: 30_000,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+})
+
+type RetryableRequestConfig = InternalAxiosRequestConfig & {
+  _authRetry?: boolean
 }
 
-export function setAccessToken(token: string | null): void {
-  if (token) {
-    storage.set(STORAGE_KEYS.accessToken, token)
-    return
-  }
+export const AUTH_SESSION_EXPIRED_EVENT = "unisage:auth-session-expired"
 
-  storage.remove(STORAGE_KEYS.accessToken)
-}
+let refreshRequest: Promise<unknown> | null = null
 
-export function clearAuthentication(): void {
+export function clearLegacyAuthentication(): void {
   storage.remove(STORAGE_KEYS.accessToken)
   storage.remove(STORAGE_KEYS.refreshToken)
 }
 
 httpClient.interceptors.request.use((config) => {
-  const accessToken = getAccessToken()
   const locale = storage.get<string>(STORAGE_KEYS.locale, "vi")
 
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`
-  }
   config.headers["Accept-Language"] = locale
 
   return config
 })
+
+httpClient.interceptors.response.use(
+  (response) => response,
+  async (error: unknown) => {
+    if (!axios.isAxiosError(error) || !error.config) {
+      return Promise.reject(error)
+    }
+
+    const config = error.config as RetryableRequestConfig
+    const isAuthRequest = config.url?.includes("/auth/") ?? false
+
+    if (error.response?.status !== 401 || config._authRetry || isAuthRequest) {
+      return Promise.reject(error)
+    }
+
+    config._authRetry = true
+
+    try {
+      refreshRequest ??= refreshClient.post("/auth/refresh").finally(() => {
+        refreshRequest = null
+      })
+
+      await refreshRequest
+      return httpClient.request(config)
+    } catch (refreshError) {
+      window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT))
+      return Promise.reject(refreshError)
+    }
+  }
+)

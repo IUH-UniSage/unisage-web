@@ -5,8 +5,8 @@ The first implementation pass uses these Google Stitch anchors from project
 
 | Route            | Workspace         | Stitch anchor                      | Current state     |
 | ---------------- | ----------------- | ---------------------------------- | ----------------- |
-| `/login`         | Authentication    | `7268c1f30b2342daa61d3b87c1ec8721` | Base screen       |
-| `/register`      | Authentication    | `n/a`                              | Base screen       |
+| `/login`         | Authentication    | `7268c1f30b2342daa61d3b87c1ec8721` | API integrated    |
+| `/register`      | Authentication    | `n/a`                              | Provisioning info |
 | `/`              | End user          | `ef4c466e8965416c99eabafbdbe2a39f` | Base screen       |
 | `/chat`          | End user          | `323d4166a5854b3ca200cd7357dfa3c6` | Base screen       |
 | `/knowledge`     | End user          | `46046eae14784c02aa9a35657186571c` | Route placeholder |
