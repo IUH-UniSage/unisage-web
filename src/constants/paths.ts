@@ -1,12 +1,20 @@
 export const ROUTE_SEGMENTS = {
   auth: "auth",
   chat: "chat",
+  documents: "documents",
+  health: "health",
   knowledge: "knowledge",
   login: "login",
+  logs: "logs",
+  models: "models",
   notifications: "notifications",
   profile: "profile",
+  processing: "processing",
+  quality: "quality",
   register: "register",
+  settings: "settings",
   tickets: "tickets",
+  users: "users",
 } as const
 
 export const ROUTES = {

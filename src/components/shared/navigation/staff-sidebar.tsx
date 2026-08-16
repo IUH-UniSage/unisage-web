@@ -18,6 +18,9 @@ import { BrandLogo } from "@/components/shared/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/constants/paths"
 import { LogoutButton } from "@/features/auth/components/logout-button"
+import { usePermissions } from "@/features/auth/hooks/use-permissions"
+import { PERMISSION_POLICIES } from "@/features/auth/lib/permission-policies"
+import type { PermissionRequirement } from "@/lib/permissions"
 import { cn } from "@/lib/utils"
 
 export type StaffWorkspace = "ingester" | "system-admin"
@@ -25,33 +28,81 @@ export type StaffWorkspace = "ingester" | "system-admin"
 type NavigationItem = {
   icon: LucideIcon
   label: string
+  requiredPermissions?: readonly PermissionRequirement[]
   to: string
 }
 
 const navigation: Record<StaffWorkspace, NavigationItem[]> = {
   ingester: [
-    { icon: Gauge, label: "Tổng quan", to: ROUTES.ingester },
-    { icon: FileText, label: "Tài liệu", to: ROUTES.ingesterDocuments },
-    { icon: UploadCloud, label: "Đang xử lý", to: ROUTES.ingesterProcessing },
+    {
+      icon: Gauge,
+      label: "Tổng quan",
+      requiredPermissions: PERMISSION_POLICIES.ingesterOverview,
+      to: ROUTES.ingester,
+    },
+    {
+      icon: FileText,
+      label: "Tài liệu",
+      requiredPermissions: PERMISSION_POLICIES.ingesterDocuments,
+      to: ROUTES.ingesterDocuments,
+    },
+    {
+      icon: UploadCloud,
+      label: "Đang xử lý",
+      requiredPermissions: PERMISSION_POLICIES.ingesterProcessing,
+      to: ROUTES.ingesterProcessing,
+    },
     {
       icon: ShieldCheck,
       label: "Kiểm tra chất lượng",
+      requiredPermissions: PERMISSION_POLICIES.ingesterQuality,
       to: ROUTES.ingesterQuality,
     },
-    { icon: Settings, label: "Cài đặt", to: ROUTES.ingesterSettings },
+    {
+      icon: Settings,
+      label: "Cài đặt",
+      requiredPermissions: PERMISSION_POLICIES.ingesterSettings,
+      to: ROUTES.ingesterSettings,
+    },
   ],
   "system-admin": [
     { icon: Gauge, label: "Tổng quan", to: ROUTES.admin },
-    { icon: Users, label: "Quản lý người dùng", to: ROUTES.adminUsers },
+    {
+      icon: Users,
+      label: "Quản lý người dùng",
+      requiredPermissions: PERMISSION_POLICIES.adminUsers,
+      to: ROUTES.adminUsers,
+    },
     {
       icon: BookOpen,
       label: "Quản trị tài liệu",
+      requiredPermissions: PERMISSION_POLICIES.adminDocuments,
       to: ROUTES.adminDocuments,
     },
-    { icon: Activity, label: "Nhật ký hệ thống", to: ROUTES.adminLogs },
-    { icon: Bot, label: "Cấu hình AI", to: ROUTES.adminModels },
-    { icon: HeartPulse, label: "Tình trạng dịch vụ", to: ROUTES.adminHealth },
-    { icon: Settings, label: "Cài đặt", to: ROUTES.adminSettings },
+    {
+      icon: Activity,
+      label: "Nhật ký hệ thống",
+      requiredPermissions: PERMISSION_POLICIES.adminLogs,
+      to: ROUTES.adminLogs,
+    },
+    {
+      icon: Bot,
+      label: "Cấu hình AI",
+      requiredPermissions: PERMISSION_POLICIES.adminModels,
+      to: ROUTES.adminModels,
+    },
+    {
+      icon: HeartPulse,
+      label: "Tình trạng dịch vụ",
+      requiredPermissions: PERMISSION_POLICIES.adminHealth,
+      to: ROUTES.adminHealth,
+    },
+    {
+      icon: Settings,
+      label: "Cài đặt",
+      requiredPermissions: PERMISSION_POLICIES.adminSettings,
+      to: ROUTES.adminSettings,
+    },
   ],
 }
 
@@ -66,8 +117,13 @@ export function StaffSidebar({
   onNavigate,
   workspace,
 }: StaffSidebarProps) {
+  const { canAny } = usePermissions()
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
+  const visibleNavigation = navigation[workspace].filter(
+    ({ requiredPermissions }) =>
+      !requiredPermissions || canAny(requiredPermissions)
+  )
 
   return (
     <aside
@@ -82,7 +138,7 @@ export function StaffSidebar({
 
       <nav aria-label={`Điều hướng ${workspaceLabel}`} className="flex-1 p-3">
         <ul className="space-y-1">
-          {navigation[workspace].map((item) => {
+          {visibleNavigation.map((item) => {
             const Icon = item.icon
 
             return (

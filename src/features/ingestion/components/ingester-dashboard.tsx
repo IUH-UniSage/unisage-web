@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgressBar } from "@/components/ui/progress-bar"
+import { PermissionGate } from "@/features/auth/components/permission-gate"
+import { PERMISSION_POLICIES } from "@/features/auth/lib/permission-policies"
 
 type Metric = {
   change: string
@@ -103,10 +105,14 @@ export function IngesterDashboardPage() {
             xuất bản.
           </p>
         </div>
-        <Button>
-          <Plus aria-hidden="true" />
-          Tải tài liệu mới
-        </Button>
+        <PermissionGate
+          requiredPermissions={PERMISSION_POLICIES.uploadDocument}
+        >
+          <Button>
+            <Plus aria-hidden="true" />
+            Tải tài liệu mới
+          </Button>
+        </PermissionGate>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -149,10 +155,14 @@ export function IngesterDashboardPage() {
                 Các tác vụ tài liệu mới nhất từ các đơn vị
               </p>
             </div>
-            <Button size="sm" variant="outline">
-              Xem hàng đợi
-              <ArrowUpRight aria-hidden="true" />
-            </Button>
+            <PermissionGate
+              requiredPermissions={PERMISSION_POLICIES.ingesterProcessing}
+            >
+              <Button size="sm" variant="outline">
+                Xem hàng đợi
+                <ArrowUpRight aria-hidden="true" />
+              </Button>
+            </PermissionGate>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">

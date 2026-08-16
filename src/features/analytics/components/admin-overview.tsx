@@ -15,6 +15,9 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PermissionGate } from "@/features/auth/components/permission-gate"
+import { PERMISSION_POLICIES } from "@/features/auth/lib/permission-policies"
+import type { PermissionRequirement } from "@/lib/permissions"
 
 const overviewMetrics = [
   {
@@ -181,10 +184,14 @@ export function AdminOverviewPage() {
                 </span>
               </div>
             ))}
-            <Button className="mt-2 w-full" variant="outline">
-              Mở trang tình trạng dịch vụ
-              <ArrowRight aria-hidden="true" />
-            </Button>
+            <PermissionGate
+              requiredPermissions={PERMISSION_POLICIES.adminHealth}
+            >
+              <Button className="mt-2 w-full" variant="outline">
+                Mở trang tình trạng dịch vụ
+                <ArrowRight aria-hidden="true" />
+              </Button>
+            </PermissionGate>
           </CardContent>
         </Card>
       </div>
@@ -193,16 +200,19 @@ export function AdminOverviewPage() {
         <ActionCard
           description="Rà soát phân quyền và các bất thường truy cập."
           icon={Users}
+          requiredPermissions={PERMISSION_POLICIES.adminUsers}
           title="Quản trị người dùng"
         />
         <ActionCard
           description="Theo dõi mức sử dụng, độ trễ và kiểm soát chi phí."
           icon={Server}
+          requiredPermissions={PERMISSION_POLICIES.adminModels}
           title="Nhà cung cấp AI"
         />
         <ActionCard
           description="Kiểm tra các thay đổi cấu hình và truy cập quan trọng."
           icon={Activity}
+          requiredPermissions={PERMISSION_POLICIES.adminLogs}
           title="Kiểm toán hệ thống"
         />
       </div>
@@ -222,28 +232,32 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 function ActionCard({
   description,
   icon: Icon,
+  requiredPermissions,
   title,
 }: {
   description: string
   icon: LucideIcon
+  requiredPermissions: readonly PermissionRequirement[]
   title: string
 }) {
   return (
-    <Card className="border bg-card shadow-none">
-      <CardContent className="flex items-start gap-4 p-5">
-        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
-          <Icon aria-hidden="true" className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold">{title}</h2>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            {description}
-          </p>
-        </div>
-        <Button aria-label={`Mở ${title}`} size="icon-sm" variant="ghost">
-          <ArrowRight aria-hidden="true" />
-        </Button>
-      </CardContent>
-    </Card>
+    <PermissionGate requiredPermissions={requiredPermissions}>
+      <Card className="border bg-card shadow-none">
+        <CardContent className="flex items-start gap-4 p-5">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
+            <Icon aria-hidden="true" className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-semibold">{title}</h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {description}
+            </p>
+          </div>
+          <Button aria-label={`Mở ${title}`} size="icon-sm" variant="ghost">
+            <ArrowRight aria-hidden="true" />
+          </Button>
+        </CardContent>
+      </Card>
+    </PermissionGate>
   )
 }

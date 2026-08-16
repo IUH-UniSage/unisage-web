@@ -1,28 +1,124 @@
+import type { PermissionInfo } from "@/features/auth/schemas/auth-schemas"
+
 export const PERMISSIONS = {
-  accessControlManage: "access-control:manage",
-  analyticsRead: "analytics:read",
-  auditLogRead: "audit-log:read",
-  documentsIngest: "documents:ingest",
-  documentsManage: "documents:manage",
-  knowledgeRead: "knowledge:read",
-  modelsManage: "models:manage",
-  systemHealthRead: "system-health:read",
-  systemSettingsManage: "system-settings:manage",
-  ticketsManage: "tickets:manage",
-  usersManage: "users:manage",
+  superAdminAll: "SUPER_ADMIN_ALL",
+  accountAll: "ACCOUNT_ALL",
+  accountRead: "ACCOUNT_READ",
+  accountCreate: "ACCOUNT_CREATE",
+  accountUpdate: "ACCOUNT_UPDATE",
+  accountDelete: "ACCOUNT_DELETE",
+  accountToggleActive: "ACCOUNT_TOGGLE_ACTIVE",
+  userAll: "USER_ALL",
+  userRead: "USER_READ",
+  userCreate: "USER_CREATE",
+  userUpdate: "USER_UPDATE",
+  userDelete: "USER_DELETE",
+  roleAll: "ROLE_ALL",
+  roleRead: "ROLE_READ",
+  roleCreate: "ROLE_CREATE",
+  roleUpdate: "ROLE_UPDATE",
+  roleDelete: "ROLE_DELETE",
+  permissionAll: "PERMISSION_ALL",
+  permissionRead: "PERMISSION_READ",
+  permissionCreate: "PERMISSION_CREATE",
+  permissionUpdate: "PERMISSION_UPDATE",
+  permissionDelete: "PERMISSION_DELETE",
+  categoryAll: "CATEGORY_ALL",
+  categoryRead: "CATEGORY_READ",
+  categoryCreate: "CATEGORY_CREATE",
+  categoryUpdate: "CATEGORY_UPDATE",
+  categoryDelete: "CATEGORY_DELETE",
+  docPackageAll: "DOC_PACKAGE_ALL",
+  docPackageRead: "DOC_PACKAGE_READ",
+  docPackageCreate: "DOC_PACKAGE_CREATE",
+  docPackageUpdate: "DOC_PACKAGE_UPDATE",
+  docPackageDelete: "DOC_PACKAGE_DELETE",
+  documentAll: "DOCUMENT_ALL",
+  documentRead: "DOCUMENT_READ",
+  documentCreate: "DOCUMENT_CREATE",
+  documentUpdate: "DOCUMENT_UPDATE",
+  documentDelete: "DOCUMENT_DELETE",
+  documentChunkAll: "DOCUMENT_CHUNK_ALL",
+  documentChunkRead: "DOCUMENT_CHUNK_READ",
+  documentChunkDelete: "DOCUMENT_CHUNK_DELETE",
+  embeddedModelAll: "EMBEDDED_MODEL_ALL",
+  embeddedModelRead: "EMBEDDED_MODEL_READ",
+  embeddedModelCreate: "EMBEDDED_MODEL_CREATE",
+  embeddedModelUpdate: "EMBEDDED_MODEL_UPDATE",
+  embeddedModelDelete: "EMBEDDED_MODEL_DELETE",
+  chatbotConfigAll: "CHATBOT_CONFIG_ALL",
+  chatbotConfigRead: "CHATBOT_CONFIG_READ",
+  chatbotConfigCreate: "CHATBOT_CONFIG_CREATE",
+  chatbotConfigUpdate: "CHATBOT_CONFIG_UPDATE",
+  chatbotConfigDelete: "CHATBOT_CONFIG_DELETE",
+  chatbotPoolAll: "CHATBOT_POOL_ALL",
+  chatbotPoolRead: "CHATBOT_POOL_READ",
+  chatbotPoolCreate: "CHATBOT_POOL_CREATE",
+  chatbotPoolUpdate: "CHATBOT_POOL_UPDATE",
+  chatbotPoolDelete: "CHATBOT_POOL_DELETE",
+  conversationAll: "CONVERSATION_ALL",
+  conversationRead: "CONVERSATION_READ",
+  conversationCreate: "CONVERSATION_CREATE",
+  conversationDelete: "CONVERSATION_DELETE",
+  messageAll: "MESSAGE_ALL",
+  messageRead: "MESSAGE_READ",
+  messageSend: "MESSAGE_SEND",
+  auditLogAll: "AUDIT_LOG_ALL",
+  auditLogRead: "AUDIT_LOG_READ",
+  documentProcessLogAll: "DOCUMENT_PROCESS_LOG_ALL",
+  documentProcessLogRead: "DOCUMENT_PROCESS_LOG_READ",
+  llmTraceLogAll: "LLM_TRACE_LOG_ALL",
+  llmTraceLogRead: "LLM_TRACE_LOG_READ",
+  ingestAll: "INGEST_ALL",
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
 
+export type PermissionRequirement =
+  | Permission
+  | {
+      minimumAccessLevel?: number
+      name: Permission
+    }
+
+const actionSuffixes = [
+  "_READ",
+  "_CREATE",
+  "_UPDATE",
+  "_DELETE",
+  "_SEND",
+  "_TOGGLE_ACTIVE",
+] as const
+
+function getRequirement(requirement: PermissionRequirement) {
+  return typeof requirement === "string" ? { name: requirement } : requirement
+}
+
+function getResourceWildcard(permission: Permission): Permission | null {
+  const suffix = actionSuffixes.find((candidate) =>
+    permission.endsWith(candidate)
+  )
+
+  if (!suffix) return null
+
+  return `${permission.slice(0, -suffix.length)}_ALL` as Permission
+}
+
 export function hasPermission(
-  grantedPermissions: readonly Permission[],
-  permission: Permission
+  grantedPermissions: readonly string[],
+  requiredPermission: Permission
 ) {
-  return grantedPermissions.includes(permission)
+  const resourceWildcard = getResourceWildcard(requiredPermission)
+
+  return (
+    grantedPermissions.includes(PERMISSIONS.superAdminAll) ||
+    grantedPermissions.includes(requiredPermission) ||
+    (resourceWildcard !== null && grantedPermissions.includes(resourceWildcard))
+  )
 }
 
 export function hasEveryPermission(
-  grantedPermissions: readonly Permission[],
+  grantedPermissions: readonly string[],
   requiredPermissions: readonly Permission[]
 ) {
   return requiredPermissions.every((permission) =>
@@ -31,10 +127,52 @@ export function hasEveryPermission(
 }
 
 export function hasAnyPermission(
-  grantedPermissions: readonly Permission[],
+  grantedPermissions: readonly string[],
   requiredPermissions: readonly Permission[]
 ) {
   return requiredPermissions.some((permission) =>
     hasPermission(grantedPermissions, permission)
+  )
+}
+
+export function hasPermissionInfo(
+  grantedPermissions: readonly PermissionInfo[],
+  requirement: PermissionRequirement
+) {
+  const { minimumAccessLevel, name } = getRequirement(requirement)
+  const resourceWildcard = getResourceWildcard(name)
+
+  return grantedPermissions.some((permission) => {
+    const nameMatches =
+      permission.name === PERMISSIONS.superAdminAll ||
+      permission.name === name ||
+      (resourceWildcard !== null && permission.name === resourceWildcard)
+
+    if (!nameMatches) return false
+    if (minimumAccessLevel === undefined) return true
+
+    return (
+      permission.accessLevel === null ||
+      permission.accessLevel === undefined ||
+      permission.accessLevel >= minimumAccessLevel
+    )
+  })
+}
+
+export function hasEveryPermissionInfo(
+  grantedPermissions: readonly PermissionInfo[],
+  requiredPermissions: readonly PermissionRequirement[]
+) {
+  return requiredPermissions.every((permission) =>
+    hasPermissionInfo(grantedPermissions, permission)
+  )
+}
+
+export function hasAnyPermissionInfo(
+  grantedPermissions: readonly PermissionInfo[],
+  requiredPermissions: readonly PermissionRequirement[]
+) {
+  return requiredPermissions.some((permission) =>
+    hasPermissionInfo(grantedPermissions, permission)
   )
 }

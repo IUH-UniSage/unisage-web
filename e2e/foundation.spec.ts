@@ -18,9 +18,22 @@ const sessionByRole = {
   },
 } as const
 
+const permissionsByRole = {
+  INGEST_ADMIN: [
+    "DOCUMENT_ALL",
+    "DOCUMENT_CHUNK_ALL",
+    "DOCUMENT_PROCESS_LOG_READ",
+    "EMBEDDED_MODEL_READ",
+    "INGEST_ALL",
+  ],
+  SUPER_ADMIN: ["SUPER_ADMIN_ALL"],
+  USER: ["DOCUMENT_READ"],
+} as const
+
 async function authenticateAs(
   page: Page,
-  role: keyof typeof sessionByRole = "USER"
+  role: keyof typeof sessionByRole = "USER",
+  permissionNames: readonly string[] = permissionsByRole[role]
 ) {
   const account = sessionByRole[role]
   const session = {
@@ -29,13 +42,11 @@ async function authenticateAs(
     email: `${account.code.toLowerCase()}@example.edu.vn`,
     fullName: account.fullName,
     isSystemRole: role !== "USER",
-    permissions: [
-      {
-        accessLevel: 5,
-        id: "a931f2ee-e2b1-45cf-9299-6f96f8a8db89",
-        name: role === "INGEST_ADMIN" ? "INGEST_ALL" : "DOCUMENT_READ",
-      },
-    ],
+    permissions: permissionNames.map((name, index) => ({
+      accessLevel: 5,
+      id: `a931f2ee-e2b1-45cf-9299-6f96f8a8db8${index}`,
+      name,
+    })),
     role,
     userId: "a76398bd-c8ac-4fa8-803e-0a91e207347c",
   }
@@ -322,6 +333,46 @@ test("redirects a user away from another role workspace", async ({ page }) => {
     page.getByRole("heading", {
       name: "Hôm nay UniSage có thể giúp bạn hiểu điều gì?",
     })
+  ).toBeVisible()
+})
+
+test("filters admin navigation and blocks a missing permission", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "mobile-chromium")
+
+  await authenticateAs(page, "SUPER_ADMIN", ["USER_READ"])
+  await page.goto("/admin")
+
+  const navigation = page.getByRole("navigation", {
+    name: "Điều hướng Quản trị hệ thống",
+  })
+
+  await expect(navigation.getByRole("link")).toHaveCount(2)
+  await expect(
+    navigation.getByRole("link", { name: "Quản lý người dùng" })
+  ).toBeVisible()
+  await expect(
+    navigation.getByRole("link", { name: "Quản trị tài liệu" })
+  ).toHaveCount(0)
+
+  await page.goto("/admin/documents")
+
+  await expect(page).toHaveURL(/\/admin$/)
+  await expect(
+    page.getByRole("heading", { name: "Tổng quan hệ thống" })
+  ).toBeVisible()
+})
+
+test("shows an access denied state without a redirect loop", async ({
+  page,
+}) => {
+  await authenticateAs(page, "INGEST_ADMIN", [])
+  await page.goto("/ingester")
+
+  await expect(page).toHaveURL(/\/ingester$/)
+  await expect(
+    page.getByRole("heading", { name: "Bạn không có quyền truy cập" })
   ).toBeVisible()
 })
 

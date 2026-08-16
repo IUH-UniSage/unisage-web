@@ -2,31 +2,37 @@ import type { ReactNode } from "react"
 import { Navigate, Outlet } from "react-router-dom"
 
 import { ROUTES } from "@/constants/paths"
-import type { Permission } from "@/lib/permissions"
-import { hasAnyPermission, hasEveryPermission } from "@/lib/permissions"
+import { usePermissions } from "@/features/auth/hooks/use-permissions"
+import type { PermissionInfo } from "@/features/auth/schemas/auth-schemas"
+import type { PermissionRequirement } from "@/lib/permissions"
+import { hasAnyPermissionInfo, hasEveryPermissionInfo } from "@/lib/permissions"
 
 type PermissionRouteProps = {
   children?: ReactNode
+  fallback?: ReactNode
   fallbackTo?: string
-  grantedPermissions: readonly Permission[]
-  requiredPermissions: readonly Permission[]
+  grantedPermissions?: readonly PermissionInfo[]
+  requiredPermissions: readonly PermissionRequirement[]
   strategy?: "all" | "any"
 }
 
 export function PermissionRoute({
   children,
+  fallback,
   fallbackTo = ROUTES.home,
   grantedPermissions,
   requiredPermissions,
   strategy = "all",
 }: PermissionRouteProps) {
+  const { permissions: sessionPermissions } = usePermissions()
+  const permissions = grantedPermissions ?? sessionPermissions
   const isAllowed =
     strategy === "all"
-      ? hasEveryPermission(grantedPermissions, requiredPermissions)
-      : hasAnyPermission(grantedPermissions, requiredPermissions)
+      ? hasEveryPermissionInfo(permissions, requiredPermissions)
+      : hasAnyPermissionInfo(permissions, requiredPermissions)
 
   if (!isAllowed) {
-    return <Navigate replace to={fallbackTo} />
+    return fallback ?? <Navigate replace to={fallbackTo} />
   }
 
   return children ?? <Outlet />
