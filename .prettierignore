@@ -1,9 +1,10 @@
 node_modules/
-.claude/skills/
+.agents/
+.storybook-static/
 coverage/
 dist/
-storybook-static/
 .pnpm-store/
+pnpm-lock.yaml
 package-lock.json
 pnpm-lock.yaml
 yarn.lock

@@ -8,7 +8,7 @@ import { defineConfig, globalIgnores } from "eslint/config"
 
 export default defineConfig([
   globalIgnores([
-    ".claude/skills",
+    ".claude",
     ".storybook-static",
     "coverage",
     "dist",

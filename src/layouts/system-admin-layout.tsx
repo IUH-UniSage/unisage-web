@@ -1,9 +1,5 @@
-import { Outlet } from "react-router-dom"
+import { StaffWorkspaceLayout } from "@/components/shared/navigation/staff-workspace-layout"
 
 export function SystemAdminLayout() {
-  return (
-    <div className="flex min-h-svh flex-col">
-      <Outlet />
-    </div>
-  )
+  return <StaffWorkspaceLayout workspace="system-admin" />
 }
