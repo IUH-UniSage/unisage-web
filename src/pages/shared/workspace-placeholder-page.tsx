@@ -1,18 +1,23 @@
+import { FeatureComingSoon } from "@/components/shared/feature-coming-soon"
+import { Card, CardContent } from "@/components/ui/card"
+
 type WorkspacePlaceholderPageProps = {
   title: string
-  description?: string
 }
 
 export function WorkspacePlaceholderPage({
   title,
-  description,
 }: WorkspacePlaceholderPageProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-1 p-10 text-center">
-      <h1 className="text-lg font-semibold text-foreground">{title}</h1>
-      {description ? (
-        <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
-      ) : null}
+    <div className="mx-auto max-w-3xl px-4 py-16 md:px-6">
+      <Card>
+        <CardContent className="py-12">
+          <FeatureComingSoon
+            description="Không gian này đang được hoàn thiện và sẽ sớm có mặt trên UniSage."
+            title={title}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,18 +1,56 @@
+import { lazy } from "react"
 import type { RouteObject } from "react-router-dom"
 
+import { ROUTE_SEGMENTS, ROUTES } from "@/constants/paths"
 import { ChatLayout } from "@/layouts/chat-layout"
 import { UserLayout } from "@/layouts/user-layout"
-import { ChatPage } from "@/pages/user/chat-page"
-import { UserHomePage } from "@/pages/user/user-home-page"
+import { WorkspacePlaceholderPage } from "@/pages/shared/workspace-placeholder-page"
 
-// Real auth/permission guards land in the auth integration feature branch.
+const UserHomePage = lazy(async () => {
+  const { UserHomePage } = await import("@/pages/user/user-home-page")
+  return { default: UserHomePage }
+})
+
+const ChatPage = lazy(async () => {
+  const { ChatPage } = await import("@/pages/user/chat-page")
+  return { default: ChatPage }
+})
+
 export const userRoutes: RouteObject[] = [
   {
+    path: ROUTES.home,
     element: <UserLayout />,
-    children: [{ index: true, element: <UserHomePage /> }],
+    children: [
+      {
+        index: true,
+        element: <UserHomePage />,
+      },
+      {
+        path: ROUTE_SEGMENTS.knowledge,
+        element: <WorkspacePlaceholderPage title="Thư viện tri thức" />,
+      },
+      {
+        path: ROUTE_SEGMENTS.tickets,
+        element: <WorkspacePlaceholderPage title="Yêu cầu hỗ trợ của tôi" />,
+      },
+      {
+        path: ROUTE_SEGMENTS.notifications,
+        element: <WorkspacePlaceholderPage title="Thông báo" />,
+      },
+      {
+        path: ROUTE_SEGMENTS.profile,
+        element: <WorkspacePlaceholderPage title="Hồ sơ và quyền truy cập" />,
+      },
+    ],
   },
   {
+    path: ROUTES.chat,
     element: <ChatLayout />,
-    children: [{ path: "chat", element: <ChatPage /> }],
+    children: [
+      {
+        index: true,
+        element: <ChatPage />,
+      },
+    ],
   },
 ]

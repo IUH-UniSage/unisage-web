@@ -1,5 +1,1 @@
-import { WorkspacePlaceholderPage } from "@/pages/shared/workspace-placeholder-page"
-
-export function UserHomePage() {
-  return <WorkspacePlaceholderPage title="Home" />
-}
+export { UserHomePage } from "@/features/knowledge/components/user-home-screen"

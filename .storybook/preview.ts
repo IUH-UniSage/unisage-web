@@ -10,8 +10,9 @@ const preview: Preview = {
     backgrounds: {
       default: "UniSage",
       values: [
-        { name: "UniSage", value: "#f7f8fb" },
+        { name: "UniSage", value: "#f8fafc" },
         { name: "White", value: "#ffffff" },
+        { name: "Primary", value: "#153898" },
       ],
     },
     controls: {

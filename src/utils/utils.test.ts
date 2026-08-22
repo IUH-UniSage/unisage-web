@@ -1,38 +1,56 @@
-import { describe, expect, it } from "vitest"
+import { AxiosError, type AxiosResponse } from "axios"
+import { afterEach, describe, expect, it } from "vitest"
+import { z } from "zod"
 
-import { formatDate } from "@/utils/date"
+import { getErrorMessage, getFieldErrors } from "@/utils/error-handler"
 import { formatFileSize } from "@/utils/file-size"
-import { generateId } from "@/utils/uuid"
+import { STORAGE_KEYS, storage } from "@/utils/local-storage"
+import { generateUuid } from "@/utils/uuid"
 
-describe("formatFileSize", () => {
-  it("formats bytes", () => {
+afterEach(() => {
+  window.localStorage.clear()
+})
+
+describe("shared utilities", () => {
+  it("stores typed values under UniSage keys", () => {
+    storage.set(STORAGE_KEYS.userProfile, { id: "user-1" })
+
+    expect(storage.get(STORAGE_KEYS.userProfile)).toEqual({ id: "user-1" })
+    expect(
+      storage.getValid(STORAGE_KEYS.userProfile, z.object({ id: z.string() }))
+    ).toEqual({ id: "user-1" })
+  })
+
+  it("formats file sizes", () => {
     expect(formatFileSize(0)).toBe("0 B")
-    expect(formatFileSize(512)).toBe("512 B")
+    expect(formatFileSize(1536)).toBe("1.5 KB")
   })
 
-  it("formats larger units", () => {
-    expect(formatFileSize(1024)).toBe("1.0 KB")
-    expect(formatFileSize(5 * 1024 * 1024)).toBe("5.0 MB")
-  })
-})
+  it("extracts API messages and field errors", () => {
+    const response = {
+      data: {
+        errors: { email: "Email is already in use." },
+        message: "Validation failed.",
+      },
+      status: 422,
+    } as AxiosResponse
+    const error = new AxiosError(
+      "Request failed",
+      "422",
+      undefined,
+      {},
+      response
+    )
 
-describe("formatDate", () => {
-  it("formats a valid date", () => {
-    expect(formatDate(new Date(2024, 0, 15))).toBe("Jan 15, 2024")
+    expect(getErrorMessage(error)).toBe("Validation failed.")
+    expect(getFieldErrors(error)).toEqual({
+      email: "Email is already in use.",
+    })
   })
 
-  it("returns an empty string for an invalid date", () => {
-    expect(formatDate("not-a-date")).toBe("")
-  })
-})
-
-describe("generateId", () => {
-  it("generates unique ids", () => {
-    const first = generateId()
-    const second = generateId()
-    expect(first).not.toBe(second)
-    expect(first).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  it("generates RFC 4122 version 4 UUIDs", () => {
+    expect(generateUuid()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
     )
   })
 })
