@@ -1,9 +1,9 @@
-import { Bell, Menu, UserRound } from "lucide-react"
-import { Link, Outlet } from "react-router-dom"
+import { Bell, LayoutDashboard, Menu, UserRound } from "lucide-react"
+import { Link, Outlet, useLocation } from "react-router-dom"
 
 import { BrandLogo } from "@/components/shared/brand/brand-logo"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAccountMenu } from "@/components/shared/navigation/user-account-menu"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -16,7 +16,6 @@ import {
 import { ROUTES } from "@/constants/paths"
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import { getInitials } from "@/features/auth/utils/auth-session"
 
 const userNavigation = [
   {
@@ -60,6 +59,8 @@ function UserNavigation({ mobile = false }: { mobile?: boolean }) {
 
 export function UserLayout() {
   const { session } = useAuth()
+  const location = useLocation()
+  const isInAdmin = location.pathname.startsWith(ROUTES.admin)
 
   return (
     <div className="min-h-svh bg-background">
@@ -121,32 +122,7 @@ export function UserLayout() {
                         <Bell aria-hidden="true" />
                       </Link>
                     </Button>
-                    <Button
-                      asChild
-                      className="rounded-full p-0"
-                      variant="ghost"
-                    >
-                      <Link aria-label="Mở hồ sơ cá nhân" to={ROUTES.profile}>
-                        <Avatar className="size-9">
-                          {session.avatarUrl ? (
-                            <AvatarImage
-                              alt=""
-                              referrerPolicy="no-referrer"
-                              src={session.avatarUrl}
-                            />
-                          ) : null}
-                          <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
-                            {getInitials(session.fullName)}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Link>
-                    </Button>
-                    <LogoutButton
-                      aria-label="Đăng xuất"
-                      label=""
-                      size="icon"
-                      variant="ghost"
-                    />
+                    <UserAccountMenu />
                   </>
                 ) : (
                   <Button asChild size="sm">
@@ -213,6 +189,18 @@ export function UserLayout() {
                           <UserRound aria-hidden="true" className="size-4" />
                           Hồ sơ và quyền truy cập
                         </Link>
+                        {isInAdmin ? null : (
+                          <Link
+                            className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
+                            to={ROUTES.admin}
+                          >
+                            <LayoutDashboard
+                              aria-hidden="true"
+                              className="size-4"
+                            />
+                            Trang quản trị
+                          </Link>
+                        )}
                       </>
                     ) : (
                       <Button asChild>
