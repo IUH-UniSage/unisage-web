@@ -1,4 +1,0 @@
-interface:
-  display_name: "UniSage Git Guardian"
-  short_description: "Validate branch, diff, and commit boundaries"
-  default_prompt: "Use $git-guardian to validate this branch and staged commit."
