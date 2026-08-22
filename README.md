@@ -108,8 +108,9 @@ unisage-web/
 └── README.md                      # This file
 ```
 
-See [docs/architecture.md](docs/architecture.md) for layering conventions, and
-[AGENTS.md](AGENTS.md) for the full set of project rules agents should follow.
+See [docs/architecture.md](docs/architecture.md) for layering conventions,
+[docs/testing.md](docs/testing.md) for what to test at which layer, and [AGENTS.md](AGENTS.md) for
+the full set of project rules agents should follow.
 
 ## Main libraries
 

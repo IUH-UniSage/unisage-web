@@ -110,4 +110,7 @@ instruction.
 - Routes, auth, permissions, or user interaction: also `pnpm run test:e2e`.
 - Skills or PR templates: `quick_validate.py` for each skill, plus `git diff --check`.
 
+See [docs/testing.md](docs/testing.md) for which layer (unit, component, Storybook, e2e) a given
+change should be tested at.
+
 Never claim a check ran when it did not.
