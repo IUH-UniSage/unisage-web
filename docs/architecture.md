@@ -46,3 +46,10 @@ The app serves four route areas, each with its own layout:
 Auth/permission guards, API integration, and feature business logic are
 intentionally out of scope for this initialization branch and land in
 follow-up feature branches.
+
+## Decisions
+
+Non-obvious cross-cutting decisions (chosen alternative, why, tradeoffs) are
+recorded as ADRs under [docs/adr/](adr/) — see
+[AGENTS.md](../AGENTS.md#architecture-decision-records-adr) for when to write
+one.

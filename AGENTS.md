@@ -66,6 +66,22 @@ Consult before diverging from established patterns under `src/`:
 - `.agents/skills/playwright/` and `.agents/skills/storybook-setup/` — e2e and story conventions.
 - `.agents/skills/frontend-design-review/` — checklist for reviewing UI changes.
 
+## Architecture Decision Records (ADR)
+
+Write an ADR under `docs/adr/` (copy `docs/adr/0000-template.md`, number it sequentially) when a
+change:
+
+- Picks between two or more real alternatives for a cross-cutting concern (state management
+  approach, caching strategy, folder/layering convention, a new dependency that replaces a
+  hand-rolled pattern or vice versa).
+- Is likely to be questioned or "fixed back" later by someone who doesn't know why it was done
+  this way.
+- Would be expensive to reverse once other code depends on it.
+
+Don't write one for routine feature work, bug fixes, or just following an existing convention —
+that's what `docs/architecture.md` and this file are for. If a later decision replaces an earlier
+ADR, mark the old one `Status: superseded by NNNN` rather than deleting it.
+
 ## Git workflow
 
 Apply `.agents/skills/git-commit-instructions/SKILL.md` before any branch, commit, or PR
