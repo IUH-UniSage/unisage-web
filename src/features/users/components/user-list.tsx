@@ -25,54 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
   USER_PAGE_SIZE,
   type StatusFilter,
 } from "@/features/users/hooks/use-user-dashboard"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { formatAuditDate } from "@/utils/date-format"
 
-type UserRoleBadgesProps = { user: AppUser }
-
-function UserRoleBadges({ user }: UserRoleBadgesProps) {
-  if (!user.roles.length) {
-    return (
-      <span className="text-xs text-muted-foreground">Chưa gán vai trò</span>
-    )
-  }
-
-  const visible = user.roles.slice(0, 2)
-  const rest = user.roles.slice(2)
-
-  return (
-    <div className="flex max-w-60 flex-wrap gap-1.5">
-      {visible.map((role) => (
-        <Badge className="max-w-36 truncate" key={role.id} variant="outline">
-          {role.name}
-        </Badge>
-      ))}
-      {rest.length ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge className="cursor-default" variant="secondary">
-              +{rest.length}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-64">
-            <ul className="space-y-0.5">
-              {rest.map((role) => (
-                <li key={role.id}>{role.name}</li>
-              ))}
-            </ul>
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
-    </div>
-  )
+function userDisplayName(user: AppUser) {
+  return [user.firstName, user.lastName].filter(Boolean).join(" ") || "—"
 }
 
 type UserActionsProps = {
@@ -92,11 +52,13 @@ function UserActions({
 }: UserActionsProps) {
   if (!canUpdate && !canDelete) return null
 
+  const isActive = user.status === "ACTIVE"
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          aria-label={`Hành động cho ${user.fullName}`}
+          aria-label={`Hành động cho ${userDisplayName(user)}`}
           size="icon-sm"
           variant="ghost"
         >
@@ -113,14 +75,14 @@ function UserActions({
         {canDelete ? (
           <DropdownMenuItem
             onSelect={() => onStatusRequest(user)}
-            variant={user.isActive ? "destructive" : "default"}
+            variant={isActive ? "destructive" : "default"}
           >
-            {user.isActive ? (
+            {isActive ? (
               <Power aria-hidden="true" />
             ) : (
               <RotateCcw aria-hidden="true" />
             )}
-            {user.isActive ? "Vô hiệu hóa" : "Khôi phục"}
+            {isActive ? "Vô hiệu hóa" : "Khôi phục"}
           </DropdownMenuItem>
         ) : null}
       </DropdownMenuContent>
@@ -187,7 +149,7 @@ export function UserList({
       {
         cell: ({ row }) => (
           <Checkbox
-            aria-label={`Chọn ${row.original.fullName}`}
+            aria-label={`Chọn ${userDisplayName(row.original)}`}
             checked={selectedIds.has(row.original.id)}
             onCheckedChange={() => onToggleSelection(row.original.id)}
           />
@@ -214,9 +176,10 @@ export function UserList({
       {
         cell: ({ row }) => (
           <>
-            <p className="font-semibold">{row.original.fullName}</p>
+            <p className="font-semibold">{userDisplayName(row.original)}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              @{row.original.username} · {row.original.email}
+              {row.original.email ?? "—"}
+              {row.original.code ? ` · ${row.original.code}` : ""}
             </p>
           </>
         ),
@@ -224,24 +187,43 @@ export function UserList({
         id: "name",
       },
       {
-        cell: ({ row }) =>
-          row.original.department?.name ?? (
-            <span className="text-xs text-muted-foreground">—</span>
-          ),
+        cell: ({ row }) => {
+          const { departmentAccesses } = row.original
+          if (!departmentAccesses?.length) {
+            return <span className="text-xs text-muted-foreground">—</span>
+          }
+          return (
+            <div className="flex max-w-48 flex-wrap gap-1">
+              {departmentAccesses.slice(0, 2).map((da) => (
+                <Badge
+                  key={da.departmentId}
+                  variant="outline"
+                  className="max-w-36 truncate text-xs"
+                >
+                  {da.departmentName}
+                </Badge>
+              ))}
+              {departmentAccesses.length > 2 ? (
+                <Badge variant="secondary" className="text-xs">
+                  +{departmentAccesses.length - 2}
+                </Badge>
+              ) : null}
+            </div>
+          )
+        },
         header: "Phòng ban",
         id: "department",
         meta: { className: "text-sm" },
       },
       {
-        cell: ({ row }) => <UserRoleBadges user={row.original} />,
+        cell: ({ row }) =>
+          row.original.roleName ? (
+            <Badge variant="outline">{row.original.roleName}</Badge>
+          ) : (
+            <span className="text-xs text-muted-foreground">Chưa gán</span>
+          ),
         header: "Vai trò",
-        id: "roles",
-      },
-      {
-        cell: ({ row }) => row.original.createdBy || "System",
-        header: "Người tạo",
-        id: "createdBy",
-        meta: { className: "text-sm" },
+        id: "role",
       },
       {
         cell: ({ row }) => formatAuditDate(row.original.createdAt),
@@ -251,7 +233,7 @@ export function UserList({
       },
       {
         cell: ({ row }) => (
-          <EntityStatusBadge isActive={row.original.isActive} />
+          <EntityStatusBadge isActive={row.original.status === "ACTIVE"} />
         ),
         header: "Trạng thái",
         id: "status",
@@ -294,7 +276,7 @@ export function UserList({
         onSearchChange={onSearchChange}
         search={search}
         searchAriaLabel="Tìm người dùng"
-        searchPlaceholder="Tìm tên, username hoặc email..."
+        searchPlaceholder="Tìm tên, email hoặc mã nhân viên..."
       >
         <Select
           onValueChange={(value) => onStatusChange(value as StatusFilter)}
@@ -302,14 +284,14 @@ export function UserList({
         >
           <SelectTrigger
             aria-label="Lọc trạng thái người dùng"
-            className="w-full sm:w-40"
+            className="w-full sm:w-44"
           >
             <SelectValue placeholder="Tất cả trạng thái" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả trạng thái</SelectItem>
-            <SelectItem value="active">Hoạt động</SelectItem>
-            <SelectItem value="inactive">Vô hiệu hóa</SelectItem>
+            <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+            <SelectItem value="INACTIVE">Vô hiệu hóa</SelectItem>
           </SelectContent>
         </Select>
       </ListToolbar>
@@ -337,7 +319,7 @@ export function UserList({
               <article className="rounded-xl border p-4" key={user.id}>
                 <div className="flex items-start gap-3">
                   <Checkbox
-                    aria-label={`Chọn ${user.fullName}`}
+                    aria-label={`Chọn ${userDisplayName(user)}`}
                     checked={selectedIds.has(user.id)}
                     className="mt-1"
                     onCheckedChange={() => onToggleSelection(user.id)}
@@ -346,14 +328,16 @@ export function UserList({
                     <p className="text-xs text-muted-foreground">
                       #{firstRowNumber + index}
                     </p>
-                    <p className="truncate font-semibold">{user.fullName}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      @{user.username} · {user.email}
+                    <p className="truncate font-semibold">
+                      {userDisplayName(user)}
                     </p>
-                    {user.department ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {user.department.name}
-                      </p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {user.email ?? "—"}
+                    </p>
+                    {user.roleName ? (
+                      <Badge className="mt-1 text-xs" variant="outline">
+                        {user.roleName}
+                      </Badge>
                     ) : null}
                   </div>
                   <UserActions
@@ -364,15 +348,11 @@ export function UserList({
                     user={user}
                   />
                 </div>
-                <div className="mt-3">
-                  <UserRoleBadges user={user} />
-                </div>
                 <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3">
-                  <div className="text-xs text-muted-foreground">
-                    <p>{user.createdBy || "System"}</p>
-                    <p className="mt-1">{formatAuditDate(user.createdAt)}</p>
-                  </div>
-                  <EntityStatusBadge isActive={user.isActive} />
+                  <p className="text-xs text-muted-foreground">
+                    {formatAuditDate(user.createdAt)}
+                  </p>
+                  <EntityStatusBadge isActive={user.status === "ACTIVE"} />
                 </div>
               </article>
             ))}

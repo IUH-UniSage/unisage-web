@@ -8,15 +8,12 @@ import { UserList } from "@/features/users/components/user-list"
 import { UserStatusDialog } from "@/features/users/components/user-status-dialog"
 import { useUserDashboard } from "@/features/users/hooks/use-user-dashboard"
 import { useAccessRolesQuery } from "@/features/rbac/queries/use-queries"
-import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 
 export function UserDashboard() {
   const dashboard = useUserDashboard()
   const rolesQuery = useAccessRolesQuery()
-  const departmentsQuery = useDepartmentsQuery()
 
   const roles = rolesQuery.data?.data ?? []
-  const departments = departmentsQuery.data?.data ?? []
 
   if (dashboard.isPending) {
     return <UserSkeleton />
@@ -80,7 +77,6 @@ export function UserDashboard() {
 
       {dashboard.isDialogOpen ? (
         <UserDialog
-          departments={departments}
           isSaving={dashboard.isSaving}
           onOpenChange={(open) => {
             if (!open) dashboard.closeDialog()
@@ -106,7 +102,7 @@ export function UserDashboard() {
       {dashboard.pendingBulkAction ? (
         <BulkStatusDialog
           action={dashboard.pendingBulkAction}
-          assignedToNoun="vai trò"
+          assignedToNoun="tài liệu và quyền hạn"
           count={dashboard.pendingBulkCount}
           entityNoun="người dùng"
           isSubmitting={dashboard.isBulkUpdating}

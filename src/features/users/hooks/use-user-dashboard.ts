@@ -17,7 +17,7 @@ import type {
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import { PERMISSIONS } from "@/utils/permissions"
 
-export type StatusFilter = "active" | "all" | "inactive"
+export type StatusFilter = "ACTIVE" | "all" | "INACTIVE"
 
 const EMPTY_USERS: AppUser[] = []
 export const USER_PAGE_SIZE = 10
@@ -27,12 +27,8 @@ function paginate<T>(items: T[], page: number) {
   return items.slice(start, start + USER_PAGE_SIZE)
 }
 
-function matchesStatus(isActive: boolean, status: StatusFilter) {
-  return (
-    status === "all" ||
-    (status === "active" && isActive) ||
-    (status === "inactive" && !isActive)
-  )
+function matchesStatus(userStatus: string, filter: StatusFilter) {
+  return filter === "all" || userStatus === filter
 }
 
 export function useUserDashboard() {
@@ -63,15 +59,18 @@ export function useUserDashboard() {
     const normalizedSearch = deferredSearch.trim().toLocaleLowerCase("vi")
 
     return users.filter((user) => {
+      const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ")
       const matchesSearch =
         !normalizedSearch ||
-        [user.fullName, user.username, user.email, user.department?.name]
+        [fullName, user.email, user.code, user.roleName]
           .filter(Boolean)
           .join(" ")
           .toLocaleLowerCase("vi")
           .includes(normalizedSearch)
 
-      return matchesSearch && matchesStatus(user.isActive, statusFilter)
+      return (
+        matchesSearch && matchesStatus(user.status ?? "ACTIVE", statusFilter)
+      )
     })
   }, [deferredSearch, statusFilter, users])
 
@@ -107,7 +106,7 @@ export function useUserDashboard() {
   const confirmStatusChange = async () => {
     if (!statusUser) return
 
-    if (statusUser.isActive) {
+    if (statusUser.status === "ACTIVE") {
       await deleteUser.mutateAsync(statusUser.id)
     } else {
       await recoverUser.mutateAsync(statusUser.id)
@@ -144,7 +143,7 @@ export function useUserDashboard() {
 
   const bulkDeactivate = async () => {
     const ids = users
-      .filter((user) => selectedIds.has(user.id) && user.isActive)
+      .filter((user) => selectedIds.has(user.id) && user.status === "ACTIVE")
       .map((user) => user.id)
     if (!ids.length) return
     await deleteUsersBulk.mutateAsync(ids)
@@ -153,7 +152,7 @@ export function useUserDashboard() {
 
   const bulkRecover = async () => {
     const ids = users
-      .filter((user) => selectedIds.has(user.id) && !user.isActive)
+      .filter((user) => selectedIds.has(user.id) && user.status !== "ACTIVE")
       .map((user) => user.id)
     if (!ids.length) return
     await recoverUsersBulk.mutateAsync(ids)
@@ -162,10 +161,13 @@ export function useUserDashboard() {
 
   const pendingBulkCount =
     pendingBulkAction === "deactivate"
-      ? users.filter((user) => selectedIds.has(user.id) && user.isActive).length
+      ? users.filter(
+          (user) => selectedIds.has(user.id) && user.status === "ACTIVE"
+        ).length
       : pendingBulkAction === "recover"
-        ? users.filter((user) => selectedIds.has(user.id) && !user.isActive)
-            .length
+        ? users.filter(
+            (user) => selectedIds.has(user.id) && user.status !== "ACTIVE"
+          ).length
         : 0
 
   const confirmBulkAction = async () => {

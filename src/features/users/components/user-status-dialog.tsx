@@ -14,12 +14,17 @@ export function UserStatusDialog({
   onOpenChange,
   user,
 }: UserStatusDialogProps) {
+  const displayName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+    user.email ||
+    user.id
+
   return (
     <EntityStatusDialog
-      assignedToNoun="vai trò"
-      entityLabel={user.fullName ?? user.username ?? user.email ?? user.id}
+      assignedToNoun="tài liệu và quyền hạn"
+      entityLabel={displayName}
       entityNoun="người dùng"
-      isActive={user.isActive}
+      isActive={user.status === "ACTIVE"}
       isSubmitting={isSubmitting}
       onConfirm={onConfirm}
       onOpenChange={onOpenChange}

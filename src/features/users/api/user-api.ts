@@ -15,13 +15,11 @@ import {
   type UpdateUserRequest,
 } from "@/features/users/schemas/user-schemas"
 
-const LIST_PAGE_SIZE = 500
-
 export const userApi = {
   async getUsers(): Promise<AppUserPage> {
     const response = await httpClient.get<ApiResponse<AppUserPage>>(
       API_ENDPOINTS.users.users,
-      { params: { limit: LIST_PAGE_SIZE, page: 1 } }
+      { params: { page: 0, size: 500 } }
     )
 
     return readSuccessData(response.data, appUserPageSchema)
