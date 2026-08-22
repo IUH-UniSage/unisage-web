@@ -1,58 +1,97 @@
-# AGENTS.md
+# UniSage Web
 
-Instructions for AI agents (Claude Code and others) working in this repository.
+Frontend for UniSage, an academic knowledge and student-support platform. React 19 + Vite, English UI/codebase.
 
-## Project
+## Commands
 
-UniSage Web — the frontend for UniSage, an academic knowledge and
-student-support platform. See [README.md](README.md) for the stack and
-getting-started commands, and [docs/architecture.md](docs/architecture.md)
-for folder-structure conventions.
+```bash
+pnpm dev                                   # Dev server
+pnpm build                                 # tsc -b && vite build
+pnpm preview                               # Preview production build
+pnpm test           |  pnpm test:watch     # Vitest
+pnpm test:e2e                              # Playwright
+pnpm lint && pnpm format && pnpm typecheck # Run before push/commit
+pnpm storybook                             # Component workshop, port 6006
+```
 
-## Git workflow
+Requirement: **pnpm** (pinned via `packageManager` in `package.json`) — no npm/yarn.
+Pre-commit (Husky) runs `lint-staged`: `eslint --fix` + `prettier` on staged files.
 
-Before any branch, commit, or PR operation, apply
-`.agents/skills/git-commit-instructions/SKILL.md`. It defines:
+## Architecture
 
-- Branch naming: `<feature|fix|enhance>/<huy|huyen>-unisage-<task-number>-<short-name>`.
-- Commit message format (type(scope): [UNISAGE-N] outcome, with
-  Context/Changes/Verification sections).
-- `main` stays common-only: repository skills, GitHub metadata, hooks, and
-  shared policy files — no application source, framework config, dependencies,
-  tests, or build output.
-- Never commit or push without explicit instruction; never force-push or
-  rewrite pushed history without explicit approval.
+Layered: **Routes (thin) → Pages → Features (components/hooks/api) → lib**. Detail in
+[docs/architecture.md](docs/architecture.md).
 
-Also apply `.agents/skills/git-guardian/SKILL.md` before staging anything, and
-`.agents/skills/pr/SKILL.md` when opening a pull request (uses
-`.github/pull_request_template.md`).
+- `src/routes/` — route definitions per area (`auth`, `user`, `ingester`, `system-admin`).
+- `src/pages/` — thin route entry components; compose feature components, no business logic.
+- `src/features/<feature>/` — components/hooks/api/queries/schemas per feature, exposed through
+  that feature's `index.ts` barrel.
+- `src/components/ui/` — shadcn primitives only (generated, no business logic).
+  `src/components/shared/` — cross-feature composed components.
+- `src/lib/` — framework integration: `axios-client.ts`, `query-client.ts`, `utils.ts` (`cn()`).
+- `src/constants/paths.ts` — route path constants (`ROUTES`). `src/constants/query-policies.ts` —
+  named TanStack Query gc/stale-time presets (`detail`, `list`, `infinite`, `realtime`, `static`).
+- `src/layouts/` — route-level layout shells. `src/hooks/`, `src/utils/` — generic reusable code.
+
+Path alias `@/*` → `./src/*` (configured in `vite.config.ts` and `tsconfig.app.json`).
+
+## Conventions
+
+- **Data fetching**: TanStack Query only, keyed via each feature's `queries/keys.ts`, cached per
+  `QUERY_POLICIES` in `src/constants/query-policies.ts` — don't invent ad-hoc `staleTime`s.
+- **Style**: Tailwind utility classes + `cn()` (`src/lib/utils.ts`) only. No inline `style=`, no
+  CSS-in-JS. Theme via `next-themes` + Tailwind tokens (`src/styles/index.css`).
+- **TypeScript**: no `any`, no `@ts-ignore`. Forms via `react-hook-form` + `zod` schemas under
+  `src/features/<feature>/schemas/`.
+- **Components**: function components, no `React.FC`. Keep route `pages/*` thin — real logic
+  belongs in `src/features/<feature>`.
+- **UI kit**: only add primitives via shadcn conventions (see
+  `.agents/skills/shadcn-ui/`) — don't hand-roll a component that already exists there.
+
+### Adding a feature
+
+`schemas` → `api` → `queries/keys.ts` → `queries/options.ts` + `use-queries`/`use-mutations` →
+`hooks` → `components` → `pages` → `routes`. Export the public surface through
+`src/features/<feature>/index.ts`.
 
 ## Frontend skills
 
-When working under `src/`, consult the relevant skill before diverging from
-established patterns:
+Consult before diverging from established patterns under `src/`:
 
-- `.agents/skills/react-best-practices/` — performance, rendering, and
-  data-fetching rules.
-- `.agents/skills/composition-patterns/` — component API and state-sharing
-  patterns.
-- `.agents/skills/react-components/` and `.agents/skills/shadcn-ui/` —
-  component conventions and the shadcn primitive catalog.
-- `.agents/skills/tanstack-query/` — query key structure, caching, and
-  mutation rules.
-- `.agents/skills/playwright/` and `.agents/skills/storybook-setup/` — e2e
-  and component-story conventions.
-- `.agents/skills/frontend-design-review/` — checklist for reviewing UI
-  changes.
+- `.agents/skills/react-best-practices/` — performance, rendering, and data-fetching rules.
+- `.agents/skills/composition-patterns/` — component API and state-sharing patterns.
+- `.agents/skills/react-components/` and `.agents/skills/shadcn-ui/` — component conventions and
+  the shadcn primitive catalog.
+- `.agents/skills/tanstack-query/` — query key structure, caching, and mutation rules.
+- `.agents/skills/playwright/` and `.agents/skills/storybook-setup/` — e2e and story conventions.
+- `.agents/skills/frontend-design-review/` — checklist for reviewing UI changes.
 
-## Verification
+## Git workflow
 
-Match checks to the scope of the change (see the git-commit-instructions
-verification matrix):
+Apply `.agents/skills/git-commit-instructions/SKILL.md` before any branch, commit, or PR
+operation (branch naming, commit format, `main` stays common-only). Apply
+`.agents/skills/git-guardian/SKILL.md` before staging anything, and `.agents/skills/pr/SKILL.md`
+when opening a PR (uses `.github/pull_request_template.md`). Never commit or push without explicit
+instruction.
 
-- Skills or PR templates: `quick_validate.py` for each skill, plus
-  `git diff --check`.
+## Environment
+
+- `VITE_*` = exposed to the client (e.g. `VITE_API_BASE_URL`). Never put secrets behind this
+  prefix.
+- File: `.env.local` (dev, gitignored). New variable → also update `.env.example`.
+
+## Checklist before commit/PR
+
+- `pnpm lint && pnpm format:check && pnpm typecheck` clean; `pnpm build` succeeds.
+- No `console.log`, dead code, `@ts-ignore`, or `any`.
+- Data fetching goes through TanStack Query with a declared query key/policy, not raw `fetch` in
+  an effect.
+- New env var added to `.env.example`; no `.env*` committed.
+
+## Verification matrix
+
 - React logic or components: `pnpm run test`, `pnpm run lint`, `pnpm run build`.
 - Routes, auth, permissions, or user interaction: also `pnpm run test:e2e`.
+- Skills or PR templates: `quick_validate.py` for each skill, plus `git diff --check`.
 
 Never claim a check ran when it did not.

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Add machine-specific setup here, then copy this file to:
+# .devcontainer/post-create.local.sh
