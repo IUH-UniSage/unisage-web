@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-import { mockAccessControl } from "./support/access-control"
+import { mockRbac } from "./support/rbac"
 import { authenticateAs } from "./support/auth"
 
 test("redirects unauthenticated users to login", async ({ page }) => {
@@ -68,8 +68,8 @@ test("manages roles and browses permissions without horizontal overflow", async 
   page,
 }, testInfo) => {
   await authenticateAs(page, "SUPER_ADMIN")
-  await mockAccessControl(page)
-  await page.goto("/admin/access-control")
+  await mockRbac(page)
+  await page.goto("/admin/rbac")
 
   await expect(
     page.getByRole("heading", { name: "Danh sách vai trò" })
@@ -125,8 +125,8 @@ test("manages roles and browses permissions without horizontal overflow", async 
 
 test("creates a role with assigned permissions", async ({ page }, testInfo) => {
   await authenticateAs(page, "SUPER_ADMIN")
-  await mockAccessControl(page)
-  await page.goto("/admin/access-control")
+  await mockRbac(page)
+  await page.goto("/admin/rbac")
 
   await page.getByRole("button", { name: "Thêm vai trò mới" }).click()
   const dialog = page.getByRole("dialog", { name: "Thêm vai trò mới" })

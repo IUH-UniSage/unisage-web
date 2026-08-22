@@ -1,5 +1,5 @@
 import { EntityStatusDialog } from "@/components/shared/dialog/entity-status-dialog"
-import type { AccessRole } from "@/features/access-control/schemas/access-control-schemas"
+import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
 
 type RoleStatusDialogProps = {
   isSubmitting: boolean

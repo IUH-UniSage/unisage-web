@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-type AccessStatusBadgeProps = {
+type EntityStatusBadgeProps = {
   isActive: boolean
 }
 
-export function AccessStatusBadge({ isActive }: AccessStatusBadgeProps) {
+export function EntityStatusBadge({ isActive }: EntityStatusBadgeProps) {
   return (
     <Badge
       className={cn(

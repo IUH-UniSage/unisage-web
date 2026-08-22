@@ -3,8 +3,8 @@ paths:
   - "src/utils/permissions.ts"
   - "src/features/auth/**/*.ts"
   - "src/features/auth/**/*.tsx"
-  - "src/features/access-control/**/*.ts"
-  - "src/features/access-control/**/*.tsx"
+  - "src/features/rbac/**/*.ts"
+  - "src/features/rbac/**/*.tsx"
   - "src/constants/api-endpoints.ts"
   - "src/constants/error-codes.ts"
 ---

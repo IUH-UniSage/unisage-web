@@ -15,10 +15,9 @@ const AdminOverviewPage = lazy(async () => {
   return { default: AdminOverviewPage }
 })
 
-const AccessControlPage = lazy(async () => {
-  const { AccessControlPage } =
-    await import("@/pages/system-admin/access-control-page")
-  return { default: AccessControlPage }
+const RbacPage = lazy(async () => {
+  const { RbacPage } = await import("@/pages/system-admin/rbac-page")
+  return { default: RbacPage }
 })
 
 export const systemAdminRoutes: RouteObject = {
@@ -46,14 +45,14 @@ export const systemAdminRoutes: RouteObject = {
       ),
     },
     {
-      path: ROUTE_SEGMENTS.accessControl,
+      path: ROUTE_SEGMENTS.rbac,
       element: (
         <PermissionRoute
           fallbackTo={ROUTES.admin}
-          requiredPermissions={PERMISSION_POLICIES.adminAccessControl}
+          requiredPermissions={PERMISSION_POLICIES.adminRbac}
           strategy="all"
         >
-          <AccessControlPage />
+          <RbacPage />
         </PermissionRoute>
       ),
     },

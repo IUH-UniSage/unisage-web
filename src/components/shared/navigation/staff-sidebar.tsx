@@ -78,9 +78,9 @@ const navigation: Record<StaffWorkspace, NavigationItem[]> = {
     {
       icon: ShieldPlus,
       label: "Vai trò & phân quyền",
-      requiredPermissions: PERMISSION_POLICIES.adminAccessControl,
+      requiredPermissions: PERMISSION_POLICIES.adminRbac,
       requiredStrategy: "all",
-      to: ROUTES.adminAccessControl,
+      to: ROUTES.adminRbac,
     },
     {
       icon: BookOpen,

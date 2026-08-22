@@ -1,22 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
-import { accessControlApi } from "@/features/access-control/api/access-control-api"
-import { accessControlKeys } from "@/features/access-control/queries/keys"
+import { rbacApi } from "@/features/rbac/api/rbac-api"
+import { rbacKeys } from "@/features/rbac/queries/keys"
 import type {
   CreatePermissionRequest,
   CreateRoleRequest,
   UpdatePermissionRequest,
   UpdateRoleRequest,
-} from "@/features/access-control/schemas/access-control-schemas"
+} from "@/features/rbac/schemas/rbac-schemas"
 
 export function useCreatePermissionMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.permissions(),
+      invalidatesQuery: rbacKeys.permissions(),
       successMessage: "Đã tạo quyền hạn mới.",
     },
     mutationFn: (input: CreatePermissionRequest) =>
-      accessControlApi.createPermission(input),
+      rbacApi.createPermission(input),
   })
 }
 
@@ -30,18 +30,17 @@ export function useUpdatePermissionMutation() {
 
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.permissions(),
+      invalidatesQuery: rbacKeys.permissions(),
       successMessage: "Đã cập nhật quyền hạn.",
     },
     mutationFn: ({ input, permissionId }: UpdatePermissionVariables) =>
-      accessControlApi.updatePermission(permissionId, input),
+      rbacApi.updatePermission(permissionId, input),
     onSuccess: (updatedPermission) => {
       queryClient.setQueryData(
-        accessControlKeys.permissions(),
+        rbacKeys.permissions(),
         (
           current:
-            | Awaited<ReturnType<typeof accessControlApi.getPermissions>>
-            | undefined
+            Awaited<ReturnType<typeof rbacApi.getPermissions>> | undefined
         ) =>
           current
             ? {
@@ -61,55 +60,54 @@ export function useUpdatePermissionMutation() {
 export function useDeletePermissionMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.permissions(),
+      invalidatesQuery: rbacKeys.permissions(),
       successMessage: "Đã vô hiệu hóa quyền hạn.",
     },
     mutationFn: (permissionId: string) =>
-      accessControlApi.deletePermission(permissionId),
+      rbacApi.deletePermission(permissionId),
   })
 }
 
 export function useRecoverPermissionMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.permissions(),
+      invalidatesQuery: rbacKeys.permissions(),
       successMessage: "Đã khôi phục quyền hạn.",
     },
     mutationFn: (permissionId: string) =>
-      accessControlApi.recoverPermission(permissionId),
+      rbacApi.recoverPermission(permissionId),
   })
 }
 
 export function useDeletePermissionsBulkMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.permissions(),
+      invalidatesQuery: rbacKeys.permissions(),
       successMessage: "Đã vô hiệu hóa các quyền hạn đã chọn.",
     },
     mutationFn: (permissionIds: string[]) =>
-      accessControlApi.deletePermissionsBulk(permissionIds),
+      rbacApi.deletePermissionsBulk(permissionIds),
   })
 }
 
 export function useRecoverPermissionsBulkMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.permissions(),
+      invalidatesQuery: rbacKeys.permissions(),
       successMessage: "Đã khôi phục các quyền hạn đã chọn.",
     },
     mutationFn: (permissionIds: string[]) =>
-      accessControlApi.recoverPermissionsBulk(permissionIds),
+      rbacApi.recoverPermissionsBulk(permissionIds),
   })
 }
 
 export function useCreateRoleMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.roles(),
+      invalidatesQuery: rbacKeys.roles(),
       successMessage: "Đã tạo vai trò mới.",
     },
-    mutationFn: (input: CreateRoleRequest) =>
-      accessControlApi.createRole(input),
+    mutationFn: (input: CreateRoleRequest) => rbacApi.createRole(input),
   })
 }
 
@@ -123,18 +121,15 @@ export function useUpdateRoleMutation() {
 
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.roles(),
+      invalidatesQuery: rbacKeys.roles(),
       successMessage: "Đã cập nhật vai trò.",
     },
     mutationFn: ({ input, roleId }: UpdateRoleVariables) =>
-      accessControlApi.updateRole(roleId, input),
+      rbacApi.updateRole(roleId, input),
     onSuccess: (updatedRole) => {
       queryClient.setQueryData(
-        accessControlKeys.roles(),
-        (
-          current:
-            Awaited<ReturnType<typeof accessControlApi.getRoles>> | undefined
-        ) =>
+        rbacKeys.roles(),
+        (current: Awaited<ReturnType<typeof rbacApi.getRoles>> | undefined) =>
           current
             ? {
                 ...current,
@@ -151,41 +146,39 @@ export function useUpdateRoleMutation() {
 export function useDeleteRoleMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.roles(),
+      invalidatesQuery: rbacKeys.roles(),
       successMessage: "Đã vô hiệu hóa vai trò.",
     },
-    mutationFn: (roleId: string) => accessControlApi.deleteRole(roleId),
+    mutationFn: (roleId: string) => rbacApi.deleteRole(roleId),
   })
 }
 
 export function useRecoverRoleMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.roles(),
+      invalidatesQuery: rbacKeys.roles(),
       successMessage: "Đã khôi phục vai trò.",
     },
-    mutationFn: (roleId: string) => accessControlApi.recoverRole(roleId),
+    mutationFn: (roleId: string) => rbacApi.recoverRole(roleId),
   })
 }
 
 export function useDeleteRolesBulkMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.roles(),
+      invalidatesQuery: rbacKeys.roles(),
       successMessage: "Đã vô hiệu hóa các vai trò đã chọn.",
     },
-    mutationFn: (roleIds: string[]) =>
-      accessControlApi.deleteRolesBulk(roleIds),
+    mutationFn: (roleIds: string[]) => rbacApi.deleteRolesBulk(roleIds),
   })
 }
 
 export function useRecoverRolesBulkMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: accessControlKeys.roles(),
+      invalidatesQuery: rbacKeys.roles(),
       successMessage: "Đã khôi phục các vai trò đã chọn.",
     },
-    mutationFn: (roleIds: string[]) =>
-      accessControlApi.recoverRolesBulk(roleIds),
+    mutationFn: (roleIds: string[]) => rbacApi.recoverRolesBulk(roleIds),
   })
 }

@@ -17,7 +17,7 @@ import {
   updatePermissionRequestSchema,
   type UpdateRoleRequest,
   updateRoleRequestSchema,
-} from "@/features/access-control/schemas/access-control-schemas"
+} from "@/features/rbac/schemas/rbac-schemas"
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import { readApiResponse, readSuccessData } from "@/utils/api-response"
 import { httpClient } from "@/lib/axios-client"
@@ -25,7 +25,7 @@ import type { ApiResponse } from "@/utils/api-response"
 
 const LIST_PAGE_SIZE = 500
 
-export const accessControlApi = {
+export const rbacApi = {
   async createPermission(
     input: CreatePermissionRequest
   ): Promise<AccessPermission> {

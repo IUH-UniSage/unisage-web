@@ -19,7 +19,7 @@ import {
   type AccessPermission,
   type CreatePermissionRequest,
   permissionRequestSchema,
-} from "@/features/access-control/schemas/access-control-schemas"
+} from "@/features/rbac/schemas/rbac-schemas"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 type PermissionDialogProps = {

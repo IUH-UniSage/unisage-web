@@ -1,5 +1,5 @@
 import { getResourceTypeLabel } from "@/constants/resource-types"
-import type { AccessPermission } from "@/features/access-control/schemas/access-control-schemas"
+import type { AccessPermission } from "@/features/rbac/schemas/rbac-schemas"
 
 const actionLabels: Record<string, string> = {
   ALL: "Toàn quyền",

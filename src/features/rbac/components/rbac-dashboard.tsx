@@ -4,22 +4,22 @@ import { BulkStatusDialog } from "@/components/shared/dialog/bulk-status-dialog"
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PermissionDialog } from "@/features/access-control/components/permission/permission-dialog"
-import { PermissionList } from "@/features/access-control/components/permission/permission-list"
-import { PermissionStatusDialog } from "@/features/access-control/components/permission/permission-status-dialog"
-import { RoleDialog } from "@/features/access-control/components/role/role-dialog"
-import { RoleList } from "@/features/access-control/components/role/role-list"
-import { RoleStatusDialog } from "@/features/access-control/components/role/role-status-dialog"
+import { PermissionDialog } from "@/features/rbac/components/permission/permission-dialog"
+import { PermissionList } from "@/features/rbac/components/permission/permission-list"
+import { PermissionStatusDialog } from "@/features/rbac/components/permission/permission-status-dialog"
+import { RoleDialog } from "@/features/rbac/components/role/role-dialog"
+import { RoleList } from "@/features/rbac/components/role/role-list"
+import { RoleStatusDialog } from "@/features/rbac/components/role/role-status-dialog"
 import {
-  type AccessControlTab,
-  useAccessControlDashboard,
-} from "@/features/access-control/hooks/use-access-control-dashboard"
+  type RbacTab,
+  useRbacDashboard,
+} from "@/features/rbac/hooks/use-rbac-dashboard"
 
-export function AccessControlDashboard() {
-  const dashboard = useAccessControlDashboard()
+export function RbacDashboard() {
+  const dashboard = useRbacDashboard()
 
   if (dashboard.isPending) {
-    return <AccessControlSkeleton />
+    return <RbacSkeleton />
   }
 
   const isRoleTab = dashboard.activeTab === "roles"
@@ -49,9 +49,7 @@ export function AccessControlDashboard() {
             : "Theo dõi các quyền chức năng mà backend cung cấp cho toàn hệ thống."
         }
         kicker="Quản trị · Phân quyền"
-        onTabChange={(value) =>
-          dashboard.setActiveTab(value as AccessControlTab)
-        }
+        onTabChange={(value) => dashboard.setActiveTab(value as RbacTab)}
         tabs={[
           {
             content: (
@@ -211,7 +209,7 @@ export function AccessControlDashboard() {
   )
 }
 
-function AccessControlSkeleton() {
+function RbacSkeleton() {
   return (
     <div className="space-y-5" aria-label="Đang tải trang phân quyền">
       <div className="space-y-3">

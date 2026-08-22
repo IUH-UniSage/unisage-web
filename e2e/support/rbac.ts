@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test"
 
-const accessControlPermissions = [
+const rbacPermissions = [
   {
     accessLevel: null,
     createdAt: "2024-01-01T08:00:00",
@@ -50,7 +50,7 @@ type MockRole = Omit<RoleRequest, "permissionIds"> & {
   permissionIds: string[]
 }
 
-export async function mockAccessControl(page: Page) {
+export async function mockRbac(page: Page) {
   const roles: MockRole[] = [
     {
       createdAt: "2024-01-01T08:00:00",
@@ -60,10 +60,7 @@ export async function mockAccessControl(page: Page) {
       isActive: true,
       isSystemRole: true,
       name: "SUPER_ADMIN",
-      permissionIds: [
-        accessControlPermissions[0].id,
-        accessControlPermissions[2].id,
-      ],
+      permissionIds: [rbacPermissions[0].id, rbacPermissions[2].id],
     },
     {
       createdAt: "2024-03-10T08:00:00",
@@ -73,7 +70,7 @@ export async function mockAccessControl(page: Page) {
       isActive: true,
       isSystemRole: true,
       name: "INGEST_ADMIN",
-      permissionIds: [accessControlPermissions[3].id],
+      permissionIds: [rbacPermissions[3].id],
     },
     {
       createdAt: "2024-03-22T08:00:00",
@@ -83,7 +80,7 @@ export async function mockAccessControl(page: Page) {
       isActive: false,
       isSystemRole: false,
       name: "VIEWER",
-      permissionIds: [accessControlPermissions[0].id],
+      permissionIds: [rbacPermissions[0].id],
     },
   ]
 
@@ -95,7 +92,7 @@ export async function mockAccessControl(page: Page) {
     isActive: role.isActive,
     isSystemRole: role.isSystemRole,
     name: role.name,
-    permissions: accessControlPermissions
+    permissions: rbacPermissions
       .filter((permission) => role.permissionIds.includes(permission.id))
       .map(({ accessLevel, id, name }) => ({ accessLevel, id, name })),
   })
@@ -106,10 +103,10 @@ export async function mockAccessControl(page: Page) {
       json: {
         code: 1000,
         data: {
-          data: accessControlPermissions,
+          data: rbacPermissions,
           limit: 500,
           page: 1,
-          totalItems: accessControlPermissions.length,
+          totalItems: rbacPermissions.length,
           totalPages: 1,
         },
         message: "Successful",

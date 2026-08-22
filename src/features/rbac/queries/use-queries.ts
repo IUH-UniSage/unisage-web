@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { accessControlOptions } from "@/features/access-control/queries/options"
+import { rbacOptions } from "@/features/rbac/queries/options"
 
 export function useAccessPermissionsQuery() {
-  return useQuery(accessControlOptions.permissions())
+  return useQuery(rbacOptions.permissions())
 }
 
 export function useAccessRolesQuery() {
-  return useQuery(accessControlOptions.roles())
+  return useQuery(rbacOptions.roles())
 }

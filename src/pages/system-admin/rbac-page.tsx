@@ -1,5 +1,5 @@
-import { AccessControlDashboard } from "@/features/access-control/components/access-control-dashboard"
+import { RbacDashboard } from "@/features/rbac/components/rbac-dashboard"
 
-export function AccessControlPage() {
-  return <AccessControlDashboard />
+export function RbacPage() {
+  return <RbacDashboard />
 }

@@ -1,7 +1,7 @@
 import { Filter, Plus } from "lucide-react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 
-import { SearchAndActions } from "@/components/shared/search-and-actions"
+import { SearchAndActions } from "@/components/shared/list/search-and-actions"
 
 const meta = {
   title: "Shared/SearchAndActions",

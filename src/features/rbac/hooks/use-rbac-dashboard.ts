@@ -5,7 +5,7 @@ import {
   getPermissionLabel,
   getResourceLabel,
   splitPermissionName,
-} from "@/features/access-control/utils/access-control-formatters"
+} from "@/features/rbac/utils/rbac-formatters"
 import {
   useCreatePermissionMutation,
   useCreateRoleMutation,
@@ -19,31 +19,31 @@ import {
   useRecoverRolesBulkMutation,
   useUpdatePermissionMutation,
   useUpdateRoleMutation,
-} from "@/features/access-control/queries/use-mutations"
+} from "@/features/rbac/queries/use-mutations"
 import {
   useAccessPermissionsQuery,
   useAccessRolesQuery,
-} from "@/features/access-control/queries/use-queries"
+} from "@/features/rbac/queries/use-queries"
 import type {
   AccessPermission,
   AccessRole,
   CreatePermissionRequest,
   CreateRoleRequest,
-} from "@/features/access-control/schemas/access-control-schemas"
+} from "@/features/rbac/schemas/rbac-schemas"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import { PERMISSIONS } from "@/utils/permissions"
 
-export type AccessControlTab = "roles" | "permissions"
+export type RbacTab = "roles" | "permissions"
 export type StatusFilter = "active" | "all" | "inactive"
 export type PermissionLevelFilter = "all" | "scoped" | "unrestricted"
 
 const EMPTY_PERMISSIONS: AccessPermission[] = []
 const EMPTY_ROLES: AccessRole[] = []
-export const ACCESS_CONTROL_PAGE_SIZE = 10
+export const RBAC_PAGE_SIZE = 10
 
 function paginate<T>(items: T[], page: number) {
-  const start = (page - 1) * ACCESS_CONTROL_PAGE_SIZE
-  return items.slice(start, start + ACCESS_CONTROL_PAGE_SIZE)
+  const start = (page - 1) * RBAC_PAGE_SIZE
+  return items.slice(start, start + RBAC_PAGE_SIZE)
 }
 
 function matchesStatus(isActive: boolean, status: StatusFilter) {
@@ -82,7 +82,7 @@ const URL_PARAM_KEYS = {
   tab: "tab",
 } as const satisfies Record<Param, string>
 
-export function useAccessControlDashboard() {
+export function useRbacDashboard() {
   const rolesQuery = useAccessRolesQuery()
   const permissionsQuery = useAccessPermissionsQuery()
   const createRole = useCreateRoleMutation()
@@ -128,7 +128,7 @@ export function useAccessControlDashboard() {
     return Number.isFinite(page) && page > 0 ? page : 1
   }
 
-  const activeTab: AccessControlTab =
+  const activeTab: RbacTab =
     getParam("tab") === "permissions" ? "permissions" : "roles"
   const appliedRoleSearch = getParam("roleSearch")
   const appliedRoleStatus = getParam("roleStatus") as StatusFilter
@@ -259,11 +259,11 @@ export function useAccessControlDashboard() {
 
   const roleTotalPages = Math.max(
     1,
-    Math.ceil(filteredRoles.length / ACCESS_CONTROL_PAGE_SIZE)
+    Math.ceil(filteredRoles.length / RBAC_PAGE_SIZE)
   )
   const permissionTotalPages = Math.max(
     1,
-    Math.ceil(filteredPermissions.length / ACCESS_CONTROL_PAGE_SIZE)
+    Math.ceil(filteredPermissions.length / RBAC_PAGE_SIZE)
   )
   const currentRolePage = Math.min(rolePage, roleTotalPages)
   const currentPermissionPage = Math.min(permissionPage, permissionTotalPages)
@@ -577,7 +577,7 @@ export function useAccessControlDashboard() {
     saveRole,
     selectedPermissionIds,
     selectedRoleIds,
-    setActiveTab: (value: AccessControlTab) => setParams({ tab: value }),
+    setActiveTab: (value: RbacTab) => setParams({ tab: value }),
     setPermissionLevel: setPendingPermissionLevel,
     setPermissionPage: (page: number) =>
       setParams({ permissionPage: String(page) }),

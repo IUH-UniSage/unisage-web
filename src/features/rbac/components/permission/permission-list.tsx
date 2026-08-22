@@ -26,17 +26,17 @@ import {
 } from "@/components/ui/select"
 import { getResourceTypeBadgeClassName } from "@/constants/resource-types"
 import {
-  ACCESS_CONTROL_PAGE_SIZE,
+  RBAC_PAGE_SIZE,
   type PermissionLevelFilter,
   type StatusFilter,
-} from "@/features/access-control/hooks/use-access-control-dashboard"
+} from "@/features/rbac/hooks/use-rbac-dashboard"
 import {
   formatAuditDate,
   getPermissionLabel,
   getResourceLabel,
   splitPermissionName,
-} from "@/features/access-control/utils/access-control-formatters"
-import type { AccessPermission } from "@/features/access-control/schemas/access-control-schemas"
+} from "@/features/rbac/utils/rbac-formatters"
+import type { AccessPermission } from "@/features/rbac/schemas/rbac-schemas"
 
 type PermissionActionsProps = {
   canDeletePermissions: boolean
@@ -150,7 +150,7 @@ export function PermissionList({
   const allSelectedOnPage =
     permissionIdsOnPage.length > 0 &&
     permissionIdsOnPage.every((id) => selectedIds.has(id))
-  const firstRowNumber = (currentPage - 1) * ACCESS_CONTROL_PAGE_SIZE + 1
+  const firstRowNumber = (currentPage - 1) * RBAC_PAGE_SIZE + 1
 
   const columns = useMemo<ColumnDef<AccessPermission, unknown>[]>(
     () => [
@@ -391,7 +391,7 @@ export function PermissionList({
         className="rounded-none border-x-0 border-b-0 shadow-none"
         currentPage={currentPage}
         onPageChange={onPageChange}
-        pageSize={ACCESS_CONTROL_PAGE_SIZE}
+        pageSize={RBAC_PAGE_SIZE}
         totalItems={totalItems}
         totalPages={totalPages}
       />

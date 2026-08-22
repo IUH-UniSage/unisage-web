@@ -4,7 +4,7 @@ import {
   accessPermissionPageSchema,
   accessRolePageSchema,
   updateRoleRequestSchema,
-} from "@/features/access-control/schemas/access-control-schemas"
+} from "@/features/rbac/schemas/rbac-schemas"
 
 const permission = {
   accessLevel: null,
@@ -17,7 +17,7 @@ const permission = {
   updatedBy: null,
 }
 
-describe("access-control schemas", () => {
+describe("rbac schemas", () => {
   it("parses the Backend role page contract", () => {
     const page = accessRolePageSchema.parse({
       data: [

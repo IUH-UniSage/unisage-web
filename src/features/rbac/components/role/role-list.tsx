@@ -29,10 +29,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ACCESS_CONTROL_PAGE_SIZE } from "@/features/access-control/hooks/use-access-control-dashboard"
-import type { StatusFilter } from "@/features/access-control/hooks/use-access-control-dashboard"
-import { formatAuditDate } from "@/features/access-control/utils/access-control-formatters"
-import type { AccessRole } from "@/features/access-control/schemas/access-control-schemas"
+import { RBAC_PAGE_SIZE } from "@/features/rbac/hooks/use-rbac-dashboard"
+import type { StatusFilter } from "@/features/rbac/hooks/use-rbac-dashboard"
+import { formatAuditDate } from "@/features/rbac/utils/rbac-formatters"
+import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
 
 type RoleListProps = {
   canDeleteRoles: boolean
@@ -186,7 +186,7 @@ export function RoleList({
   const roleIdsOnPage = roles.map((role) => role.id)
   const allSelectedOnPage =
     roleIdsOnPage.length > 0 && roleIdsOnPage.every((id) => selectedIds.has(id))
-  const firstRowNumber = (currentPage - 1) * ACCESS_CONTROL_PAGE_SIZE + 1
+  const firstRowNumber = (currentPage - 1) * RBAC_PAGE_SIZE + 1
 
   const columns = useMemo<ColumnDef<AccessRole, unknown>[]>(
     () => [
@@ -394,7 +394,7 @@ export function RoleList({
         className="rounded-none border-x-0 border-b-0 shadow-none"
         currentPage={currentPage}
         onPageChange={onPageChange}
-        pageSize={ACCESS_CONTROL_PAGE_SIZE}
+        pageSize={RBAC_PAGE_SIZE}
         totalItems={totalItems}
         totalPages={totalPages}
       />

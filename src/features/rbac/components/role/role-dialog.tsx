@@ -32,13 +32,13 @@ import {
   getResourceLabel,
   groupPermissions,
   splitPermissionName,
-} from "@/features/access-control/utils/access-control-formatters"
+} from "@/features/rbac/utils/rbac-formatters"
 import {
   createRoleRequestSchema,
   type AccessPermission,
   type AccessRole,
   type CreateRoleRequest,
-} from "@/features/access-control/schemas/access-control-schemas"
+} from "@/features/rbac/schemas/rbac-schemas"
 import { cn } from "@/lib/utils"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
