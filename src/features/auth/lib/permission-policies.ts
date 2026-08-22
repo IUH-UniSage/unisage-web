@@ -1,4 +1,4 @@
-import { PERMISSIONS, type PermissionRequirement } from "@/lib/permissions"
+import { PERMISSIONS, type PermissionRequirement } from "@/utils/permissions"
 
 const policy = (
   ...permissions: PermissionRequirement[]

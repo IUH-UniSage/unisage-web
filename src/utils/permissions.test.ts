@@ -6,7 +6,7 @@ import {
   hasPermission,
   hasPermissionInfo,
   PERMISSIONS,
-} from "@/lib/permissions"
+} from "@/utils/permissions"
 
 describe("permission helpers", () => {
   const granted = [PERMISSIONS.documentRead, PERMISSIONS.userRead]

@@ -21,7 +21,7 @@ import type {
   CreateRoleRequest,
 } from "@/features/access-control/schemas/access-control-schemas"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSIONS } from "@/lib/permissions"
+import { PERMISSIONS } from "@/utils/permissions"
 
 export type AccessControlTab = "roles" | "permissions"
 export type StatusFilter = "active" | "all" | "inactive"

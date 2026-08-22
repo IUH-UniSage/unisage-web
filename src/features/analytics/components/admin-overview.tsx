@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PermissionGate } from "@/features/auth/components/permission-gate"
 import { PERMISSION_POLICIES } from "@/features/auth/lib/permission-policies"
-import type { PermissionRequirement } from "@/lib/permissions"
+import type { PermissionRequirement } from "@/utils/permissions"
 
 const overviewMetrics = [
   {

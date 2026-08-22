@@ -21,7 +21,7 @@ import {
   authSessionSchema,
   refreshResponseSchema,
 } from "@/features/auth/schemas/auth-schemas"
-import { readSuccessData } from "@/lib/api-response"
+import { readSuccessData } from "@/utils/api-response"
 import {
   AUTH_SESSION_EXPIRED_EVENT,
   AUTH_SESSION_REFRESHED_EVENT,

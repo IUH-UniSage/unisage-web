@@ -12,9 +12,10 @@ import {
   type UpdateRoleRequest,
   updateRoleRequestSchema,
 } from "@/features/access-control/schemas/access-control-schemas"
-import { readApiResponse, readSuccessData } from "@/lib/api-response"
+import { API_ENDPOINTS } from "@/constants/api-endpoints"
+import { readApiResponse, readSuccessData } from "@/utils/api-response"
 import { httpClient } from "@/lib/axios-client"
-import type { ApiResponse } from "@/types/api"
+import type { ApiResponse } from "@/utils/api-response"
 
 const LIST_PAGE_SIZE = 500
 
@@ -22,7 +23,7 @@ export const accessControlApi = {
   async createRole(input: CreateRoleRequest): Promise<AccessRole> {
     const request = createRoleRequestSchema.parse(input)
     const response = await httpClient.post<ApiResponse<AccessRole>>(
-      "/rbac/roles",
+      API_ENDPOINTS.rbac.roles,
       request
     )
 
@@ -31,7 +32,7 @@ export const accessControlApi = {
 
   async deleteRole(roleId: string): Promise<void> {
     const response = await httpClient.delete<ApiResponse<null>>(
-      `/rbac/roles/${roleId}`
+      API_ENDPOINTS.rbac.role(roleId)
     )
 
     readApiResponse(response.data, z.null())
@@ -39,7 +40,7 @@ export const accessControlApi = {
 
   async getPermissions(): Promise<AccessPermissionPage> {
     const response = await httpClient.get<ApiResponse<AccessPermissionPage>>(
-      "/rbac/permissions",
+      API_ENDPOINTS.rbac.permissions,
       { params: { limit: LIST_PAGE_SIZE, page: 1 } }
     )
 
@@ -48,7 +49,7 @@ export const accessControlApi = {
 
   async getRoles(): Promise<AccessRolePage> {
     const response = await httpClient.get<ApiResponse<AccessRolePage>>(
-      "/rbac/roles",
+      API_ENDPOINTS.rbac.roles,
       { params: { limit: LIST_PAGE_SIZE, page: 1 } }
     )
 
@@ -57,7 +58,7 @@ export const accessControlApi = {
 
   async recoverRole(roleId: string): Promise<void> {
     const response = await httpClient.post<ApiResponse<null>>(
-      `/rbac/roles/${roleId}/recover`
+      API_ENDPOINTS.rbac.roleRecover(roleId)
     )
 
     readApiResponse(response.data, z.null())
@@ -69,7 +70,7 @@ export const accessControlApi = {
   ): Promise<AccessRole> {
     const request = updateRoleRequestSchema.parse(input)
     const response = await httpClient.put<ApiResponse<AccessRole>>(
-      `/rbac/roles/${roleId}`,
+      API_ENDPOINTS.rbac.role(roleId),
       request
     )
 

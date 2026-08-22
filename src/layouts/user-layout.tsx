@@ -149,14 +149,9 @@ export function UserLayout() {
                     />
                   </>
                 ) : (
-                  <>
-                    <Button asChild size="sm" variant="ghost">
-                      <Link to={ROUTES.signIn}>Đăng nhập</Link>
-                    </Button>
-                    <Button asChild size="sm">
-                      <Link to={ROUTES.signUp}>Đăng ký</Link>
-                    </Button>
-                  </>
+                  <Button asChild size="sm">
+                    <Link to={ROUTES.signIn}>Đăng nhập</Link>
+                  </Button>
                 )}
               </div>
 
@@ -220,14 +215,9 @@ export function UserLayout() {
                         </Link>
                       </>
                     ) : (
-                      <div className="grid gap-3">
-                        <Button asChild>
-                          <Link to={ROUTES.signIn}>Đăng nhập</Link>
-                        </Button>
-                        <Button asChild variant="outline">
-                          <Link to={ROUTES.signUp}>Đăng ký tài khoản</Link>
-                        </Button>
-                      </div>
+                      <Button asChild>
+                        <Link to={ROUTES.signIn}>Đăng nhập</Link>
+                      </Button>
                     )}
                     <div className="mt-3 flex min-h-11 items-center justify-between border-t border-primary/10 pt-3 text-sm font-medium text-primary">
                       <span>Giao diện</span>

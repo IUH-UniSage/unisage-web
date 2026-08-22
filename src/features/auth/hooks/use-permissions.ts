@@ -1,10 +1,10 @@
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import type { PermissionRequirement } from "@/lib/permissions"
+import type { PermissionRequirement } from "@/utils/permissions"
 import {
   hasAnyPermissionInfo,
   hasEveryPermissionInfo,
   hasPermissionInfo,
-} from "@/lib/permissions"
+} from "@/utils/permissions"
 
 export function usePermissions() {
   const { session } = useAuth()

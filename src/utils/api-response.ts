@@ -1,7 +1,22 @@
 import type { ZodType } from "zod"
 import { z } from "zod"
 
-import type { ApiResponse } from "@/types/api"
+import { getErrorMessage } from "@/constants/error-codes"
+
+export type ApiResponse<T = unknown> = {
+  code: number
+  data?: T | null
+  errors?: Record<string, string> | null
+  message: string
+}
+
+export type PageResponse<T> = {
+  data: T
+  limit: number
+  page: number
+  totalItems: number
+  totalPages: number
+}
 
 export const API_SUCCESS_CODE = 1000
 
@@ -10,7 +25,7 @@ export class ApiResponseError extends Error {
   readonly errors?: Record<string, string> | null
 
   constructor(response: ApiResponse<unknown>) {
-    super(response.message)
+    super(getErrorMessage(response.code, response.message))
     this.name = "ApiResponseError"
     this.code = response.code
     this.errors = response.errors

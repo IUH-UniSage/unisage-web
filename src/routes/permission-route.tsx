@@ -4,8 +4,11 @@ import { Navigate, Outlet } from "react-router-dom"
 import { ROUTES } from "@/constants/paths"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import type { PermissionInfo } from "@/features/auth/schemas/auth-schemas"
-import type { PermissionRequirement } from "@/lib/permissions"
-import { hasAnyPermissionInfo, hasEveryPermissionInfo } from "@/lib/permissions"
+import type { PermissionRequirement } from "@/utils/permissions"
+import {
+  hasAnyPermissionInfo,
+  hasEveryPermissionInfo,
+} from "@/utils/permissions"
 
 type PermissionRouteProps = {
   children?: ReactNode

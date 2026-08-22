@@ -6,7 +6,7 @@ import {
   apiResponseSchema,
   readApiResponse,
   readSuccessData,
-} from "@/lib/api-response"
+} from "@/utils/api-response"
 
 describe("API response helpers", () => {
   const dataSchema = z.object({ id: z.uuid() })
@@ -68,7 +68,30 @@ describe("API response helpers", () => {
     expect(thrownError).toMatchObject({
       code: 1006,
       errors: { code: "Mã tài khoản không tồn tại." },
-      message: "Đăng nhập thất bại.",
+      message: "Mã số hoặc mật khẩu không đúng.",
+    })
+  })
+
+  it("falls back to the Backend message when there is no local mapping for the code", () => {
+    let thrownError: unknown
+
+    try {
+      readApiResponse(
+        {
+          code: 4242,
+          data: null,
+          message: "Lỗi không có trong bảng ánh xạ FE.",
+        },
+        dataSchema
+      )
+    } catch (error) {
+      thrownError = error
+    }
+
+    expect(thrownError).toBeInstanceOf(ApiResponseError)
+    expect(thrownError).toMatchObject({
+      code: 4242,
+      message: "Lỗi không có trong bảng ánh xạ FE.",
     })
   })
 })

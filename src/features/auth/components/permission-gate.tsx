@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import type { PermissionRequirement } from "@/lib/permissions"
+import type { PermissionRequirement } from "@/utils/permissions"
 
 type PermissionGateProps = {
   children: ReactNode

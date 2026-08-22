@@ -1,7 +1,7 @@
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form"
 import axios from "axios"
 
-import { ApiResponseError } from "@/lib/api-response"
+import { ApiResponseError } from "@/utils/api-response"
 
 export type ApiErrorResponse = {
   code?: number | string
