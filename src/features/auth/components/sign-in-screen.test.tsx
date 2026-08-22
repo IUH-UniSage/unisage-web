@@ -23,6 +23,13 @@ import { GuestRoute } from "@/routes/guest-route"
 import { STORAGE_KEYS } from "@/utils/local-storage"
 
 const userId = "a76398bd-c8ac-4fa8-803e-0a91e207347c"
+
+function fakeAccessToken(subject: string): string {
+  const encode = (value: unknown) =>
+    btoa(JSON.stringify(value)).replaceAll("+", "-").replaceAll("/", "_")
+
+  return `${encode({ alg: "HS384" })}.${encode({ sub: subject })}.signature`
+}
 const permissions = [
   {
     accessLevel: 5,
@@ -35,7 +42,7 @@ const server = setupServer()
 
 function buildAuthResponse(overrides: Partial<AuthResponse> = {}) {
   return {
-    accessToken: "access-token",
+    accessToken: fakeAccessToken(userId),
     avatarUrl: null,
     code: "SV001",
     email: "student@example.edu.vn",
@@ -45,7 +52,6 @@ function buildAuthResponse(overrides: Partial<AuthResponse> = {}) {
     refreshToken: "refresh-token",
     refreshTokenExpirationMs: 60_000,
     role: "USER",
-    userId,
     ...overrides,
   }
 }

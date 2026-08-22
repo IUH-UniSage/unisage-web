@@ -2,8 +2,14 @@ import type {
   AuthResponse,
   AuthSession,
 } from "@/features/auth/schemas/auth-schemas"
+import { getJwtSubject } from "@/features/auth/utils/jwt"
 
 export function createSessionFromResponse(response: AuthResponse): AuthSession {
+  const userId = getJwtSubject(response.accessToken)
+  if (!userId) {
+    throw new Error("Access token is missing a subject claim.")
+  }
+
   return {
     avatarUrl: response.avatarUrl,
     code: response.code,
@@ -12,7 +18,7 @@ export function createSessionFromResponse(response: AuthResponse): AuthSession {
     isSystemRole: response.isSystemRole,
     permissions: response.permissions,
     role: response.role,
-    userId: response.userId,
+    userId,
   }
 }
 

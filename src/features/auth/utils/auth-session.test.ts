@@ -11,10 +11,17 @@ const permission = {
   name: "DOCUMENT_ALL",
 }
 
+function fakeAccessToken(subject: string): string {
+  const encode = (value: unknown) =>
+    btoa(JSON.stringify(value)).replaceAll("+", "-").replaceAll("/", "_")
+
+  return `${encode({ alg: "HS384" })}.${encode({ sub: subject })}.signature`
+}
+
 describe("auth session helpers", () => {
   it("creates a client session from the Backend auth response", () => {
     const session = createSessionFromResponse({
-      accessToken: "access-token",
+      accessToken: fakeAccessToken("a76398bd-c8ac-4fa8-803e-0a91e207347c"),
       avatarUrl: null,
       code: "SV001",
       email: "student@example.edu.vn",
@@ -24,7 +31,6 @@ describe("auth session helpers", () => {
       refreshToken: "refresh-token",
       refreshTokenExpirationMs: 60_000,
       role: "USER",
-      userId: "a76398bd-c8ac-4fa8-803e-0a91e207347c",
     })
 
     expect(session).toEqual({

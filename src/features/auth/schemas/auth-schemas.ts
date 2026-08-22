@@ -16,7 +16,6 @@ const authenticatedAccountSchema = z.object({
   isSystemRole: z.boolean(),
   permissions: z.array(permissionSchema),
   role: userRoleSchema,
-  userId: z.uuid(),
 })
 
 export const loginRequestSchema = z.object({
@@ -34,7 +33,13 @@ export const authResponseSchema = authenticatedAccountSchema.extend({
 })
 
 export const refreshResponseSchema = authResponseSchema
-export const authSessionSchema = authenticatedAccountSchema
+
+// The backend doesn't return userId as a field on AuthResponse -- it's
+// decoded from the access token's `sub` claim and added when the session is
+// built. See createSessionFromResponse.
+export const authSessionSchema = authenticatedAccountSchema.extend({
+  userId: z.uuid(),
+})
 
 export type AuthResponse = z.infer<typeof authResponseSchema>
 export type AuthSession = z.infer<typeof authSessionSchema>
