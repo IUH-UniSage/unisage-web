@@ -4,11 +4,15 @@ import {
   getPermissionLabel,
   getResourceLabel,
   splitPermissionName,
-} from "@/features/access-control/lib/access-control-formatters"
+} from "@/features/access-control/utils/access-control-formatters"
 import {
+  useCreatePermissionMutation,
   useCreateRoleMutation,
+  useDeletePermissionMutation,
   useDeleteRoleMutation,
+  useRecoverPermissionMutation,
   useRecoverRoleMutation,
+  useUpdatePermissionMutation,
   useUpdateRoleMutation,
 } from "@/features/access-control/queries/use-mutations"
 import {
@@ -18,6 +22,7 @@ import {
 import type {
   AccessPermission,
   AccessRole,
+  CreatePermissionRequest,
   CreateRoleRequest,
 } from "@/features/access-control/schemas/access-control-schemas"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
@@ -51,6 +56,10 @@ export function useAccessControlDashboard() {
   const updateRole = useUpdateRoleMutation()
   const deleteRole = useDeleteRoleMutation()
   const recoverRole = useRecoverRoleMutation()
+  const createPermission = useCreatePermissionMutation()
+  const updatePermission = useUpdatePermissionMutation()
+  const deletePermission = useDeletePermissionMutation()
+  const recoverPermission = useRecoverPermissionMutation()
   const { can } = usePermissions()
 
   const [activeTab, setActiveTab] = useState<AccessControlTab>("roles")
@@ -66,6 +75,9 @@ export function useAccessControlDashboard() {
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [editingRole, setEditingRole] = useState<AccessRole>()
   const [statusRole, setStatusRole] = useState<AccessRole>()
+  const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false)
+  const [editingPermission, setEditingPermission] = useState<AccessPermission>()
+  const [statusPermission, setStatusPermission] = useState<AccessPermission>()
 
   const roles = rolesQuery.data?.data ?? EMPTY_ROLES
   const permissions = permissionsQuery.data?.data ?? EMPTY_PERMISSIONS
@@ -180,22 +192,71 @@ export function useAccessControlDashboard() {
     setStatusRole(undefined)
   }
 
+  const openCreatePermission = () => {
+    setEditingPermission(undefined)
+    setIsPermissionDialogOpen(true)
+  }
+
+  const openEditPermission = (permission: AccessPermission) => {
+    setEditingPermission(permission)
+    setIsPermissionDialogOpen(true)
+  }
+
+  const savePermission = async (input: CreatePermissionRequest) => {
+    if (editingPermission) {
+      await updatePermission.mutateAsync({
+        input,
+        permissionId: editingPermission.id,
+      })
+    } else {
+      await createPermission.mutateAsync(input)
+    }
+
+    setIsPermissionDialogOpen(false)
+  }
+
+  const confirmPermissionStatusChange = async () => {
+    if (!statusPermission) return
+
+    if (statusPermission.isActive) {
+      await deletePermission.mutateAsync(statusPermission.id)
+    } else {
+      await recoverPermission.mutateAsync(statusPermission.id)
+    }
+
+    setStatusPermission(undefined)
+  }
+
   return {
     activeTab,
+    canCreatePermissions: can(PERMISSIONS.permissionCreate),
     canCreateRoles: can(PERMISSIONS.roleCreate),
+    canDeletePermissions: can(PERMISSIONS.permissionDelete),
     canDeleteRoles: can(PERMISSIONS.roleDelete),
+    canUpdatePermissions: can(PERMISSIONS.permissionUpdate),
     canUpdateRoles: can(PERMISSIONS.roleUpdate),
+    closePermissionDialog: () => setIsPermissionDialogOpen(false),
+    closePermissionStatusDialog: () => setStatusPermission(undefined),
     closeRoleDialog: () => setIsRoleDialogOpen(false),
     closeStatusDialog: () => setStatusRole(undefined),
+    confirmPermissionStatusChange,
     confirmStatusChange,
+    editingPermission,
     editingRole,
     filteredPermissionCount: filteredPermissions.length,
     filteredRoleCount: filteredRoles.length,
     isPending: rolesQuery.isPending || permissionsQuery.isPending,
+    isPermissionDialogOpen,
     isRoleDialogOpen,
+    isSavingPermission:
+      createPermission.isPending || updatePermission.isPending,
     isSavingRole: createRole.isPending || updateRole.isPending,
+    isUpdatingPermissionStatus:
+      deletePermission.isPending || recoverPermission.isPending,
     isUpdatingStatus: deleteRole.isPending || recoverRole.isPending,
+    openCreatePermission,
     openCreateRole,
+    openEditPermission,
     openEditRole,
     pagedPermissions: paginate(filteredPermissions, currentPermissionPage),
     pagedRoles: paginate(filteredRoles, currentRolePage),
@@ -205,6 +266,7 @@ export function useAccessControlDashboard() {
     permissionStatus,
     permissionTotalPages,
     permissions,
+    requestPermissionStatusChange: setStatusPermission,
     requestStatusChange: setStatusRole,
     resetPermissionFilters: () => {
       setPermissionSearch("")
@@ -225,6 +287,7 @@ export function useAccessControlDashboard() {
     roleSearch,
     roleStatus,
     roleTotalPages,
+    savePermission,
     saveRole,
     setActiveTab,
     setPermissionLevel: (value: PermissionLevelFilter) => {
@@ -253,6 +316,7 @@ export function useAccessControlDashboard() {
       setRoleStatus(value)
       setRolePage(1)
     },
+    statusPermission,
     statusRole,
   }
 }

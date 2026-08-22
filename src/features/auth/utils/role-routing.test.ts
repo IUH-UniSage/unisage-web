@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { ROUTES } from "@/constants/paths"
-import { getRoleHome, USER_ROLES } from "@/features/auth/lib/role-routing"
+import { getRoleHome, USER_ROLES } from "@/features/auth/utils/role-routing"
 
 describe("role routing", () => {
   it.each([

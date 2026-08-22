@@ -23,7 +23,7 @@ import {
 import { AccessStatusBadge } from "@/features/access-control/components/access-status-badge"
 import { ACCESS_CONTROL_PAGE_SIZE } from "@/features/access-control/hooks/use-access-control-dashboard"
 import type { StatusFilter } from "@/features/access-control/hooks/use-access-control-dashboard"
-import { formatAuditDate } from "@/features/access-control/lib/access-control-formatters"
+import { formatAuditDate } from "@/features/access-control/utils/access-control-formatters"
 import type { AccessRole } from "@/features/access-control/schemas/access-control-schemas"
 
 type RoleListProps = {

@@ -3,7 +3,9 @@ import { KeyRound, Plus, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PermissionDialog } from "@/features/access-control/components/permission-dialog"
 import { PermissionList } from "@/features/access-control/components/permission-list"
+import { PermissionStatusDialog } from "@/features/access-control/components/permission-status-dialog"
 import { RoleDialog } from "@/features/access-control/components/role-dialog"
 import { RoleList } from "@/features/access-control/components/role-list"
 import { RoleStatusDialog } from "@/features/access-control/components/role-status-dialog"
@@ -42,6 +44,15 @@ export function AccessControlDashboard() {
           <Button className="sm:self-end" onClick={dashboard.openCreateRole}>
             <Plus aria-hidden="true" />
             Thêm vai trò mới
+          </Button>
+        ) : null}
+        {!isRoleTab && dashboard.canCreatePermissions ? (
+          <Button
+            className="sm:self-end"
+            onClick={dashboard.openCreatePermission}
+          >
+            <Plus aria-hidden="true" />
+            Thêm quyền hạn mới
           </Button>
         ) : null}
       </div>
@@ -90,13 +101,17 @@ export function AccessControlDashboard() {
 
         <TabsContent className="mt-3" value="permissions">
           <PermissionList
+            canDeletePermissions={dashboard.canDeletePermissions}
+            canUpdatePermissions={dashboard.canUpdatePermissions}
             currentPage={dashboard.permissionPage}
             level={dashboard.permissionLevel}
+            onEditPermission={dashboard.openEditPermission}
             onLevelChange={dashboard.setPermissionLevel}
             onPageChange={dashboard.setPermissionPage}
             onResetFilters={dashboard.resetPermissionFilters}
             onSearchChange={dashboard.setPermissionSearch}
             onStatusChange={dashboard.setPermissionStatus}
+            onStatusRequest={dashboard.requestPermissionStatusChange}
             permissions={dashboard.pagedPermissions}
             search={dashboard.permissionSearch}
             status={dashboard.permissionStatus}
@@ -127,6 +142,29 @@ export function AccessControlDashboard() {
             if (!open) dashboard.closeStatusDialog()
           }}
           role={dashboard.statusRole}
+        />
+      ) : null}
+
+      {dashboard.isPermissionDialogOpen ? (
+        <PermissionDialog
+          isSaving={dashboard.isSavingPermission}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closePermissionDialog()
+          }}
+          onSubmit={dashboard.savePermission}
+          open
+          permission={dashboard.editingPermission}
+        />
+      ) : null}
+
+      {dashboard.statusPermission ? (
+        <PermissionStatusDialog
+          isSubmitting={dashboard.isUpdatingPermissionStatus}
+          onConfirm={dashboard.confirmPermissionStatusChange}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closePermissionStatusDialog()
+          }}
+          permission={dashboard.statusPermission}
         />
       ) : null}
     </div>

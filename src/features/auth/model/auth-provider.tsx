@@ -6,7 +6,7 @@ import {
   AuthContext,
   type AuthenticationStatus,
 } from "@/features/auth/model/auth-context"
-import { createSessionFromResponse } from "@/features/auth/lib/auth-session"
+import { createSessionFromResponse } from "@/features/auth/utils/auth-session"
 import {
   useLoginMutation,
   useLogoutMutation,

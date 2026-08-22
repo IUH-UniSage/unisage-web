@@ -4,7 +4,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom"
 import { FullScreenLoading } from "@/components/shared/full-screen-loading"
 import { ROUTES } from "@/constants/paths"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import { getRoleHome } from "@/features/auth/lib/role-routing"
+import { getRoleHome } from "@/features/auth/utils/role-routing"
 import type { AuthenticationStatus } from "@/features/auth/model/auth-context"
 
 export type { AuthenticationStatus }

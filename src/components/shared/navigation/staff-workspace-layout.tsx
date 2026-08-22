@@ -17,7 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import { getInitials } from "@/features/auth/lib/auth-session"
+import { getInitials } from "@/features/auth/utils/auth-session"
 
 type StaffWorkspaceLayoutProps = {
   workspace: StaffWorkspace

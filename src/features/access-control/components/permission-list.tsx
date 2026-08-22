@@ -1,4 +1,4 @@
-import { KeyRound, Search } from "lucide-react"
+import { KeyRound, Pencil, Power, RotateCcw, Search } from "lucide-react"
 
 import { Pagination } from "@/components/shared/pagination"
 import { SearchEmpty } from "@/components/shared/search-empty"
@@ -31,17 +31,70 @@ import {
   getPermissionLabel,
   getResourceLabel,
   splitPermissionName,
-} from "@/features/access-control/lib/access-control-formatters"
+} from "@/features/access-control/utils/access-control-formatters"
 import type { AccessPermission } from "@/features/access-control/schemas/access-control-schemas"
 
+type PermissionActionsProps = {
+  canDeletePermissions: boolean
+  canUpdatePermissions: boolean
+  onEditPermission: (permission: AccessPermission) => void
+  onStatusRequest: (permission: AccessPermission) => void
+  permission: AccessPermission
+}
+
+function PermissionActions({
+  canDeletePermissions,
+  canUpdatePermissions,
+  onEditPermission,
+  onStatusRequest,
+  permission,
+}: PermissionActionsProps) {
+  return (
+    <div className="flex items-center justify-end gap-1">
+      {canUpdatePermissions ? (
+        <Button
+          aria-label={`Chỉnh sửa ${permission.name}`}
+          onClick={() => onEditPermission(permission)}
+          size="icon-sm"
+          variant="ghost"
+        >
+          <Pencil aria-hidden="true" />
+        </Button>
+      ) : null}
+      {canDeletePermissions ? (
+        <Button
+          aria-label={
+            permission.isActive
+              ? `Vô hiệu hóa ${permission.name}`
+              : `Khôi phục ${permission.name}`
+          }
+          onClick={() => onStatusRequest(permission)}
+          size="icon-sm"
+          variant="ghost"
+        >
+          {permission.isActive ? (
+            <Power aria-hidden="true" />
+          ) : (
+            <RotateCcw aria-hidden="true" />
+          )}
+        </Button>
+      ) : null}
+    </div>
+  )
+}
+
 type PermissionListProps = {
+  canDeletePermissions: boolean
+  canUpdatePermissions: boolean
   currentPage: number
   level: PermissionLevelFilter
+  onEditPermission: (permission: AccessPermission) => void
   onLevelChange: (value: PermissionLevelFilter) => void
   onPageChange: (page: number) => void
   onResetFilters: () => void
   onSearchChange: (value: string) => void
   onStatusChange: (value: StatusFilter) => void
+  onStatusRequest: (permission: AccessPermission) => void
   permissions: AccessPermission[]
   search: string
   status: StatusFilter
@@ -50,13 +103,17 @@ type PermissionListProps = {
 }
 
 export function PermissionList({
+  canDeletePermissions,
+  canUpdatePermissions,
   currentPage,
   level,
+  onEditPermission,
   onLevelChange,
   onPageChange,
   onResetFilters,
   onSearchChange,
   onStatusChange,
+  onStatusRequest,
   permissions,
   search,
   status,
@@ -125,6 +182,7 @@ export function PermissionList({
                   <TableHead>Người tạo</TableHead>
                   <TableHead>Ngày tạo</TableHead>
                   <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -161,6 +219,15 @@ export function PermissionList({
                       <TableCell>
                         <AccessStatusBadge isActive={permission.isActive} />
                       </TableCell>
+                      <TableCell>
+                        <PermissionActions
+                          canDeletePermissions={canDeletePermissions}
+                          canUpdatePermissions={canUpdatePermissions}
+                          onEditPermission={onEditPermission}
+                          onStatusRequest={onStatusRequest}
+                          permission={permission}
+                        />
+                      </TableCell>
                     </TableRow>
                   )
                 })}
@@ -187,6 +254,15 @@ export function PermissionList({
                         {getPermissionLabel(permission)}
                       </p>
                     </div>
+                    <PermissionActions
+                      canDeletePermissions={canDeletePermissions}
+                      canUpdatePermissions={canUpdatePermissions}
+                      onEditPermission={onEditPermission}
+                      onStatusRequest={onStatusRequest}
+                      permission={permission}
+                    />
+                  </div>
+                  <div className="mt-3 flex items-center gap-3">
                     <AccessStatusBadge isActive={permission.isActive} />
                   </div>
                   <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3 text-xs text-muted-foreground">

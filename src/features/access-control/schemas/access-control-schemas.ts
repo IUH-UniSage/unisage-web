@@ -60,9 +60,32 @@ export const roleRequestSchema = z.object({
 export const createRoleRequestSchema = roleRequestSchema
 export const updateRoleRequestSchema = roleRequestSchema
 
+export const permissionRequestSchema = z.object({
+  accessLevel: z.number().int().nullable(),
+  isActive: z.boolean(),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Tên quyền phải có ít nhất 2 ký tự.")
+    .max(100, "Tên quyền không được vượt quá 100 ký tự.")
+    .regex(
+      /^[A-Z][A-Z0-9_]*$/,
+      "Dùng chữ in hoa, số và dấu gạch dưới; bắt đầu bằng chữ."
+    ),
+})
+
+export const createPermissionRequestSchema = permissionRequestSchema
+export const updatePermissionRequestSchema = permissionRequestSchema
+
 export type AccessPermission = z.infer<typeof accessPermissionSchema>
 export type AccessRole = z.infer<typeof accessRoleSchema>
 export type AccessRolePage = z.infer<typeof accessRolePageSchema>
 export type AccessPermissionPage = z.infer<typeof accessPermissionPageSchema>
 export type CreateRoleRequest = z.infer<typeof createRoleRequestSchema>
 export type UpdateRoleRequest = z.infer<typeof updateRoleRequestSchema>
+export type CreatePermissionRequest = z.infer<
+  typeof createPermissionRequestSchema
+>
+export type UpdatePermissionRequest = z.infer<
+  typeof updatePermissionRequestSchema
+>

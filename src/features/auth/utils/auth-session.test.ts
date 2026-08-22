@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   createSessionFromResponse,
   getInitials,
-} from "@/features/auth/lib/auth-session"
+} from "@/features/auth/utils/auth-session"
 
 const permission = {
   accessLevel: 5,

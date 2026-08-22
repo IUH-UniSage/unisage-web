@@ -8,28 +8,14 @@ export const PERMISSION_POLICIES = {
   adminAccessControl: policy(PERMISSIONS.roleRead, PERMISSIONS.permissionRead),
   adminUsers: policy(PERMISSIONS.userRead),
   adminDocuments: policy(PERMISSIONS.documentRead),
-  adminLogs: policy(
-    PERMISSIONS.auditLogRead,
-    PERMISSIONS.documentProcessLogRead,
-    PERMISSIONS.llmTraceLogRead
-  ),
-  adminModels: policy(
-    PERMISSIONS.embeddedModelRead,
-    PERMISSIONS.chatbotConfigRead,
-    PERMISSIONS.chatbotPoolRead
-  ),
+  adminLogs: policy(PERMISSIONS.auditLogRead, PERMISSIONS.llmTraceLogRead),
+  adminModels: policy(PERMISSIONS.superAdminAll),
   adminHealth: policy(PERMISSIONS.superAdminAll),
   adminSettings: policy(PERMISSIONS.superAdminAll),
   ingesterOverview: policy(PERMISSIONS.ingestAll, PERMISSIONS.documentRead),
   ingesterDocuments: policy(PERMISSIONS.documentRead),
-  ingesterProcessing: policy(
-    PERMISSIONS.ingestAll,
-    PERMISSIONS.documentProcessLogRead
-  ),
-  ingesterQuality: policy(
-    PERMISSIONS.documentRead,
-    PERMISSIONS.documentChunkRead
-  ),
-  ingesterSettings: policy(PERMISSIONS.embeddedModelRead),
+  ingesterProcessing: policy(PERMISSIONS.ingestAll),
+  ingesterQuality: policy(PERMISSIONS.documentRead),
+  ingesterSettings: policy(PERMISSIONS.superAdminAll),
   uploadDocument: policy(PERMISSIONS.ingestAll, PERMISSIONS.documentCreate),
 } as const

@@ -3,9 +3,82 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { accessControlApi } from "@/features/access-control/api/access-control-api"
 import { accessControlKeys } from "@/features/access-control/queries/keys"
 import type {
+  CreatePermissionRequest,
   CreateRoleRequest,
+  UpdatePermissionRequest,
   UpdateRoleRequest,
 } from "@/features/access-control/schemas/access-control-schemas"
+
+export function useCreatePermissionMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.permissions(),
+      successMessage: "Đã tạo quyền hạn mới.",
+    },
+    mutationFn: (input: CreatePermissionRequest) =>
+      accessControlApi.createPermission(input),
+  })
+}
+
+type UpdatePermissionVariables = {
+  input: UpdatePermissionRequest
+  permissionId: string
+}
+
+export function useUpdatePermissionMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.permissions(),
+      successMessage: "Đã cập nhật quyền hạn.",
+    },
+    mutationFn: ({ input, permissionId }: UpdatePermissionVariables) =>
+      accessControlApi.updatePermission(permissionId, input),
+    onSuccess: (updatedPermission) => {
+      queryClient.setQueryData(
+        accessControlKeys.permissions(),
+        (
+          current:
+            | Awaited<ReturnType<typeof accessControlApi.getPermissions>>
+            | undefined
+        ) =>
+          current
+            ? {
+                ...current,
+                data: current.data.map((permission) =>
+                  permission.id === updatedPermission.id
+                    ? updatedPermission
+                    : permission
+                ),
+              }
+            : current
+      )
+    },
+  })
+}
+
+export function useDeletePermissionMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.permissions(),
+      successMessage: "Đã vô hiệu hóa quyền hạn.",
+    },
+    mutationFn: (permissionId: string) =>
+      accessControlApi.deletePermission(permissionId),
+  })
+}
+
+export function useRecoverPermissionMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.permissions(),
+      successMessage: "Đã khôi phục quyền hạn.",
+    },
+    mutationFn: (permissionId: string) =>
+      accessControlApi.recoverPermission(permissionId),
+  })
+}
 
 export function useCreateRoleMutation() {
   return useMutation({

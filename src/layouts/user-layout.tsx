@@ -16,7 +16,7 @@ import {
 import { ROUTES } from "@/constants/paths"
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import { getInitials } from "@/features/auth/lib/auth-session"
+import { getInitials } from "@/features/auth/utils/auth-session"
 
 const userNavigation = [
   {

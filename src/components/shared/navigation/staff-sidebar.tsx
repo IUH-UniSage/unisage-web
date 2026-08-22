@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/constants/paths"
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSION_POLICIES } from "@/features/auth/lib/permission-policies"
+import { PERMISSION_POLICIES } from "@/features/auth/utils/permission-policies"
 import type { PermissionRequirement } from "@/utils/permissions"
 import { cn } from "@/lib/utils"
 

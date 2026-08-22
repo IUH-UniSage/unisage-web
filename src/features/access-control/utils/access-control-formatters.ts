@@ -1,17 +1,13 @@
 import type { AccessPermission } from "@/features/access-control/schemas/access-control-schemas"
 
 const resourceLabels: Record<string, string> = {
-  ACCOUNT: "Tài khoản",
+  ACCESS_LEVEL: "Cấp độ truy cập",
   AUDIT_LOG: "Nhật ký kiểm toán",
   CATEGORY: "Danh mục",
-  CHATBOT_CONFIG: "Cấu hình chatbot",
-  CHATBOT_POOL: "Cụm chatbot",
+  CHAT_MODEL: "Mô hình chat",
   CONVERSATION: "Cuộc trò chuyện",
+  DEPARTMENT: "Phòng ban",
   DOCUMENT: "Tài liệu",
-  DOCUMENT_CHUNK: "Đoạn tài liệu",
-  DOCUMENT_PROCESS_LOG: "Nhật ký xử lý",
-  DOC_PACKAGE: "Gói tri thức",
-  EMBEDDED_MODEL: "Mô hình nhúng",
   INGEST: "Nạp dữ liệu",
   LLM_TRACE_LOG: "Truy vết mô hình",
   MESSAGE: "Tin nhắn",

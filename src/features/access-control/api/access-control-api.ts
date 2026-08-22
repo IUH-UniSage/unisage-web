@@ -2,13 +2,19 @@ import { z } from "zod"
 
 import {
   accessPermissionPageSchema,
+  accessPermissionSchema,
   accessRolePageSchema,
   accessRoleSchema,
+  type AccessPermission,
   type AccessPermissionPage,
   type AccessRole,
   type AccessRolePage,
+  type CreatePermissionRequest,
+  createPermissionRequestSchema,
   type CreateRoleRequest,
   createRoleRequestSchema,
+  type UpdatePermissionRequest,
+  updatePermissionRequestSchema,
   type UpdateRoleRequest,
   updateRoleRequestSchema,
 } from "@/features/access-control/schemas/access-control-schemas"
@@ -20,6 +26,18 @@ import type { ApiResponse } from "@/utils/api-response"
 const LIST_PAGE_SIZE = 500
 
 export const accessControlApi = {
+  async createPermission(
+    input: CreatePermissionRequest
+  ): Promise<AccessPermission> {
+    const request = createPermissionRequestSchema.parse(input)
+    const response = await httpClient.post<ApiResponse<AccessPermission>>(
+      API_ENDPOINTS.rbac.permissions,
+      request
+    )
+
+    return readSuccessData(response.data, accessPermissionSchema)
+  },
+
   async createRole(input: CreateRoleRequest): Promise<AccessRole> {
     const request = createRoleRequestSchema.parse(input)
     const response = await httpClient.post<ApiResponse<AccessRole>>(
@@ -28,6 +46,14 @@ export const accessControlApi = {
     )
 
     return readSuccessData(response.data, accessRoleSchema)
+  },
+
+  async deletePermission(permissionId: string): Promise<void> {
+    const response = await httpClient.delete<ApiResponse<null>>(
+      API_ENDPOINTS.rbac.permission(permissionId)
+    )
+
+    readApiResponse(response.data, z.null())
   },
 
   async deleteRole(roleId: string): Promise<void> {
@@ -56,12 +82,33 @@ export const accessControlApi = {
     return readSuccessData(response.data, accessRolePageSchema)
   },
 
+  async recoverPermission(permissionId: string): Promise<void> {
+    const response = await httpClient.post<ApiResponse<null>>(
+      API_ENDPOINTS.rbac.permissionRecover(permissionId)
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
   async recoverRole(roleId: string): Promise<void> {
     const response = await httpClient.post<ApiResponse<null>>(
       API_ENDPOINTS.rbac.roleRecover(roleId)
     )
 
     readApiResponse(response.data, z.null())
+  },
+
+  async updatePermission(
+    permissionId: string,
+    input: UpdatePermissionRequest
+  ): Promise<AccessPermission> {
+    const request = updatePermissionRequestSchema.parse(input)
+    const response = await httpClient.put<ApiResponse<AccessPermission>>(
+      API_ENDPOINTS.rbac.permission(permissionId),
+      request
+    )
+
+    return readSuccessData(response.data, accessPermissionSchema)
   },
 
   async updateRole(

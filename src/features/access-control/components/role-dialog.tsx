@@ -23,7 +23,7 @@ import {
   getPermissionLabel,
   getResourceLabel,
   groupPermissions,
-} from "@/features/access-control/lib/access-control-formatters"
+} from "@/features/access-control/utils/access-control-formatters"
 import {
   createRoleRequestSchema,
   type AccessPermission,

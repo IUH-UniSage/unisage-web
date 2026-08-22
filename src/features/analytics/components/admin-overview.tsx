@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PermissionGate } from "@/features/auth/components/permission-gate"
-import { PERMISSION_POLICIES } from "@/features/auth/lib/permission-policies"
+import { PERMISSION_POLICIES } from "@/features/auth/utils/permission-policies"
 import type { PermissionRequirement } from "@/utils/permissions"
 
 const overviewMetrics = [
