@@ -13,9 +13,9 @@ Frontend for UniSage, an academic knowledge and student-support platform.
 ## Getting started
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env.local
-npm run dev
+pnpm run dev
 ```
 
 On PowerShell, use `Copy-Item .env.example .env.local` instead of `cp`.
@@ -23,14 +23,14 @@ On PowerShell, use `Copy-Item .env.example .env.local` instead of `cp`.
 ## Scripts
 
 ```bash
-npm run dev
-npm run typecheck
-npm run lint
-npm run format
-npm run test
-npm run test:e2e
-npm run build
-npm run storybook
+pnpm run dev
+pnpm run typecheck
+pnpm run lint
+pnpm run format
+pnpm run test
+pnpm run test:e2e
+pnpm run build
+pnpm run storybook
 ```
 
 ## Routes (scaffold)

@@ -52,7 +52,7 @@ verification matrix):
 
 - Skills or PR templates: `quick_validate.py` for each skill, plus
   `git diff --check`.
-- React logic or components: `npm run test`, `npm run lint`, `npm run build`.
-- Routes, auth, permissions, or user interaction: also `npm run test:e2e`.
+- React logic or components: `pnpm run test`, `pnpm run lint`, `pnpm run build`.
+- Routes, auth, permissions, or user interaction: also `pnpm run test:e2e`.
 
 Never claim a check ran when it did not.
