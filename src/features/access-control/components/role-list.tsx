@@ -4,6 +4,7 @@ import { Pagination } from "@/components/shared/pagination"
 import { SearchEmpty } from "@/components/shared/search-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -21,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { AccessStatusBadge } from "@/features/access-control/components/access-status-badge"
+import { BulkActionsBar } from "@/features/access-control/components/bulk-actions-bar"
 import { ACCESS_CONTROL_PAGE_SIZE } from "@/features/access-control/hooks/use-access-control-dashboard"
 import type { StatusFilter } from "@/features/access-control/hooks/use-access-control-dashboard"
 import { formatAuditDate } from "@/features/access-control/utils/access-control-formatters"
@@ -30,6 +32,10 @@ type RoleListProps = {
   canDeleteRoles: boolean
   canUpdateRoles: boolean
   currentPage: number
+  isBulkUpdating: boolean
+  onBulkClear: () => void
+  onBulkDeactivate: () => void
+  onBulkRecover: () => void
   onEditRole: (role: AccessRole) => void
   onPageChange: (page: number) => void
   onPermissionChange: (value: string) => void
@@ -37,10 +43,13 @@ type RoleListProps = {
   onSearchChange: (value: string) => void
   onStatusChange: (value: StatusFilter) => void
   onStatusRequest: (role: AccessRole) => void
+  onToggleAllSelection: (roleIds: string[]) => void
+  onToggleSelection: (roleId: string) => void
   permission: string
   permissionOptions: string[]
   roles: AccessRole[]
   search: string
+  selectedIds: Set<string>
   status: StatusFilter
   totalItems: number
   totalPages: number
@@ -122,6 +131,10 @@ export function RoleList({
   canDeleteRoles,
   canUpdateRoles,
   currentPage,
+  isBulkUpdating,
+  onBulkClear,
+  onBulkDeactivate,
+  onBulkRecover,
   onEditRole,
   onPageChange,
   onPermissionChange,
@@ -129,14 +142,20 @@ export function RoleList({
   onSearchChange,
   onStatusChange,
   onStatusRequest,
+  onToggleAllSelection,
+  onToggleSelection,
   permission,
   permissionOptions,
   roles,
   search,
+  selectedIds,
   status,
   totalItems,
   totalPages,
 }: RoleListProps) {
+  const roleIdsOnPage = roles.map((role) => role.id)
+  const allSelectedOnPage =
+    roleIdsOnPage.length > 0 && roleIdsOnPage.every((id) => selectedIds.has(id))
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
       <div className="grid gap-3 border-b p-3 md:grid-cols-[minmax(220px,1fr)_180px_170px_auto] md:p-4">
@@ -184,12 +203,29 @@ export function RoleList({
         </Button>
       </div>
 
+      <BulkActionsBar
+        isSubmitting={isBulkUpdating}
+        onClear={onBulkClear}
+        onDeactivate={onBulkDeactivate}
+        onRecover={onBulkRecover}
+        selectedCount={selectedIds.size}
+      />
+
       {roles.length ? (
         <>
           <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      aria-label="Chọn tất cả vai trò trong trang"
+                      checked={allSelectedOnPage}
+                      onCheckedChange={() =>
+                        onToggleAllSelection(roleIdsOnPage)
+                      }
+                    />
+                  </TableHead>
                   <TableHead>Tên vai trò</TableHead>
                   <TableHead>Quyền hạn tiêu biểu</TableHead>
                   <TableHead>Người tạo</TableHead>
@@ -201,6 +237,13 @@ export function RoleList({
               <TableBody>
                 {roles.map((role) => (
                   <TableRow key={role.id}>
+                    <TableCell>
+                      <Checkbox
+                        aria-label={`Chọn ${role.name}`}
+                        checked={selectedIds.has(role.id)}
+                        onCheckedChange={() => onToggleSelection(role.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="grid size-8 place-items-center rounded-lg bg-secondary text-primary">
@@ -245,6 +288,12 @@ export function RoleList({
             {roles.map((role) => (
               <article className="rounded-xl border p-4" key={role.id}>
                 <div className="flex items-start gap-3">
+                  <Checkbox
+                    aria-label={`Chọn ${role.name}`}
+                    checked={selectedIds.has(role.id)}
+                    className="mt-2"
+                    onCheckedChange={() => onToggleSelection(role.id)}
+                  />
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
                     <ShieldCheck aria-hidden="true" className="size-4" />
                   </span>

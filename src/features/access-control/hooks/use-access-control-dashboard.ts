@@ -9,9 +9,13 @@ import {
   useCreatePermissionMutation,
   useCreateRoleMutation,
   useDeletePermissionMutation,
+  useDeletePermissionsBulkMutation,
   useDeleteRoleMutation,
+  useDeleteRolesBulkMutation,
   useRecoverPermissionMutation,
+  useRecoverPermissionsBulkMutation,
   useRecoverRoleMutation,
+  useRecoverRolesBulkMutation,
   useUpdatePermissionMutation,
   useUpdateRoleMutation,
 } from "@/features/access-control/queries/use-mutations"
@@ -60,6 +64,10 @@ export function useAccessControlDashboard() {
   const updatePermission = useUpdatePermissionMutation()
   const deletePermission = useDeletePermissionMutation()
   const recoverPermission = useRecoverPermissionMutation()
+  const deleteRolesBulk = useDeleteRolesBulkMutation()
+  const recoverRolesBulk = useRecoverRolesBulkMutation()
+  const deletePermissionsBulk = useDeletePermissionsBulkMutation()
+  const recoverPermissionsBulk = useRecoverPermissionsBulkMutation()
   const { can } = usePermissions()
 
   const [activeTab, setActiveTab] = useState<AccessControlTab>("roles")
@@ -78,6 +86,12 @@ export function useAccessControlDashboard() {
   const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false)
   const [editingPermission, setEditingPermission] = useState<AccessPermission>()
   const [statusPermission, setStatusPermission] = useState<AccessPermission>()
+  const [selectedRoleIds, setSelectedRoleIds] = useState<Set<string>>(
+    () => new Set()
+  )
+  const [selectedPermissionIds, setSelectedPermissionIds] = useState<
+    Set<string>
+  >(() => new Set())
 
   const roles = rolesQuery.data?.data ?? EMPTY_ROLES
   const permissions = permissionsQuery.data?.data ?? EMPTY_PERMISSIONS
@@ -192,6 +206,50 @@ export function useAccessControlDashboard() {
     setStatusRole(undefined)
   }
 
+  const toggleRoleSelection = (roleId: string) => {
+    setSelectedRoleIds((current) => {
+      const next = new Set(current)
+      if (next.has(roleId)) {
+        next.delete(roleId)
+      } else {
+        next.add(roleId)
+      }
+      return next
+    })
+  }
+
+  const toggleAllRolesOnPage = (roleIds: string[]) => {
+    setSelectedRoleIds((current) => {
+      const allSelected = roleIds.every((id) => current.has(id))
+      if (allSelected) {
+        const next = new Set(current)
+        roleIds.forEach((id) => next.delete(id))
+        return next
+      }
+      return new Set([...current, ...roleIds])
+    })
+  }
+
+  const clearRoleSelection = () => setSelectedRoleIds(new Set())
+
+  const bulkDeactivateSelectedRoles = async () => {
+    const ids = roles
+      .filter((role) => selectedRoleIds.has(role.id) && role.isActive)
+      .map((role) => role.id)
+    if (!ids.length) return
+    await deleteRolesBulk.mutateAsync(ids)
+    clearRoleSelection()
+  }
+
+  const bulkRecoverSelectedRoles = async () => {
+    const ids = roles
+      .filter((role) => selectedRoleIds.has(role.id) && !role.isActive)
+      .map((role) => role.id)
+    if (!ids.length) return
+    await recoverRolesBulk.mutateAsync(ids)
+    clearRoleSelection()
+  }
+
   const openCreatePermission = () => {
     setEditingPermission(undefined)
     setIsPermissionDialogOpen(true)
@@ -227,14 +285,70 @@ export function useAccessControlDashboard() {
     setStatusPermission(undefined)
   }
 
+  const togglePermissionSelection = (permissionId: string) => {
+    setSelectedPermissionIds((current) => {
+      const next = new Set(current)
+      if (next.has(permissionId)) {
+        next.delete(permissionId)
+      } else {
+        next.add(permissionId)
+      }
+      return next
+    })
+  }
+
+  const toggleAllPermissionsOnPage = (permissionIds: string[]) => {
+    setSelectedPermissionIds((current) => {
+      const allSelected = permissionIds.every((id) => current.has(id))
+      if (allSelected) {
+        const next = new Set(current)
+        permissionIds.forEach((id) => next.delete(id))
+        return next
+      }
+      return new Set([...current, ...permissionIds])
+    })
+  }
+
+  const clearPermissionSelection = () => setSelectedPermissionIds(new Set())
+
+  const bulkDeactivateSelectedPermissions = async () => {
+    const ids = permissions
+      .filter(
+        (permission) =>
+          selectedPermissionIds.has(permission.id) && permission.isActive
+      )
+      .map((permission) => permission.id)
+    if (!ids.length) return
+    await deletePermissionsBulk.mutateAsync(ids)
+    clearPermissionSelection()
+  }
+
+  const bulkRecoverSelectedPermissions = async () => {
+    const ids = permissions
+      .filter(
+        (permission) =>
+          selectedPermissionIds.has(permission.id) && !permission.isActive
+      )
+      .map((permission) => permission.id)
+    if (!ids.length) return
+    await recoverPermissionsBulk.mutateAsync(ids)
+    clearPermissionSelection()
+  }
+
   return {
     activeTab,
+    bulkDeactivateSelectedPermissions,
+    bulkDeactivateSelectedRoles,
+    bulkRecoverSelectedPermissions,
+    bulkRecoverSelectedRoles,
     canCreatePermissions: can(PERMISSIONS.permissionCreate),
     canCreateRoles: can(PERMISSIONS.roleCreate),
     canDeletePermissions: can(PERMISSIONS.permissionDelete),
     canDeleteRoles: can(PERMISSIONS.roleDelete),
     canUpdatePermissions: can(PERMISSIONS.permissionUpdate),
     canUpdateRoles: can(PERMISSIONS.roleUpdate),
+    clearPermissionSelection,
+    clearRoleSelection,
     closePermissionDialog: () => setIsPermissionDialogOpen(false),
     closePermissionStatusDialog: () => setStatusPermission(undefined),
     closeRoleDialog: () => setIsRoleDialogOpen(false),
@@ -245,6 +359,10 @@ export function useAccessControlDashboard() {
     editingRole,
     filteredPermissionCount: filteredPermissions.length,
     filteredRoleCount: filteredRoles.length,
+    isBulkUpdatingPermissions:
+      deletePermissionsBulk.isPending || recoverPermissionsBulk.isPending,
+    isBulkUpdatingRoles:
+      deleteRolesBulk.isPending || recoverRolesBulk.isPending,
     isPending: rolesQuery.isPending || permissionsQuery.isPending,
     isPermissionDialogOpen,
     isRoleDialogOpen,
@@ -289,6 +407,8 @@ export function useAccessControlDashboard() {
     roleTotalPages,
     savePermission,
     saveRole,
+    selectedPermissionIds,
+    selectedRoleIds,
     setActiveTab,
     setPermissionLevel: (value: PermissionLevelFilter) => {
       setPermissionLevel(value)
@@ -318,5 +438,9 @@ export function useAccessControlDashboard() {
     },
     statusPermission,
     statusRole,
+    toggleAllPermissionsOnPage,
+    toggleAllRolesOnPage,
+    togglePermissionSelection,
+    toggleRoleSelection,
   }
 }

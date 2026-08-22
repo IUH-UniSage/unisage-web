@@ -56,9 +56,27 @@ export const accessControlApi = {
     readApiResponse(response.data, z.null())
   },
 
+  async deletePermissionsBulk(permissionIds: string[]): Promise<void> {
+    const response = await httpClient.delete<ApiResponse<null>>(
+      API_ENDPOINTS.rbac.permissionsBulkDelete,
+      { data: permissionIds }
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
   async deleteRole(roleId: string): Promise<void> {
     const response = await httpClient.delete<ApiResponse<null>>(
       API_ENDPOINTS.rbac.role(roleId)
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
+  async deleteRolesBulk(roleIds: string[]): Promise<void> {
+    const response = await httpClient.delete<ApiResponse<null>>(
+      API_ENDPOINTS.rbac.rolesBulkDelete,
+      { data: roleIds }
     )
 
     readApiResponse(response.data, z.null())
@@ -90,9 +108,27 @@ export const accessControlApi = {
     readApiResponse(response.data, z.null())
   },
 
+  async recoverPermissionsBulk(permissionIds: string[]): Promise<void> {
+    const response = await httpClient.post<ApiResponse<null>>(
+      API_ENDPOINTS.rbac.permissionsBulkRecover,
+      permissionIds
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
   async recoverRole(roleId: string): Promise<void> {
     const response = await httpClient.post<ApiResponse<null>>(
       API_ENDPOINTS.rbac.roleRecover(roleId)
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
+  async recoverRolesBulk(roleIds: string[]): Promise<void> {
+    const response = await httpClient.post<ApiResponse<null>>(
+      API_ENDPOINTS.rbac.rolesBulkRecover,
+      roleIds
     )
 
     readApiResponse(response.data, z.null())

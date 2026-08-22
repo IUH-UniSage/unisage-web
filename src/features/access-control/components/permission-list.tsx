@@ -4,6 +4,7 @@ import { Pagination } from "@/components/shared/pagination"
 import { SearchEmpty } from "@/components/shared/search-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -21,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { AccessStatusBadge } from "@/features/access-control/components/access-status-badge"
+import { BulkActionsBar } from "@/features/access-control/components/bulk-actions-bar"
 import {
   ACCESS_CONTROL_PAGE_SIZE,
   type PermissionLevelFilter,
@@ -87,7 +89,11 @@ type PermissionListProps = {
   canDeletePermissions: boolean
   canUpdatePermissions: boolean
   currentPage: number
+  isBulkUpdating: boolean
   level: PermissionLevelFilter
+  onBulkClear: () => void
+  onBulkDeactivate: () => void
+  onBulkRecover: () => void
   onEditPermission: (permission: AccessPermission) => void
   onLevelChange: (value: PermissionLevelFilter) => void
   onPageChange: (page: number) => void
@@ -95,8 +101,11 @@ type PermissionListProps = {
   onSearchChange: (value: string) => void
   onStatusChange: (value: StatusFilter) => void
   onStatusRequest: (permission: AccessPermission) => void
+  onToggleAllSelection: (permissionIds: string[]) => void
+  onToggleSelection: (permissionId: string) => void
   permissions: AccessPermission[]
   search: string
+  selectedIds: Set<string>
   status: StatusFilter
   totalItems: number
   totalPages: number
@@ -106,7 +115,11 @@ export function PermissionList({
   canDeletePermissions,
   canUpdatePermissions,
   currentPage,
+  isBulkUpdating,
   level,
+  onBulkClear,
+  onBulkDeactivate,
+  onBulkRecover,
   onEditPermission,
   onLevelChange,
   onPageChange,
@@ -114,12 +127,19 @@ export function PermissionList({
   onSearchChange,
   onStatusChange,
   onStatusRequest,
+  onToggleAllSelection,
+  onToggleSelection,
   permissions,
   search,
+  selectedIds,
   status,
   totalItems,
   totalPages,
 }: PermissionListProps) {
+  const permissionIdsOnPage = permissions.map((permission) => permission.id)
+  const allSelectedOnPage =
+    permissionIdsOnPage.length > 0 &&
+    permissionIdsOnPage.every((id) => selectedIds.has(id))
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
       <div className="grid gap-3 border-b p-3 md:grid-cols-[minmax(220px,1fr)_180px_170px_auto] md:p-4">
@@ -169,12 +189,29 @@ export function PermissionList({
         </Button>
       </div>
 
+      <BulkActionsBar
+        isSubmitting={isBulkUpdating}
+        onClear={onBulkClear}
+        onDeactivate={onBulkDeactivate}
+        onRecover={onBulkRecover}
+        selectedCount={selectedIds.size}
+      />
+
       {permissions.length ? (
         <>
           <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      aria-label="Chọn tất cả quyền hạn trong trang"
+                      checked={allSelectedOnPage}
+                      onCheckedChange={() =>
+                        onToggleAllSelection(permissionIdsOnPage)
+                      }
+                    />
+                  </TableHead>
                   <TableHead>Tên quyền</TableHead>
                   <TableHead>Nhóm chức năng</TableHead>
                   <TableHead>Thao tác</TableHead>
@@ -191,6 +228,15 @@ export function PermissionList({
 
                   return (
                     <TableRow key={permission.id}>
+                      <TableCell>
+                        <Checkbox
+                          aria-label={`Chọn ${permission.name}`}
+                          checked={selectedIds.has(permission.id)}
+                          onCheckedChange={() =>
+                            onToggleSelection(permission.id)
+                          }
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span className="grid size-8 place-items-center rounded-lg bg-secondary text-primary">
@@ -242,6 +288,12 @@ export function PermissionList({
               return (
                 <article className="rounded-xl border p-4" key={permission.id}>
                   <div className="flex items-start gap-3">
+                    <Checkbox
+                      aria-label={`Chọn ${permission.name}`}
+                      checked={selectedIds.has(permission.id)}
+                      className="mt-2"
+                      onCheckedChange={() => onToggleSelection(permission.id)}
+                    />
                     <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
                       <KeyRound aria-hidden="true" className="size-4" />
                     </span>

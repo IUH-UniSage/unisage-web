@@ -80,6 +80,28 @@ export function useRecoverPermissionMutation() {
   })
 }
 
+export function useDeletePermissionsBulkMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.permissions(),
+      successMessage: "Đã vô hiệu hóa các quyền hạn đã chọn.",
+    },
+    mutationFn: (permissionIds: string[]) =>
+      accessControlApi.deletePermissionsBulk(permissionIds),
+  })
+}
+
+export function useRecoverPermissionsBulkMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.permissions(),
+      successMessage: "Đã khôi phục các quyền hạn đã chọn.",
+    },
+    mutationFn: (permissionIds: string[]) =>
+      accessControlApi.recoverPermissionsBulk(permissionIds),
+  })
+}
+
 export function useCreateRoleMutation() {
   return useMutation({
     meta: {
@@ -143,5 +165,27 @@ export function useRecoverRoleMutation() {
       successMessage: "Đã khôi phục vai trò.",
     },
     mutationFn: (roleId: string) => accessControlApi.recoverRole(roleId),
+  })
+}
+
+export function useDeleteRolesBulkMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.roles(),
+      successMessage: "Đã vô hiệu hóa các vai trò đã chọn.",
+    },
+    mutationFn: (roleIds: string[]) =>
+      accessControlApi.deleteRolesBulk(roleIds),
+  })
+}
+
+export function useRecoverRolesBulkMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: accessControlKeys.roles(),
+      successMessage: "Đã khôi phục các vai trò đã chọn.",
+    },
+    mutationFn: (roleIds: string[]) =>
+      accessControlApi.recoverRolesBulk(roleIds),
   })
 }
