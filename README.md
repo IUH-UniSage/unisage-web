@@ -109,8 +109,9 @@ unisage-web/
 ```
 
 See [docs/architecture.md](docs/architecture.md) for layering conventions,
-[docs/testing.md](docs/testing.md) for what to test at which layer, and [AGENTS.md](AGENTS.md) for
-the full set of project rules agents should follow.
+[docs/testing.md](docs/testing.md) for what to test at which layer, [docs/skills.md](docs/skills.md)
+for how the `.claude/skills/` mechanism works, and [AGENTS.md](AGENTS.md) for the full set of
+project rules agents should follow.
 
 ## Main libraries
 

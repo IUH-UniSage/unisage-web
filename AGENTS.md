@@ -66,6 +66,8 @@ Consult before diverging from established patterns under `src/`:
 - `.claude/skills/playwright/` and `.claude/skills/storybook-setup/` — e2e and story conventions.
 - `.claude/skills/frontend-design-review/` — checklist for reviewing UI changes.
 
+See [docs/skills.md](docs/skills.md) for how the skill mechanism works and the full list.
+
 ## Architecture Decision Records (ADR)
 
 Write an ADR under `docs/adr/` (copy `docs/adr/0000-template.md`, number it sequentially) when a
