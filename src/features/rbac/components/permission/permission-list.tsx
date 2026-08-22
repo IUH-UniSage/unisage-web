@@ -31,12 +31,12 @@ import {
   type StatusFilter,
 } from "@/features/rbac/hooks/use-rbac-dashboard"
 import {
-  formatAuditDate,
   getPermissionLabel,
   getResourceLabel,
   splitPermissionName,
 } from "@/features/rbac/utils/rbac-formatters"
 import type { AccessPermission } from "@/features/rbac/schemas/rbac-schemas"
+import { formatAuditDate } from "@/utils/date-format"
 
 type PermissionActionsProps = {
   canDeletePermissions: boolean

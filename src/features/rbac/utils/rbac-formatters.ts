@@ -47,19 +47,6 @@ export function getResourceLabel(resource: string) {
   return getResourceTypeLabel(resource)
 }
 
-export function formatAuditDate(value: string | null | undefined) {
-  if (!value) return "Chưa có"
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date)
-}
-
 export function groupPermissions(
   permissions: AccessPermission[],
   searchQuery: string

@@ -7,6 +7,7 @@ import {
   FileText,
   Gauge,
   HeartPulse,
+  Layers,
   Settings,
   ShieldCheck,
   ShieldPlus,
@@ -81,6 +82,12 @@ const navigation: Record<StaffWorkspace, NavigationItem[]> = {
       requiredPermissions: PERMISSION_POLICIES.adminRbac,
       requiredStrategy: "all",
       to: ROUTES.adminRbac,
+    },
+    {
+      icon: Layers,
+      label: "Cấp độ truy cập",
+      requiredPermissions: PERMISSION_POLICIES.adminAccessLevels,
+      to: ROUTES.adminAccessLevels,
     },
     {
       icon: BookOpen,

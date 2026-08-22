@@ -5,6 +5,7 @@ const policy = (
 ): readonly PermissionRequirement[] => permissions
 
 export const PERMISSION_POLICIES = {
+  adminAccessLevels: policy(PERMISSIONS.accessLevelRead),
   adminUsers: policy(PERMISSIONS.userRead),
   adminDocuments: policy(PERMISSIONS.documentRead),
   adminLogs: policy(PERMISSIONS.auditLogRead, PERMISSIONS.llmTraceLogRead),

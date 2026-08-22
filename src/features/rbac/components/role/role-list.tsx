@@ -31,8 +31,8 @@ import {
 } from "@/components/ui/tooltip"
 import { RBAC_PAGE_SIZE } from "@/features/rbac/hooks/use-rbac-dashboard"
 import type { StatusFilter } from "@/features/rbac/hooks/use-rbac-dashboard"
-import { formatAuditDate } from "@/features/rbac/utils/rbac-formatters"
 import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
+import { formatAuditDate } from "@/utils/date-format"
 
 type RoleListProps = {
   canDeleteRoles: boolean

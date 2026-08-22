@@ -1,4 +1,8 @@
 export const API_ENDPOINTS = {
+  accessLevels: {
+    accessLevel: (accessLevelId: string) => `/access-levels/${accessLevelId}`,
+    accessLevels: "/access-levels",
+  },
   auth: {
     login: "/auth/login",
     logout: "/auth/logout",
