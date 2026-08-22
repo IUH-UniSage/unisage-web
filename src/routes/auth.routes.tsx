@@ -10,11 +10,6 @@ const SignInPage = lazy(async () => {
   return { default: SignInPage }
 })
 
-const SignUpPage = lazy(async () => {
-  const { SignUpPage } = await import("@/pages/auth/sign-up-page")
-  return { default: SignUpPage }
-})
-
 export const authRoutes: RouteObject = {
   element: (
     <GuestRoute>
@@ -29,14 +24,6 @@ export const authRoutes: RouteObject = {
     {
       path: ROUTES.legacySignIn,
       element: <Navigate replace to={ROUTES.signIn} />,
-    },
-    {
-      path: ROUTES.signUp,
-      element: <SignUpPage />,
-    },
-    {
-      path: ROUTES.legacySignUp,
-      element: <Navigate replace to={ROUTES.signUp} />,
     },
   ],
 }
