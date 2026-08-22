@@ -1,2 +1,2 @@
-// User management workflows will live here.
-export {}
+// Public surface — consumed from outside this feature folder
+export { UserDashboard } from "@/features/users/components/user-dashboard"

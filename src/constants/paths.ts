@@ -2,6 +2,7 @@ export const ROUTE_SEGMENTS = {
   accessLevels: "access-levels",
   auth: "auth",
   chat: "chat",
+  departments: "departments",
   documents: "documents",
   health: "health",
   knowledge: "knowledge",
@@ -21,6 +22,7 @@ export const ROUTE_SEGMENTS = {
 export const ROUTES = {
   admin: "/admin",
   adminAccessLevels: "/admin/access-levels",
+  adminDepartments: "/admin/departments",
   adminDocuments: "/admin/documents",
   adminHealth: "/admin/health",
   adminLogs: "/admin/logs",
