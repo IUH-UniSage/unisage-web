@@ -56,7 +56,7 @@ const suggestions = [
 export function UserHomePage() {
   return (
     <div className="home-content overflow-hidden">
-      <section className="home-hero relative border-b border-primary/20 bg-[#003b8f] text-white dark:border-white/[0.06]">
+      <section className="home-hero relative border-b border-primary/20 bg-home-hero text-white dark:border-white/[0.06]">
         <div className="knowledge-network absolute inset-0 opacity-[0.08] dark:opacity-[0.035]" />
         <div className="absolute top-12 right-[-6rem] size-72 rounded-full border border-white/8 dark:border-primary/10" />
         <div className="absolute top-28 right-[-2rem] size-44 rounded-full border border-white/8 dark:border-primary/10" />
@@ -175,7 +175,7 @@ export function UserHomePage() {
         </div>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-          <Card className="border-0 bg-[#153898] text-white shadow-none dark:border dark:border-primary/20 dark:bg-[#192238]">
+          <Card className="border-0 bg-home-card text-white shadow-none dark:border dark:border-primary/20">
             <CardContent className="relative overflow-hidden p-7 md:p-8">
               <div className="absolute -top-16 -right-10 size-56 rounded-full border border-white/10" />
               <div className="absolute -top-6 -right-4 size-36 rounded-full border border-white/10" />

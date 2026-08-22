@@ -32,18 +32,10 @@ export function BrandLogo({
             size === "lg" ? "text-2xl" : "text-xl"
           )}
         >
-          <span
-            className={cn(
-              inverse ? "text-white" : "text-[#173f9e] dark:text-white"
-            )}
-          >
+          <span className={cn(inverse ? "text-white" : "text-brand-mark")}>
             Uni
           </span>
-          <span
-            className={cn(
-              inverse ? "text-white" : "text-[#1672b8] dark:text-info"
-            )}
-          >
+          <span className={cn(inverse ? "text-white" : "text-brand-glyph")}>
             Sage
           </span>
         </div>

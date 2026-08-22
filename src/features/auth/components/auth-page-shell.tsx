@@ -30,7 +30,7 @@ export function AuthPageShell({
 }: AuthPageShellProps) {
   return (
     <main className="grid min-h-svh bg-background lg:h-svh lg:min-h-0 lg:grid-cols-2 lg:overflow-hidden">
-      <section className="knowledge-network relative hidden h-svh min-h-0 overflow-hidden bg-[#153898] px-12 py-8 text-white lg:flex lg:flex-col xl:px-16 2xl:px-20 dark:bg-[#0b2867]">
+      <section className="knowledge-network relative hidden h-svh min-h-0 overflow-hidden bg-hero px-12 py-8 text-white lg:flex lg:flex-col xl:px-16 2xl:px-20">
         <div className="absolute bottom-[-9rem] -left-24 size-[30rem] rounded-full border border-white/10" />
         <div className="absolute bottom-[-4rem] -left-10 size-[20rem] rounded-full border border-white/10" />
         <div className="absolute top-16 right-[-6rem] size-72 rotate-12 rounded-[4rem] border border-white/10" />

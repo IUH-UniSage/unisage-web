@@ -206,7 +206,7 @@ export function IngesterDashboardPage() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-0 bg-[#153898] text-white shadow-none dark:bg-[#173f9e]">
+          <Card className="border-0 bg-hero-alt text-white shadow-none">
             <CardContent className="p-6">
               <UploadCloud aria-hidden="true" className="size-7 text-info" />
               <p className="mt-8 text-3xl font-bold text-white">92%</p>

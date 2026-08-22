@@ -74,7 +74,7 @@ export function AdminOverviewPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-full border bg-card px-3 py-2 text-xs font-medium text-muted-foreground">
-          <span className="size-2 rounded-full bg-[#22a06b]" />
+          <span className="size-2 rounded-full bg-success" />
           Vừa cập nhật
         </div>
       </div>

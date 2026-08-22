@@ -44,8 +44,8 @@ function UserNavigation({ mobile = false }: { mobile?: boolean }) {
             <Link
               className={
                 mobile
-                  ? "flex min-h-14 items-center border-b border-primary/10 px-5 text-[14px] font-semibold text-[#153898] uppercase transition-colors hover:bg-secondary hover:text-primary dark:text-white/82 dark:hover:bg-white/8"
-                  : "flex h-11 items-center px-3 text-[14px] font-semibold whitespace-nowrap text-[#153898] uppercase transition-colors hover:bg-[#153898] hover:text-[#f9b200] focus-visible:bg-[#153898] focus-visible:text-[#f9b200] xl:px-4 dark:text-white/82"
+                  ? "flex min-h-14 items-center border-b border-primary/10 px-5 text-[14px] font-semibold text-primary uppercase transition-colors hover:bg-secondary hover:text-primary dark:text-white/82 dark:hover:bg-white/8"
+                  : "flex h-11 items-center px-3 text-[14px] font-semibold whitespace-nowrap text-primary uppercase transition-colors hover:bg-primary hover:text-knowledge focus-visible:bg-primary focus-visible:text-knowledge xl:px-4 dark:text-white/82"
               }
               to={item.to}
             >
@@ -64,7 +64,7 @@ export function UserLayout() {
   return (
     <div className="min-h-svh bg-background">
       <header className="sticky top-0 z-30 shadow-[0_8px_24px_rgb(21_56_152_/_0.08)]">
-        <div className="hidden bg-[#153898] text-white lg:block dark:border-b dark:border-white/[0.05] dark:bg-[#171717]">
+        <div className="hidden bg-sidebar text-white lg:block dark:border-b dark:border-white/[0.05]">
           <div className="mx-auto flex h-10 max-w-[1200px] items-center justify-between px-4 text-[11px] font-medium">
             <p className="truncate tracking-[0.02em]">
               Trường Đại học Công nghiệp Thành phố Hồ Chí Minh
@@ -83,7 +83,7 @@ export function UserLayout() {
           </div>
         </div>
 
-        <div className="border-b border-primary/10 bg-[#153898] lg:bg-card dark:bg-[#171717] lg:dark:border-white/[0.05] lg:dark:bg-card/95 lg:dark:backdrop-blur-xl">
+        <div className="border-b border-primary/10 bg-sidebar lg:bg-card lg:dark:border-white/[0.05] lg:dark:bg-card/95 lg:dark:backdrop-blur-xl">
           <div className="mx-auto flex h-20 max-w-[1200px] items-center px-4">
             <Link
               aria-label="Trang chủ UniSage"

@@ -45,6 +45,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-hero: var(--hero);
+  --color-hero-alt: var(--hero-alt);
+  --color-home-hero: var(--home-hero);
+  --color-home-card: var(--home-card);
+  --color-brand-mark: var(--brand-mark);
+  --color-brand-glyph: var(--brand-glyph);
+  --color-success: var(--success);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -88,6 +95,13 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgb(255 255 255 / 0.14);
   --sidebar-ring: #8ed8f8;
+  --hero: #153898;
+  --hero-alt: #153898;
+  --home-hero: #003b8f;
+  --home-card: #153898;
+  --brand-mark: #173f9e;
+  --brand-glyph: #1672b8;
+  --success: #22a06b;
 }
 
 .dark {
@@ -127,6 +141,13 @@
   --sidebar-accent-foreground: #f1f1f1;
   --sidebar-border: #303030;
   --sidebar-ring: #8ed8f8;
+  --hero: #0b2867;
+  --hero-alt: #173f9e;
+  --home-hero: #003b8f;
+  --home-card: #192238;
+  --brand-mark: #ffffff;
+  --brand-glyph: var(--info);
+  --success: #22a06b;
 }
 
 @layer base {
