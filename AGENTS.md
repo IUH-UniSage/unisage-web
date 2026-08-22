@@ -90,6 +90,11 @@ operation (branch naming, commit format, `main` stays common-only). Apply
 when opening a PR (uses `.github/pull_request_template.md`). Never commit or push without explicit
 instruction.
 
+`.claude/skills/{git-commit-instructions,git-guardian,pr}/` are thin pointers to these same
+`.agents/skills/` files, kept only so they're invokable as Claude Code slash commands
+(`/git-commit-instructions`, `/git-guardian`, `/pr`) — the `.agents/skills/` copy is the source of
+truth; don't edit the workflow content in both places.
+
 ## Environment
 
 - `VITE_*` = exposed to the client (e.g. `VITE_API_BASE_URL`). Never put secrets behind this
