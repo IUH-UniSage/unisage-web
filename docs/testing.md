@@ -28,7 +28,7 @@ Test files are colocated next to the code they cover (e.g. `date.ts` + a test wo
 - **Storybook stories**: a story per meaningful visual/interaction state of a shared or
   `components/ui` component (default, loading, error, empty, ...). `@storybook/addon-vitest` runs
   stories as tests in CI; `@storybook/addon-a11y` flags accessibility issues per story. See
-  `.agents/skills/storybook-setup/`.
+  `.claude/skills/storybook-setup/`.
 - **E2E (Playwright)**: cross-page user flows that only make sense assembled — sign-in, a
   protected route redirecting, a multi-step form submit. Per the verification matrix in
   `AGENTS.md`, run these specifically for routes, auth, permissions, or user interaction changes

@@ -129,7 +129,7 @@ the full set of project rules agents should follow.
 
 ### UI components & styling
 
-- **shadcn-ui** conventions (`src/components/ui/`) — see `.agents/skills/shadcn-ui/`
+- **shadcn-ui** conventions (`src/components/ui/`) — see `.claude/skills/shadcn-ui/`
 - **[Lucide React](https://lucide.dev/)** — icons
 - **[next-themes](https://github.com/pacocoursey/next-themes)** — dark/light theme switching
 - **[Sonner](https://sonner.emilkowal.ski/)** — toast notifications
@@ -175,6 +175,6 @@ machine-specific setup (it's gitignored).
 
 ## Contributing
 
-Follow [AGENTS.md](AGENTS.md) and `.agents/skills/git-commit-instructions/SKILL.md` for branch
-naming, commit format, and the pull request workflow (`.agents/skills/pr/SKILL.md`,
+Follow [AGENTS.md](AGENTS.md) and `.claude/skills/git-commit-instructions/SKILL.md` for branch
+naming, commit format, and the pull request workflow (`.claude/skills/pr/SKILL.md`,
 `.github/pull_request_template.md`).

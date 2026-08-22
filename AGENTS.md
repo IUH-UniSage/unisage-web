@@ -46,7 +46,7 @@ Path alias `@/*` → `./src/*` (configured in `vite.config.ts` and `tsconfig.app
 - **Components**: function components, no `React.FC`. Keep route `pages/*` thin — real logic
   belongs in `src/features/<feature>`.
 - **UI kit**: only add primitives via shadcn conventions (see
-  `.agents/skills/shadcn-ui/`) — don't hand-roll a component that already exists there.
+  `.claude/skills/shadcn-ui/`) — don't hand-roll a component that already exists there.
 
 ### Adding a feature
 
@@ -58,13 +58,13 @@ Path alias `@/*` → `./src/*` (configured in `vite.config.ts` and `tsconfig.app
 
 Consult before diverging from established patterns under `src/`:
 
-- `.agents/skills/react-best-practices/` — performance, rendering, and data-fetching rules.
-- `.agents/skills/composition-patterns/` — component API and state-sharing patterns.
-- `.agents/skills/react-components/` and `.agents/skills/shadcn-ui/` — component conventions and
+- `.claude/skills/react-best-practices/` — performance, rendering, and data-fetching rules.
+- `.claude/skills/composition-patterns/` — component API and state-sharing patterns.
+- `.claude/skills/react-components/` and `.claude/skills/shadcn-ui/` — component conventions and
   the shadcn primitive catalog.
-- `.agents/skills/tanstack-query/` — query key structure, caching, and mutation rules.
-- `.agents/skills/playwright/` and `.agents/skills/storybook-setup/` — e2e and story conventions.
-- `.agents/skills/frontend-design-review/` — checklist for reviewing UI changes.
+- `.claude/skills/tanstack-query/` — query key structure, caching, and mutation rules.
+- `.claude/skills/playwright/` and `.claude/skills/storybook-setup/` — e2e and story conventions.
+- `.claude/skills/frontend-design-review/` — checklist for reviewing UI changes.
 
 ## Architecture Decision Records (ADR)
 
@@ -84,16 +84,11 @@ ADR, mark the old one `Status: superseded by NNNN` rather than deleting it.
 
 ## Git workflow
 
-Apply `.agents/skills/git-commit-instructions/SKILL.md` before any branch, commit, or PR
+Apply `.claude/skills/git-commit-instructions/SKILL.md` before any branch, commit, or PR
 operation (branch naming, commit format, `main` stays common-only). Apply
-`.agents/skills/git-guardian/SKILL.md` before staging anything, and `.agents/skills/pr/SKILL.md`
+`.claude/skills/git-guardian/SKILL.md` before staging anything, and `.claude/skills/pr/SKILL.md`
 when opening a PR (uses `.github/pull_request_template.md`). Never commit or push without explicit
 instruction.
-
-`.claude/skills/{git-commit-instructions,git-guardian,pr}/` are thin pointers to these same
-`.agents/skills/` files, kept only so they're invokable as Claude Code slash commands
-(`/git-commit-instructions`, `/git-guardian`, `/pr`) — the `.agents/skills/` copy is the source of
-truth; don't edit the workflow content in both places.
 
 ## Environment
 

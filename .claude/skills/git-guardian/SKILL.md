@@ -7,6 +7,55 @@ description: >-
   may violate repository conventions.
 ---
 
-Read and follow `.agents/skills/git-guardian/SKILL.md` in full — that file is the source of
-truth. This file exists only so `/git-guardian` is discoverable in Claude Code's slash-command
-menu; do not duplicate its instructions here.
+# Guard UniSage Git Changes
+
+Use `git-commit-instructions` as the source of truth for naming and commit format. Act as an
+independent validation pass before execution.
+
+## Workflow
+
+1. Inspect `git status --short --branch`.
+2. Validate the current branch name against:
+
+   ```regex
+   ^(feature|fix|enhance)/(huy|huyen)-unisage-(0|[1-9][0-9]*)-[a-z0-9]+(?:-[a-z0-9]+)*$
+   ```
+
+3. Inspect the complete unstaged and staged diff.
+4. Check branch boundaries:
+   - `main` may contain only repository skills, GitHub metadata, hooks, and shared policy files.
+   - Application source, framework configuration, dependencies, tests, and build output belong on
+     an initialization or feature branch.
+   - Stacked branches must identify their parent branch.
+5. Scan staged paths and content for secrets, `.env` files, local artifacts, caches, reports, and
+   build output.
+6. Confirm the staged change is one coherent concern and that the commit type matches the diff.
+7. Run scope-appropriate checks and inspect `git diff --cached --check`.
+8. Compare the proposed commit message with the staged diff.
+9. Report pass/fail findings before commit execution.
+
+## Commit Review
+
+Require English conventional commits without emojis:
+
+```text
+<type>(<scope>): [UNISAGE-N] <short outcome>
+
+<Context/Root cause>:
+- <why>
+
+<Changes/Fix>:
+- <what>
+
+Verification:
+- <actual checks and outcomes>
+```
+
+Reject messages that describe intent instead of the staged diff, omit the Jira key, use the wrong
+type, or claim verification that did not run.
+
+## Output
+
+Return blockers first, then the validated branch/base, staged scope, proposed commit message, and
+checks. Do not execute commit, push, force-push, or history rewriting unless the user explicitly
+authorizes it.
