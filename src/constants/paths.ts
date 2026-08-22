@@ -41,3 +41,5 @@ export const ROUTES = {
   signIn: "/login",
   tickets: "/tickets",
 } as const
+
+export type RouteKey = keyof typeof ROUTES

@@ -1,0 +1,98 @@
+{
+  "name": "unisage-web",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:24-bookworm",
+  "workspaceFolder": "/workspaces/unisage-web",
+  "remoteUser": "node",
+  "containerEnv": {
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "en_US.UTF-8",
+    "TZ": "Asia/Ho_Chi_Minh",
+    "NPM_CONFIG_PREFIX": "/home/node/.local",
+    "PNPM_HOME": "/home/node/.local/share/pnpm"
+  },
+  "mounts": [
+    "source=unisage-web-node-modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=unisage-web-pnpm-store-${devcontainerId},target=/home/node/.local/share/pnpm/store,type=volume",
+    "source=unisage-web-codex-${devcontainerId},target=/home/node/.codex,type=volume",
+    "source=unisage-web-claude-${devcontainerId},target=/home/node/.claude,type=volume",
+    "source=unisage-web-opencode-${devcontainerId},target=/home/node/.config/opencode,type=volume"
+  ],
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "editor.quickSuggestions": {
+          "strings": "on"
+        },
+        "eslint.packageManager": "pnpm",
+        "eslint.useFlatConfig": true,
+        "eslint.validate": [
+          "javascript",
+          "javascriptreact",
+          "typescript",
+          "typescriptreact"
+        ],
+        "eslint.workingDirectories": [
+          {
+            "directory": ".",
+            "changeProcessCWD": true
+          }
+        ],
+        "files.associations": {
+          "*.css": "tailwindcss"
+        },
+        "prettier.prettierPath": "${containerWorkspaceFolder}/node_modules/prettier",
+        "prettier.requireConfig": true,
+        "tailwindCSS.classFunctions": ["cn", "clsx", "cva"],
+        "tailwindCSS.experimental.configFile": "src/styles/index.css",
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        },
+        "typescript.tsdk": "${containerWorkspaceFolder}/node_modules/typescript/lib",
+        "[css]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[javascriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[markdown]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[yaml]": {
+          "editor.defaultFormatter": "redhat.vscode-yaml"
+        }
+      }
+    }
+  }
+}

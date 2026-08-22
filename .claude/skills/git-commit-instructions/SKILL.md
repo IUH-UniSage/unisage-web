@@ -98,8 +98,8 @@ the staged diff.
 ## Verification Matrix
 
 - Skills and PR templates: run `quick_validate.py` for each skill plus `git diff --check`.
-- React logic or components: run `npm test`, `npm run lint`, and `npm run build`.
-- Routes, auth, permissions, or user interaction: also run `npm run test:e2e`.
+- React logic or components: run `pnpm test`, `pnpm run lint`, and `pnpm run build`.
+- Routes, auth, permissions, or user interaction: also run `pnpm run test:e2e`.
 - Documentation-only changes: run formatting or link checks when available.
 
 Never claim checks that did not run.

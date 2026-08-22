@@ -1,57 +1,57 @@
-export type DateInput = Date | number | string | null | undefined
-
-function toDate(input: DateInput): Date | null {
-  if (input === null || input === undefined || input === "") return null
-
-  const date = input instanceof Date ? input : new Date(input)
-  return Number.isNaN(date.getTime()) ? null : date
-}
+const DEFAULT_LOCALE = "en-US"
 
 export function formatDate(
-  input: DateInput,
+  value: string | number | Date,
   options: Intl.DateTimeFormatOptions = {
-    day: "2-digit",
-    month: "2-digit",
     year: "numeric",
-  },
-  locale = "vi-VN"
+    month: "short",
+    day: "numeric",
+  }
 ): string {
-  const date = toDate(input)
-  return date ? new Intl.DateTimeFormat(locale, options).format(date) : "-"
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return ""
+  }
+  return new Intl.DateTimeFormat(DEFAULT_LOCALE, options).format(date)
 }
 
-export function formatDateTime(input: DateInput, locale = "vi-VN"): string {
-  return formatDate(
-    input,
-    {
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    },
-    locale
-  )
+export function formatDateTime(value: string | number | Date): string {
+  return formatDate(value, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 
-export function formatRelativeTime(input: DateInput, locale = "vi"): string {
-  const date = toDate(input)
-  if (!date) return "-"
+export function formatRelativeTime(value: string | number | Date): string {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return ""
+  }
 
-  const elapsedSeconds = Math.round((date.getTime() - Date.now()) / 1000)
-  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ["year", 31_536_000],
-    ["month", 2_592_000],
-    ["week", 604_800],
-    ["day", 86_400],
-    ["hour", 3_600],
+  const diffMs = date.getTime() - Date.now()
+  const diffSeconds = Math.round(diffMs / 1000)
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 60 * 60 * 24 * 365],
+    ["month", 60 * 60 * 24 * 30],
+    ["week", 60 * 60 * 24 * 7],
+    ["day", 60 * 60 * 24],
+    ["hour", 60 * 60],
     ["minute", 60],
+    ["second", 1],
   ]
 
-  const [unit, seconds] = units.find(
-    ([, unitSeconds]) => Math.abs(elapsedSeconds) >= unitSeconds
-  ) ?? ["second", 1]
+  const formatter = new Intl.RelativeTimeFormat(DEFAULT_LOCALE, {
+    numeric: "auto",
+  })
 
-  return formatter.format(Math.round(elapsedSeconds / seconds), unit)
+  for (const [unit, secondsInUnit] of units) {
+    if (Math.abs(diffSeconds) >= secondsInUnit || unit === "second") {
+      return formatter.format(Math.round(diffSeconds / secondsInUnit), unit)
+    }
+  }
+
+  return formatter.format(0, "second")
 }

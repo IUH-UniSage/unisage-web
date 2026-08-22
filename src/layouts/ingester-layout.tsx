@@ -1,5 +1,9 @@
-import { StaffWorkspaceLayout } from "@/components/shared/navigation/staff-workspace-layout"
+import { Outlet } from "react-router-dom"
 
 export function IngesterLayout() {
-  return <StaffWorkspaceLayout workspace="ingester" />
+  return (
+    <div className="flex min-h-svh flex-col">
+      <Outlet />
+    </div>
+  )
 }

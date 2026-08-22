@@ -1,17 +1,13 @@
 import { Suspense } from "react"
-import { RouterProvider } from "react-router-dom"
 
-import { AppProviders } from "@/app/app-providers"
 import { AppRouteFallback } from "@/app/app-route-fallback"
-import { router } from "@/routes"
+import { AppRoutes } from "@/routes"
 
-export function App() {
+function App() {
   return (
-    <AppProviders>
-      <Suspense fallback={<AppRouteFallback />}>
-        <RouterProvider router={router} />
-      </Suspense>
-    </AppProviders>
+    <Suspense fallback={<AppRouteFallback />}>
+      <AppRoutes />
+    </Suspense>
   )
 }
 

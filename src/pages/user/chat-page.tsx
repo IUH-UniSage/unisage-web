@@ -1,1 +1,5 @@
-export { ChatPage } from "@/features/chat/components/chat-workspace"
+import { WorkspacePlaceholderPage } from "@/pages/shared/workspace-placeholder-page"
+
+export function ChatPage() {
+  return <WorkspacePlaceholderPage title="Chat" />
+}
