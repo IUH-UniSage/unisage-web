@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Search, ShieldCheck } from "lucide-react"
 import { useForm } from "react-hook-form"
 
+import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -18,11 +19,19 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   getPermissionLabel,
   getResourceLabel,
   groupPermissions,
+  splitPermissionName,
 } from "@/features/access-control/utils/access-control-formatters"
 import {
   createRoleRequestSchema,
@@ -30,6 +39,8 @@ import {
   type AccessRole,
   type CreateRoleRequest,
 } from "@/features/access-control/schemas/access-control-schemas"
+import { cn } from "@/lib/utils"
+import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 type RoleDialogProps = {
   isSaving: boolean
@@ -49,15 +60,34 @@ export function RoleDialog({
   role,
 }: RoleDialogProps) {
   const [permissionSearch, setPermissionSearch] = useState("")
+  const [resourceFilter, setResourceFilter] = useState("all")
   const deferredPermissionSearch = useDeferredValue(permissionSearch)
   const permissionGroups = useMemo(
     () => groupPermissions(permissions, deferredPermissionSearch),
     [deferredPermissionSearch, permissions]
   )
+  const resourceOptions = useMemo(
+    () =>
+      [
+        ...new Set(
+          permissions
+            .filter((permission) => permission.isActive)
+            .map((permission) => splitPermissionName(permission.name).resource)
+        ),
+      ].sort((left, right) =>
+        getResourceLabel(left).localeCompare(getResourceLabel(right), "vi")
+      ),
+    [permissions]
+  )
+  const visibleGroups =
+    resourceFilter === "all"
+      ? permissionGroups
+      : permissionGroups.filter((group) => group.resource === resourceFilter)
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
+    setError,
     setValue,
     watch,
   } = useForm<CreateRoleRequest>({
@@ -107,8 +137,10 @@ export function RoleDialog({
         description: values.description?.trim() || null,
         name: values.name.trim(),
       })
-    } catch {
-      // The global mutation handler presents the API error.
+    } catch (error) {
+      if (!applyFieldErrors(error, setError)) {
+        setError("root", { message: getErrorMessage(error) })
+      }
     }
   }
 
@@ -159,43 +191,23 @@ export function RoleDialog({
               />
             </div>
 
-            <label className="flex items-start gap-3 rounded-xl border p-3">
-              <Checkbox
-                checked={watch("isSystemRole")}
-                onCheckedChange={(checked) =>
-                  setValue("isSystemRole", checked === true, {
-                    shouldDirty: true,
-                  })
-                }
-              />
-              <span>
-                <span className="block text-sm font-medium">
-                  Vai trò hệ thống
-                </span>
-                <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                  Dùng cho các nhóm quyền lõi do hệ thống quản lý.
-                </span>
-              </span>
-            </label>
+            <ToggleOptionCard
+              checked={watch("isSystemRole")}
+              description="Dùng cho các nhóm quyền lõi do hệ thống quản lý."
+              label="Vai trò hệ thống"
+              onCheckedChange={(checked) =>
+                setValue("isSystemRole", checked, { shouldDirty: true })
+              }
+            />
 
-            <label className="flex items-start gap-3 rounded-xl border p-3">
-              <Checkbox
-                checked={watch("isActive")}
-                onCheckedChange={(checked) =>
-                  setValue("isActive", checked === true, {
-                    shouldDirty: true,
-                  })
-                }
-              />
-              <span>
-                <span className="block text-sm font-medium">
-                  Kích hoạt vai trò
-                </span>
-                <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                  Cho phép gán vai trò này cho tài khoản.
-                </span>
-              </span>
-            </label>
+            <ToggleOptionCard
+              checked={watch("isActive")}
+              description="Cho phép gán vai trò này cho tài khoản."
+              label="Kích hoạt vai trò"
+              onCheckedChange={(checked) =>
+                setValue("isActive", checked, { shouldDirty: true })
+              }
+            />
           </div>
 
           <div className="overflow-hidden rounded-xl border">
@@ -212,32 +224,70 @@ export function RoleDialog({
                   className="size-5 text-primary"
                 />
               </div>
-              <div className="relative mt-3">
-                <Search
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  aria-label="Tìm quyền để gán"
-                  className="pl-9"
-                  onChange={(event) => setPermissionSearch(event.target.value)}
-                  placeholder="Tìm quyền hạn..."
-                  value={permissionSearch}
-                />
+              <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_200px]">
+                <div className="relative">
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    aria-label="Tìm quyền để gán"
+                    className="pl-9"
+                    onChange={(event) =>
+                      setPermissionSearch(event.target.value)
+                    }
+                    placeholder="Tìm quyền hạn..."
+                    value={permissionSearch}
+                  />
+                </div>
+                <Select
+                  onValueChange={setResourceFilter}
+                  value={resourceFilter}
+                >
+                  <SelectTrigger
+                    aria-label="Lọc theo nhóm chức năng"
+                    className="w-full min-w-0"
+                  >
+                    <SelectValue
+                      className="truncate"
+                      placeholder="Tất cả nhóm"
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả nhóm</SelectItem>
+                    {resourceOptions.map((resource) => (
+                      <SelectItem key={resource} value={resource}>
+                        {getResourceLabel(resource)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <ScrollArea className="h-auto sm:h-64">
               <div className="grid gap-3 p-3 sm:grid-cols-2">
-                {permissionGroups.map(({ items, resource }) => (
-                  <section className="rounded-lg border p-3" key={resource}>
+                {visibleGroups.map(({ items, resource }) => (
+                  <section
+                    className={cn(
+                      "rounded-lg border p-3",
+                      visibleGroups.length === 1 && "sm:col-span-2"
+                    )}
+                    key={resource}
+                  >
                     <div className="mb-2 flex items-center justify-between">
                       <h3 className="text-xs font-semibold">
                         {getResourceLabel(resource)}
                       </h3>
                       <Badge variant="outline">{items.length}</Badge>
                     </div>
-                    <div className="space-y-1">
+                    <div
+                      className={cn(
+                        "space-y-1",
+                        visibleGroups.length === 1 &&
+                          "sm:grid sm:grid-cols-2 sm:space-y-0 sm:gap-x-3"
+                      )}
+                    >
                       {items.map((permission) => {
                         const checked = selectedPermissionIds.includes(
                           permission.id
@@ -278,6 +328,15 @@ export function RoleDialog({
             </ScrollArea>
           </div>
 
+          {errors.root?.message ? (
+            <p
+              className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive"
+              role="alert"
+            >
+              {errors.root.message}
+            </p>
+          ) : null}
+
           <DialogFooter>
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
@@ -285,7 +344,6 @@ export function RoleDialog({
               </Button>
             </DialogClose>
             <Button disabled={isBusy} type="submit">
-              <ShieldCheck aria-hidden="true" />
               {isBusy ? "Đang lưu..." : role ? "Lưu thay đổi" : "Tạo vai trò"}
             </Button>
           </DialogFooter>

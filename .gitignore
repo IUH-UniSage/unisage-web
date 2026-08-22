@@ -13,6 +13,7 @@ dist-ssr
 storybook-static
 playwright-report
 test-results
+.playwright-cli
 *.local
 
 # Devcontainer local overrides

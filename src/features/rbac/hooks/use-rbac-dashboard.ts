@@ -1,4 +1,5 @@
 import { useDeferredValue, useMemo, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 
 import {
   getPermissionLabel,
@@ -38,7 +39,7 @@ export type PermissionLevelFilter = "all" | "scoped" | "unrestricted"
 
 const EMPTY_PERMISSIONS: AccessPermission[] = []
 const EMPTY_ROLES: AccessRole[] = []
-export const ACCESS_CONTROL_PAGE_SIZE = 5
+export const ACCESS_CONTROL_PAGE_SIZE = 10
 
 function paginate<T>(items: T[], page: number) {
   const start = (page - 1) * ACCESS_CONTROL_PAGE_SIZE
@@ -52,6 +53,34 @@ function matchesStatus(isActive: boolean, status: StatusFilter) {
     (status === "inactive" && !isActive)
   )
 }
+
+const PARAM_DEFAULTS = {
+  permissionLevel: "all",
+  permissionPage: "1",
+  permissionSearch: "",
+  permissionStatus: "all",
+  rolePermission: "all",
+  rolePage: "1",
+  roleSearch: "",
+  roleStatus: "all",
+  tab: "roles",
+} as const
+
+type Param = keyof typeof PARAM_DEFAULTS
+
+// Short keys keep the URL readable; only this map needs to change if a param
+// is renamed — the rest of the hook keeps using the descriptive Param names.
+const URL_PARAM_KEYS = {
+  permissionLevel: "plv",
+  permissionPage: "pp",
+  permissionSearch: "pq",
+  permissionStatus: "ps",
+  rolePermission: "rf",
+  rolePage: "rp",
+  roleSearch: "rq",
+  roleStatus: "rs",
+  tab: "tab",
+} as const satisfies Record<Param, string>
 
 export function useAccessControlDashboard() {
   const rolesQuery = useAccessRolesQuery()
@@ -70,22 +99,82 @@ export function useAccessControlDashboard() {
   const recoverPermissionsBulk = useRecoverPermissionsBulkMutation()
   const { can } = usePermissions()
 
-  const [activeTab, setActiveTab] = useState<AccessControlTab>("roles")
-  const [roleSearch, setRoleSearch] = useState("")
-  const [roleStatus, setRoleStatus] = useState<StatusFilter>("all")
-  const [rolePermission, setRolePermission] = useState("all")
-  const [rolePage, setRolePage] = useState(1)
-  const [permissionSearch, setPermissionSearch] = useState("")
-  const [permissionStatus, setPermissionStatus] = useState<StatusFilter>("all")
-  const [permissionLevel, setPermissionLevel] =
-    useState<PermissionLevelFilter>("all")
-  const [permissionPage, setPermissionPage] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const getParam = (key: Param) =>
+    searchParams.get(URL_PARAM_KEYS[key]) ?? PARAM_DEFAULTS[key]
+
+  const setParams = (updates: Partial<Record<Param, string>>) => {
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
+        for (const key of Object.keys(updates) as Param[]) {
+          const value = updates[key]
+          const urlKey = URL_PARAM_KEYS[key]
+          if (value === undefined || value === PARAM_DEFAULTS[key]) {
+            next.delete(urlKey)
+          } else {
+            next.set(urlKey, value)
+          }
+        }
+        return next
+      },
+      { replace: true }
+    )
+  }
+
+  const getPage = (key: Param) => {
+    const page = Number.parseInt(getParam(key), 10)
+    return Number.isFinite(page) && page > 0 ? page : 1
+  }
+
+  const activeTab: AccessControlTab =
+    getParam("tab") === "permissions" ? "permissions" : "roles"
+  const appliedRoleSearch = getParam("roleSearch")
+  const appliedRoleStatus = getParam("roleStatus") as StatusFilter
+  const appliedRolePermission = getParam("rolePermission")
+  const rolePage = getPage("rolePage")
+  const appliedPermissionSearch = getParam("permissionSearch")
+  const appliedPermissionStatus = getParam("permissionStatus") as StatusFilter
+  const appliedPermissionLevel = getParam(
+    "permissionLevel"
+  ) as PermissionLevelFilter
+  const permissionPage = getPage("permissionPage")
+
+  const [pendingRoleSearch, setPendingRoleSearch] = useState(appliedRoleSearch)
+  const [pendingRolePermission, setPendingRolePermission] = useState(
+    appliedRolePermission
+  )
+  const [pendingRoleStatus, setPendingRoleStatus] =
+    useState<StatusFilter>(appliedRoleStatus)
+  const [pendingPermissionSearch, setPendingPermissionSearch] = useState(
+    appliedPermissionSearch
+  )
+  const [pendingPermissionLevel, setPendingPermissionLevel] =
+    useState<PermissionLevelFilter>(appliedPermissionLevel)
+  const [pendingPermissionStatus, setPendingPermissionStatus] =
+    useState<StatusFilter>(appliedPermissionStatus)
+
+  const isRoleFiltersApplied =
+    appliedRoleSearch.trim() !== "" ||
+    appliedRolePermission !== "all" ||
+    appliedRoleStatus !== "all"
+  const isPermissionFiltersApplied =
+    appliedPermissionSearch.trim() !== "" ||
+    appliedPermissionLevel !== "all" ||
+    appliedPermissionStatus !== "all"
+
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [editingRole, setEditingRole] = useState<AccessRole>()
   const [statusRole, setStatusRole] = useState<AccessRole>()
+  const [pendingRoleBulkAction, setPendingRoleBulkAction] = useState<
+    "deactivate" | "recover" | null
+  >(null)
   const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false)
   const [editingPermission, setEditingPermission] = useState<AccessPermission>()
   const [statusPermission, setStatusPermission] = useState<AccessPermission>()
+  const [pendingPermissionBulkAction, setPendingPermissionBulkAction] =
+    useState<"deactivate" | "recover" | null>(null)
   const [selectedRoleIds, setSelectedRoleIds] = useState<Set<string>>(
     () => new Set()
   )
@@ -95,8 +184,8 @@ export function useAccessControlDashboard() {
 
   const roles = rolesQuery.data?.data ?? EMPTY_ROLES
   const permissions = permissionsQuery.data?.data ?? EMPTY_PERMISSIONS
-  const deferredRoleSearch = useDeferredValue(roleSearch)
-  const deferredPermissionSearch = useDeferredValue(permissionSearch)
+  const deferredRoleSearch = useDeferredValue(appliedRoleSearch)
+  const deferredPermissionSearch = useDeferredValue(appliedPermissionSearch)
 
   const rolePermissionOptions = useMemo(
     () =>
@@ -118,18 +207,18 @@ export function useAccessControlDashboard() {
           .toLocaleLowerCase("vi")
           .includes(normalizedSearch)
       const matchesPermission =
-        rolePermission === "all" ||
+        appliedRolePermission === "all" ||
         role.permissions.some(
-          (permission) => permission.name === rolePermission
+          (permission) => permission.name === appliedRolePermission
         )
 
       return (
         matchesSearch &&
         matchesPermission &&
-        matchesStatus(role.isActive, roleStatus)
+        matchesStatus(role.isActive, appliedRoleStatus)
       )
     })
-  }, [deferredRoleSearch, rolePermission, roleStatus, roles])
+  }, [appliedRolePermission, appliedRoleStatus, deferredRoleSearch, roles])
 
   const filteredPermissions = useMemo(() => {
     const normalizedSearch = deferredPermissionSearch
@@ -150,18 +239,23 @@ export function useAccessControlDashboard() {
           .toLocaleLowerCase("vi")
           .includes(normalizedSearch)
       const matchesLevel =
-        permissionLevel === "all" ||
-        (permissionLevel === "unrestricted" &&
+        appliedPermissionLevel === "all" ||
+        (appliedPermissionLevel === "unrestricted" &&
           permission.accessLevel === null) ||
-        (permissionLevel === "scoped" && permission.accessLevel !== null)
+        (appliedPermissionLevel === "scoped" && permission.accessLevel !== null)
 
       return (
         matchesSearch &&
         matchesLevel &&
-        matchesStatus(permission.isActive, permissionStatus)
+        matchesStatus(permission.isActive, appliedPermissionStatus)
       )
     })
-  }, [deferredPermissionSearch, permissionLevel, permissionStatus, permissions])
+  }, [
+    appliedPermissionLevel,
+    appliedPermissionStatus,
+    deferredPermissionSearch,
+    permissions,
+  ])
 
   const roleTotalPages = Math.max(
     1,
@@ -250,6 +344,24 @@ export function useAccessControlDashboard() {
     clearRoleSelection()
   }
 
+  const pendingRoleBulkCount =
+    pendingRoleBulkAction === "deactivate"
+      ? roles.filter((role) => selectedRoleIds.has(role.id) && role.isActive)
+          .length
+      : pendingRoleBulkAction === "recover"
+        ? roles.filter((role) => selectedRoleIds.has(role.id) && !role.isActive)
+            .length
+        : 0
+
+  const confirmRoleBulkAction = async () => {
+    if (pendingRoleBulkAction === "deactivate") {
+      await bulkDeactivateSelectedRoles()
+    } else if (pendingRoleBulkAction === "recover") {
+      await bulkRecoverSelectedRoles()
+    }
+    setPendingRoleBulkAction(null)
+  }
+
   const openCreatePermission = () => {
     setEditingPermission(undefined)
     setIsPermissionDialogOpen(true)
@@ -335,12 +447,46 @@ export function useAccessControlDashboard() {
     clearPermissionSelection()
   }
 
+  const pendingPermissionBulkCount =
+    pendingPermissionBulkAction === "deactivate"
+      ? permissions.filter(
+          (permission) =>
+            selectedPermissionIds.has(permission.id) && permission.isActive
+        ).length
+      : pendingPermissionBulkAction === "recover"
+        ? permissions.filter(
+            (permission) =>
+              selectedPermissionIds.has(permission.id) && !permission.isActive
+          ).length
+        : 0
+
+  const confirmPermissionBulkAction = async () => {
+    if (pendingPermissionBulkAction === "deactivate") {
+      await bulkDeactivateSelectedPermissions()
+    } else if (pendingPermissionBulkAction === "recover") {
+      await bulkRecoverSelectedPermissions()
+    }
+    setPendingPermissionBulkAction(null)
+  }
+
   return {
     activeTab,
-    bulkDeactivateSelectedPermissions,
-    bulkDeactivateSelectedRoles,
-    bulkRecoverSelectedPermissions,
-    bulkRecoverSelectedRoles,
+    applyPermissionFilters: () => {
+      setParams({
+        permissionLevel: pendingPermissionLevel,
+        permissionPage: PARAM_DEFAULTS.permissionPage,
+        permissionSearch: pendingPermissionSearch,
+        permissionStatus: pendingPermissionStatus,
+      })
+    },
+    applyRoleFilters: () => {
+      setParams({
+        rolePage: PARAM_DEFAULTS.rolePage,
+        rolePermission: pendingRolePermission,
+        roleSearch: pendingRoleSearch,
+        roleStatus: pendingRoleStatus,
+      })
+    },
     canCreatePermissions: can(PERMISSIONS.permissionCreate),
     canCreateRoles: can(PERMISSIONS.roleCreate),
     canDeletePermissions: can(PERMISSIONS.permissionDelete),
@@ -352,8 +498,12 @@ export function useAccessControlDashboard() {
     closePermissionDialog: () => setIsPermissionDialogOpen(false),
     closePermissionStatusDialog: () => setStatusPermission(undefined),
     closeRoleDialog: () => setIsRoleDialogOpen(false),
+    closeRoleBulkActionDialog: () => setPendingRoleBulkAction(null),
+    closePermissionBulkActionDialog: () => setPendingPermissionBulkAction(null),
     closeStatusDialog: () => setStatusRole(undefined),
+    confirmPermissionBulkAction,
     confirmPermissionStatusChange,
+    confirmRoleBulkAction,
     confirmStatusChange,
     editingPermission,
     editingRole,
@@ -364,6 +514,8 @@ export function useAccessControlDashboard() {
     isBulkUpdatingRoles:
       deleteRolesBulk.isPending || recoverRolesBulk.isPending,
     isPending: rolesQuery.isPending || permissionsQuery.isPending,
+    isPermissionFiltersApplied,
+    isRoleFiltersApplied,
     isPermissionDialogOpen,
     isRoleDialogOpen,
     isSavingPermission:
@@ -378,64 +530,63 @@ export function useAccessControlDashboard() {
     openEditRole,
     pagedPermissions: paginate(filteredPermissions, currentPermissionPage),
     pagedRoles: paginate(filteredRoles, currentRolePage),
-    permissionLevel,
+    permissionLevel: pendingPermissionLevel,
     permissionPage: currentPermissionPage,
-    permissionSearch,
-    permissionStatus,
+    permissionSearch: pendingPermissionSearch,
+    permissionStatus: pendingPermissionStatus,
     permissionTotalPages,
     permissions,
+    pendingPermissionBulkAction,
+    pendingPermissionBulkCount,
+    pendingRoleBulkAction,
+    pendingRoleBulkCount,
+    requestPermissionBulkAction: setPendingPermissionBulkAction,
     requestPermissionStatusChange: setStatusPermission,
+    requestRoleBulkAction: setPendingRoleBulkAction,
     requestStatusChange: setStatusRole,
     resetPermissionFilters: () => {
-      setPermissionSearch("")
-      setPermissionStatus("all")
-      setPermissionLevel("all")
-      setPermissionPage(1)
+      setPendingPermissionLevel(PARAM_DEFAULTS.permissionLevel)
+      setPendingPermissionSearch(PARAM_DEFAULTS.permissionSearch)
+      setPendingPermissionStatus(PARAM_DEFAULTS.permissionStatus)
+      setParams({
+        permissionLevel: PARAM_DEFAULTS.permissionLevel,
+        permissionPage: PARAM_DEFAULTS.permissionPage,
+        permissionSearch: PARAM_DEFAULTS.permissionSearch,
+        permissionStatus: PARAM_DEFAULTS.permissionStatus,
+      })
     },
     resetRoleFilters: () => {
-      setRoleSearch("")
-      setRoleStatus("all")
-      setRolePermission("all")
-      setRolePage(1)
+      setPendingRolePermission(PARAM_DEFAULTS.rolePermission)
+      setPendingRoleSearch(PARAM_DEFAULTS.roleSearch)
+      setPendingRoleStatus(PARAM_DEFAULTS.roleStatus)
+      setParams({
+        rolePage: PARAM_DEFAULTS.rolePage,
+        rolePermission: PARAM_DEFAULTS.rolePermission,
+        roleSearch: PARAM_DEFAULTS.roleSearch,
+        roleStatus: PARAM_DEFAULTS.roleStatus,
+      })
     },
     rolePage: currentRolePage,
-    rolePermission,
+    rolePermission: pendingRolePermission,
     rolePermissionOptions,
     roles,
-    roleSearch,
-    roleStatus,
+    roleSearch: pendingRoleSearch,
+    roleStatus: pendingRoleStatus,
     roleTotalPages,
     savePermission,
     saveRole,
     selectedPermissionIds,
     selectedRoleIds,
-    setActiveTab,
-    setPermissionLevel: (value: PermissionLevelFilter) => {
-      setPermissionLevel(value)
-      setPermissionPage(1)
-    },
-    setPermissionPage,
-    setPermissionSearch: (value: string) => {
-      setPermissionSearch(value)
-      setPermissionPage(1)
-    },
-    setPermissionStatus: (value: StatusFilter) => {
-      setPermissionStatus(value)
-      setPermissionPage(1)
-    },
-    setRolePage,
-    setRolePermission: (value: string) => {
-      setRolePermission(value)
-      setRolePage(1)
-    },
-    setRoleSearch: (value: string) => {
-      setRoleSearch(value)
-      setRolePage(1)
-    },
-    setRoleStatus: (value: StatusFilter) => {
-      setRoleStatus(value)
-      setRolePage(1)
-    },
+    setActiveTab: (value: AccessControlTab) => setParams({ tab: value }),
+    setPermissionLevel: setPendingPermissionLevel,
+    setPermissionPage: (page: number) =>
+      setParams({ permissionPage: String(page) }),
+    setPermissionSearch: setPendingPermissionSearch,
+    setPermissionStatus: setPendingPermissionStatus,
+    setRolePage: (page: number) => setParams({ rolePage: String(page) }),
+    setRolePermission: setPendingRolePermission,
+    setRoleSearch: setPendingRoleSearch,
+    setRoleStatus: setPendingRoleStatus,
     statusPermission,
     statusRole,
     toggleAllPermissionsOnPage,

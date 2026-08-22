@@ -1,21 +1,5 @@
+import { getResourceTypeLabel } from "@/constants/resource-types"
 import type { AccessPermission } from "@/features/access-control/schemas/access-control-schemas"
-
-const resourceLabels: Record<string, string> = {
-  ACCESS_LEVEL: "Cấp độ truy cập",
-  AUDIT_LOG: "Nhật ký kiểm toán",
-  CATEGORY: "Danh mục",
-  CHAT_MODEL: "Mô hình chat",
-  CONVERSATION: "Cuộc trò chuyện",
-  DEPARTMENT: "Phòng ban",
-  DOCUMENT: "Tài liệu",
-  INGEST: "Nạp dữ liệu",
-  LLM_TRACE_LOG: "Truy vết mô hình",
-  MESSAGE: "Tin nhắn",
-  PERMISSION: "Quyền hạn",
-  ROLE: "Vai trò",
-  SUPER_ADMIN: "Quản trị toàn hệ thống",
-  USER: "Người dùng",
-}
 
 const actionLabels: Record<string, string> = {
   ALL: "Toàn quyền",
@@ -59,7 +43,8 @@ export function getPermissionLabel(permission: AccessPermission) {
 }
 
 export function getResourceLabel(resource: string) {
-  return resourceLabels[resource] ?? resource.replaceAll("_", " ")
+  if (resource === "SUPER_ADMIN") return "Quản trị toàn hệ thống"
+  return getResourceTypeLabel(resource)
 }
 
 export function formatAuditDate(value: string | null | undefined) {
