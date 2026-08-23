@@ -37,6 +37,11 @@ const DepartmentPage = lazy(async () => {
   return { default: DepartmentPage }
 })
 
+const CategoryPage = lazy(async () => {
+  const { CategoryPage } = await import("@/pages/system-admin/category-page")
+  return { default: CategoryPage }
+})
+
 export const systemAdminRoutes: RouteObject = {
   path: ROUTES.admin,
   element: (
@@ -94,6 +99,18 @@ export const systemAdminRoutes: RouteObject = {
           strategy="any"
         >
           <AccessLevelPage />
+        </PermissionRoute>
+      ),
+    },
+    {
+      path: ROUTE_SEGMENTS.categories,
+      element: (
+        <PermissionRoute
+          fallbackTo={ROUTES.admin}
+          requiredPermissions={PERMISSION_POLICIES.adminCategories}
+          strategy="any"
+        >
+          <CategoryPage />
         </PermissionRoute>
       ),
     },

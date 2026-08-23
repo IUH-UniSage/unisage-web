@@ -11,6 +11,7 @@ import {
   Settings,
   ShieldCheck,
   ShieldPlus,
+  Tags,
   UploadCloud,
   Users,
 } from "lucide-react"
@@ -88,6 +89,12 @@ const navigation: Record<StaffWorkspace, NavigationItem[]> = {
       label: "Cấp độ truy cập",
       requiredPermissions: PERMISSION_POLICIES.adminAccessLevels,
       to: ROUTES.adminAccessLevels,
+    },
+    {
+      icon: Tags,
+      label: "Danh mục",
+      requiredPermissions: PERMISSION_POLICIES.adminCategories,
+      to: ROUTES.adminCategories,
     },
     {
       icon: BookOpen,

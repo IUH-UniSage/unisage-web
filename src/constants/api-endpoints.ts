@@ -1,4 +1,8 @@
 export const API_ENDPOINTS = {
+  categories: {
+    categories: "/categories",
+    category: (categoryId: string) => `/categories/${categoryId}`,
+  },
   departments: {
     department: (departmentId: string) => `/departments/${departmentId}`,
     departmentRecover: (departmentId: string) =>
