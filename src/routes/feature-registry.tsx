@@ -4,7 +4,6 @@ import {
   BookOpen,
   Bot,
   Building,
-  FileText,
   Gauge,
   HeartPulse,
   Layers,
@@ -30,6 +29,14 @@ import type { PermissionRequirement } from "@/utils/permissions"
 // nav" and "what routes exist under that workspace" - each FeatureEntry
 // drives both, keyed by permission, instead of hand-duplicating the same
 // item across a *.routes.tsx file and staff-sidebar.tsx separately.
+//
+// Note this is deliberately NOT "show a feature anywhere the user happens to
+// hold the matching permission" - which workspace(s) is more of an
+// information-architecture decision than a permission one (a stray
+// USER_READ grant shouldn't make "Quản lý người dùng" appear in Ingester).
+// `workspaces` still has to be authored per feature; what this registry
+// removes is having to author it *twice* (once as a route, once as a nav
+// item) per workspace.
 export type StaffWorkspace = "ingester" | "system-admin"
 
 export type NavigationItem = {
@@ -55,7 +62,15 @@ export type FeatureEntry = {
   requiredStrategy?: "all" | "any"
   // Omit for the workspace's index/overview route.
   segment?: string
-  workspace: StaffWorkspace
+  // Every workspace this feature appears in. A feature usable from more
+  // than one workspace (e.g. Category/Document/Department, which content
+  // staff and admins both manage) is ONE entry listing every workspace,
+  // not one entry per workspace - so registering it for a new workspace
+  // can't be forgotten the way a second near-duplicate entry can (this bit
+  // us once already: Department was added for system-admin only, and
+  // INGEST_ADMIN's existing DEPARTMENT_READ permission had nowhere to
+  // apply until this entry gained "ingester" too).
+  workspaces: StaffWorkspace[]
 }
 
 const AdminOverviewPage = lazy(async () => {
@@ -87,8 +102,7 @@ const UserPage = lazy(async () => {
 })
 
 const DepartmentPage = lazy(async () => {
-  const { DepartmentPage } =
-    await import("@/pages/system-admin/department-page")
+  const { DepartmentPage } = await import("@/pages/shared/department-page")
   return { default: DepartmentPage }
 })
 
@@ -102,23 +116,39 @@ const DocumentPage = lazy(async () => {
   return { default: DocumentPage }
 })
 
+// Array order = nav display order, per workspace, in the order each
+// workspace's filtered view encounters entries - see getWorkspaceFeatures().
+// Placing an entry earlier moves it earlier in every workspace it belongs
+// to, so a shared entry's position is a compromise across all of them; the
+// order below was chosen to match system-admin's requested order (Tổng
+// quan, Phòng ban, Quản lý người dùng, ...) while keeping ingester's
+// content items (Phòng ban/Danh mục/Quản trị tài liệu) grouped right after
+// its own overview.
 export const FEATURE_REGISTRY: FeatureEntry[] = [
-  // -- system-admin --
   {
     element: <AdminOverviewPage />,
     icon: Gauge,
     key: "admin-overview",
     label: "Tổng quan",
-    workspace: "system-admin",
+    workspaces: ["system-admin"],
+  },
+  {
+    element: <IngesterDashboardPage />,
+    fallback: <AccessDeniedPage />,
+    icon: Gauge,
+    key: "ingester-overview",
+    label: "Tổng quan",
+    requiredPermissions: PERMISSION_POLICIES.ingesterOverview,
+    workspaces: ["ingester"],
   },
   {
     element: <DepartmentPage />,
     icon: Building,
-    key: "admin-departments",
+    key: "departments",
     label: "Phòng ban",
-    requiredPermissions: PERMISSION_POLICIES.adminDepartments,
+    requiredPermissions: PERMISSION_POLICIES.departments,
     segment: ROUTE_SEGMENTS.departments,
-    workspace: "system-admin",
+    workspaces: ["system-admin", "ingester"],
   },
   {
     element: <UserPage />,
@@ -127,7 +157,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Quản lý người dùng",
     requiredPermissions: PERMISSION_POLICIES.adminUsers,
     segment: ROUTE_SEGMENTS.users,
-    workspace: "system-admin",
+    workspaces: ["system-admin"],
   },
   {
     element: <RbacPage />,
@@ -137,7 +167,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     requiredPermissions: PERMISSION_POLICIES.adminRbac,
     requiredStrategy: "all",
     segment: ROUTE_SEGMENTS.rbac,
-    workspace: "system-admin",
+    workspaces: ["system-admin"],
   },
   {
     element: <AccessLevelPage />,
@@ -146,25 +176,25 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Cấp độ truy cập",
     requiredPermissions: PERMISSION_POLICIES.adminAccessLevels,
     segment: ROUTE_SEGMENTS.accessLevels,
-    workspace: "system-admin",
+    workspaces: ["system-admin"],
   },
   {
     element: <CategoryPage />,
     icon: Tags,
-    key: "admin-categories",
+    key: "categories",
     label: "Danh mục tài liệu",
-    requiredPermissions: PERMISSION_POLICIES.adminCategories,
+    requiredPermissions: PERMISSION_POLICIES.categories,
     segment: ROUTE_SEGMENTS.categories,
-    workspace: "system-admin",
+    workspaces: ["system-admin", "ingester"],
   },
   {
     element: <DocumentPage />,
     icon: BookOpen,
-    key: "admin-documents",
+    key: "documents",
     label: "Quản trị tài liệu",
-    requiredPermissions: PERMISSION_POLICIES.adminDocuments,
+    requiredPermissions: PERMISSION_POLICIES.documents,
     segment: ROUTE_SEGMENTS.documents,
-    workspace: "system-admin",
+    workspaces: ["system-admin", "ingester"],
   },
   {
     element: <WorkspacePlaceholderPage title="Nhật ký hệ thống" />,
@@ -173,7 +203,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Nhật ký hệ thống",
     requiredPermissions: PERMISSION_POLICIES.adminLogs,
     segment: ROUTE_SEGMENTS.logs,
-    workspace: "system-admin",
+    workspaces: ["system-admin"],
   },
   {
     element: <WorkspacePlaceholderPage title="Cấu hình AI" />,
@@ -182,7 +212,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Cấu hình AI",
     requiredPermissions: PERMISSION_POLICIES.adminModels,
     segment: ROUTE_SEGMENTS.models,
-    workspace: "system-admin",
+    workspaces: ["system-admin"],
   },
   {
     element: <WorkspacePlaceholderPage title="Tình trạng dịch vụ" />,
@@ -191,7 +221,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Tình trạng dịch vụ",
     requiredPermissions: PERMISSION_POLICIES.adminHealth,
     segment: ROUTE_SEGMENTS.health,
-    workspace: "system-admin",
+    workspaces: ["system-admin"],
   },
   {
     element: <WorkspacePlaceholderPage title="Cài đặt hệ thống" />,
@@ -200,36 +230,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Cài đặt",
     requiredPermissions: PERMISSION_POLICIES.adminSettings,
     segment: ROUTE_SEGMENTS.settings,
-    workspace: "system-admin",
-  },
-
-  // -- ingester --
-  {
-    element: <IngesterDashboardPage />,
-    fallback: <AccessDeniedPage />,
-    icon: Gauge,
-    key: "ingester-overview",
-    label: "Tổng quan",
-    requiredPermissions: PERMISSION_POLICIES.ingesterOverview,
-    workspace: "ingester",
-  },
-  {
-    element: <DocumentPage />,
-    icon: FileText,
-    key: "ingester-documents",
-    label: "Tài liệu",
-    requiredPermissions: PERMISSION_POLICIES.ingesterDocuments,
-    segment: ROUTE_SEGMENTS.documents,
-    workspace: "ingester",
-  },
-  {
-    element: <CategoryPage />,
-    icon: Tags,
-    key: "ingester-categories",
-    label: "Danh mục tài liệu",
-    requiredPermissions: PERMISSION_POLICIES.ingesterCategories,
-    segment: ROUTE_SEGMENTS.categories,
-    workspace: "ingester",
+    workspaces: ["system-admin"],
   },
   {
     element: <WorkspacePlaceholderPage title="Hàng đợi xử lý" />,
@@ -238,7 +239,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Đang xử lý",
     requiredPermissions: PERMISSION_POLICIES.ingesterProcessing,
     segment: ROUTE_SEGMENTS.processing,
-    workspace: "ingester",
+    workspaces: ["ingester"],
   },
   {
     element: <WorkspacePlaceholderPage title="Kiểm tra chất lượng" />,
@@ -247,7 +248,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Kiểm tra chất lượng",
     requiredPermissions: PERMISSION_POLICIES.ingesterQuality,
     segment: ROUTE_SEGMENTS.quality,
-    workspace: "ingester",
+    workspaces: ["ingester"],
   },
   {
     element: <WorkspacePlaceholderPage title="Cài đặt nạp liệu" />,
@@ -256,7 +257,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Cài đặt",
     requiredPermissions: PERMISSION_POLICIES.ingesterSettings,
     segment: ROUTE_SEGMENTS.settings,
-    workspace: "ingester",
+    workspaces: ["ingester"],
   },
 ]
 
@@ -267,7 +268,9 @@ function workspaceRoot(workspace: StaffWorkspace): string {
 export function getWorkspaceFeatures(
   workspace: StaffWorkspace
 ): FeatureEntry[] {
-  return FEATURE_REGISTRY.filter((entry) => entry.workspace === workspace)
+  return FEATURE_REGISTRY.filter((entry) =>
+    entry.workspaces.includes(workspace)
+  )
 }
 
 export function getWorkspaceNavItems(
