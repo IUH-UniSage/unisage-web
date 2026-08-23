@@ -3,6 +3,10 @@ export const API_ENDPOINTS = {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
   },
+  documents: {
+    documents: "/documents",
+    document: (documentId: string) => `/documents/${documentId}`,
+  },
   departments: {
     department: (departmentId: string) => `/departments/${departmentId}`,
     departmentRecover: (departmentId: string) =>

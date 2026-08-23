@@ -42,6 +42,11 @@ const CategoryPage = lazy(async () => {
   return { default: CategoryPage }
 })
 
+const DocumentPage = lazy(async () => {
+  const { DocumentPage } = await import("@/pages/system-admin/document-page")
+  return { default: DocumentPage }
+})
+
 export const systemAdminRoutes: RouteObject = {
   path: ROUTES.admin,
   element: (
@@ -122,7 +127,7 @@ export const systemAdminRoutes: RouteObject = {
           requiredPermissions={PERMISSION_POLICIES.adminDocuments}
           strategy="any"
         >
-          <WorkspacePlaceholderPage title="Quản trị tài liệu" />
+          <DocumentPage />
         </PermissionRoute>
       ),
     },
