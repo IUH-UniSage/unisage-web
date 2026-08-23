@@ -73,16 +73,16 @@ const navigation: Record<StaffWorkspace, NavigationItem[]> = {
   "system-admin": [
     { icon: Gauge, label: "Tổng quan", to: ROUTES.admin },
     {
-      icon: Users,
-      label: "Quản lý người dùng",
-      requiredPermissions: PERMISSION_POLICIES.adminUsers,
-      to: ROUTES.adminUsers,
-    },
-    {
       icon: Building,
       label: "Phòng ban",
       requiredPermissions: PERMISSION_POLICIES.adminDepartments,
       to: ROUTES.adminDepartments,
+    },
+    {
+      icon: Users,
+      label: "Quản lý người dùng",
+      requiredPermissions: PERMISSION_POLICIES.adminUsers,
+      to: ROUTES.adminUsers,
     },
     {
       icon: ShieldPlus,
