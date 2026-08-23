@@ -18,3 +18,12 @@ See [docs/testing.md](../../docs/testing.md) for which layer (unit, component, S
 given change should be tested at.
 
 Never claim a check ran when it did not.
+
+## Keep verification proportional
+
+Don't run the full matrix or capture a screenshot for every micro-adjustment. A 1-2px CSS nudge
+or copy tweak doesn't need its own before/after screenshot cycle — a quick `eval`/computed-style
+check (or just reasoning about the change) is enough; save screenshots for changes a user would
+actually notice. Don't re-read a file immediately after editing it "to confirm" — Edit/Write
+already error on failure. When unsure whether a check is worth running, it's fine to skip it
+rather than default to running everything.
