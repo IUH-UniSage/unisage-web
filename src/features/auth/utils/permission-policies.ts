@@ -16,7 +16,7 @@ export const PERMISSION_POLICIES = {
   adminAccessLevels: policy(PERMISSIONS.accessLevelRead),
   adminUsers: policy(PERMISSIONS.userRead),
   adminLogs: policy(PERMISSIONS.auditLogRead, PERMISSIONS.llmTraceLogRead),
-  adminModels: policy(PERMISSIONS.superAdminAll),
+  adminModels: policy(PERMISSIONS.chatModelRead),
   adminHealth: policy(PERMISSIONS.superAdminAll),
   adminRbac: policy(PERMISSIONS.roleRead, PERMISSIONS.permissionRead),
   adminSettings: policy(PERMISSIONS.superAdminAll),

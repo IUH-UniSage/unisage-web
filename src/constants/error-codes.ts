@@ -38,6 +38,8 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2132: "Access Level này đã tồn tại.",
 
   // Validation
+  2133: "Nhà cung cấp không được để trống khi nguồn là Cloud API.",
+  2134: "API key không được để trống khi nguồn là Cloud API.",
   2300: "Thông tin nhập chưa hợp lệ, kiểm tra lại giúp mình.",
   2310: "Bạn không có quyền tạo tài liệu này.",
 
