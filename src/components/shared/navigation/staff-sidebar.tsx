@@ -99,7 +99,7 @@ const navigation: Record<StaffWorkspace, NavigationItem[]> = {
     },
     {
       icon: Tags,
-      label: "Danh mục",
+      label: "Danh mục tài liệu",
       requiredPermissions: PERMISSION_POLICIES.adminCategories,
       to: ROUTES.adminCategories,
     },

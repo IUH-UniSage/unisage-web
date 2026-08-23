@@ -88,12 +88,20 @@ export function PermissionDetailDialog({
               </span>
             </div>
             {permission.updatedAt ? (
-              <div className="col-span-2">
-                <span className="block text-[11px]">Cập nhật lần cuối</span>
-                <span className="font-medium text-foreground">
-                  {formatAuditDate(permission.updatedAt)}
-                </span>
-              </div>
+              <>
+                <div>
+                  <span className="block text-[11px]">Người cập nhật</span>
+                  <span className="font-medium text-foreground">
+                    {permission.updatedBy || "Hệ thống"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[11px]">Cập nhật lần cuối</span>
+                  <span className="font-medium text-foreground">
+                    {formatAuditDate(permission.updatedAt)}
+                  </span>
+                </div>
+              </>
             ) : null}
           </div>
         </div>

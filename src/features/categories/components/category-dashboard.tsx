@@ -22,7 +22,7 @@ export function CategoryDashboard() {
             Quản trị · Nội dung
           </p>
           <h1 className="mt-1 text-2xl font-bold md:text-3xl">
-            Danh sách danh mục
+            Danh sách danh mục tài liệu
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
             Quản lý các danh mục dùng để phân loại tài liệu trong hệ thống.

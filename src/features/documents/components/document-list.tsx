@@ -1,5 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { Download, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import {
+  Download,
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Search,
+  Trash2,
+} from "lucide-react"
 import { useMemo } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -13,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import { DOCUMENT_PAGE_SIZE } from "@/features/documents/hooks/use-document-dashboard"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
@@ -142,7 +150,7 @@ export function DocumentList({
       },
       {
         cell: ({ row }) => row.original.categoryName || "—",
-        header: "Danh mục",
+        header: "Danh mục tài liệu",
         id: "category",
         meta: { className: "text-sm" },
       },
@@ -201,6 +209,30 @@ export function DocumentList({
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+      {/*
+        TODO(UNISAGE-40): GET /documents currently only accepts page/limit
+        (see DocumentController) - no search/category/department/status
+        query params exist yet. This search box is a disabled placeholder
+        so the layout/space is reserved; wire it up (and add the matching
+        query params to documentApi.getDocuments) once the backend exposes
+        filtering, rather than faking it client-side against a single
+        paginated page.
+      */}
+      <div className="border-b p-3 md:p-4">
+        <div className="relative max-w-sm">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            aria-label="Tìm tài liệu (sắp có)"
+            className="pl-9"
+            disabled
+            placeholder="Tìm kiếm tài liệu (sắp có)..."
+          />
+        </div>
+      </div>
+
       {documents.length ? (
         <div className="hidden md:block">
           <DataTable

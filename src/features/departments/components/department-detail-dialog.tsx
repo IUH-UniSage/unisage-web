@@ -152,12 +152,20 @@ export function DepartmentDetailDialog({
               </span>
             </div>
             {department.updatedAt ? (
-              <div className="col-span-2">
-                <span className="block text-[11px]">Cập nhật lần cuối</span>
-                <span className="font-medium text-foreground">
-                  {formatAuditDate(department.updatedAt)}
-                </span>
-              </div>
+              <>
+                <div>
+                  <span className="block text-[11px]">Người cập nhật</span>
+                  <span className="font-medium text-foreground">
+                    {department.updatedBy || "Hệ thống"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[11px]">Cập nhật lần cuối</span>
+                  <span className="font-medium text-foreground">
+                    {formatAuditDate(department.updatedAt)}
+                  </span>
+                </div>
+              </>
             ) : null}
           </div>
         </div>
