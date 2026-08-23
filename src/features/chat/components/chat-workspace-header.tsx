@@ -1,17 +1,7 @@
-import {
-  ArrowLeft,
-  BookOpen,
-  MoreHorizontal,
-  PanelLeftClose,
-  PanelLeftOpen,
-  PanelRightClose,
-  PanelRightOpen,
-  Sparkles,
-} from "lucide-react"
+import { PanelLeftOpen, Sparkles } from "lucide-react"
 import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 
-import { BrandLogo } from "@/components/shared/brand/brand-logo"
 import { BrandMark } from "@/components/shared/brand/brand-mark"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
 import { Badge } from "@/components/ui/badge"
@@ -24,8 +14,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { ROUTES } from "@/constants/paths"
-import { CHAT_SOURCES, type Conversation } from "@/features/chat/chat-data"
-import { cn } from "@/lib/utils"
+import { CHAT_SOURCES } from "@/features/chat/chat-data"
+import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 
 type MobileChatHeaderProps = {
   historyContent: ReactNode
@@ -34,43 +24,36 @@ type MobileChatHeaderProps = {
 export function MobileChatHeader({ historyContent }: MobileChatHeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center border-b bg-card px-2.5 xl:hidden dark:border-white/[0.06]">
-      <Button asChild aria-label="Về trang chủ" size="icon-sm" variant="ghost">
-        <Link to={ROUTES.home}>
-          <ArrowLeft aria-hidden="true" />
-        </Link>
-      </Button>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button
+            aria-label="Mở lịch sử trò chuyện"
+            size="icon"
+            variant="ghost"
+          >
+            <PanelLeftOpen aria-hidden="true" className="size-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-[88vw] max-w-[320px] gap-0 p-0" side="left">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Lịch sử trò chuyện</SheetTitle>
+          </SheetHeader>
+          <div className="min-h-0 flex-1">{historyContent}</div>
+        </SheetContent>
+      </Sheet>
+
       <Link
         aria-label="Trang chủ UniSage"
-        className="ml-1 flex items-center gap-2 rounded-lg outline-offset-4 focus-visible:outline-2 focus-visible:outline-primary"
+        className="ml-2 flex items-center gap-2 rounded-lg"
         to={ROUTES.home}
       >
-        <BrandMark className="size-8" />
-        <span className="text-base font-bold tracking-tight text-primary dark:text-white">
+        <BrandMark className="size-7" />
+        <span className="text-base font-bold tracking-tight text-foreground">
           UniSage
         </span>
       </Link>
+
       <div className="ml-auto flex items-center gap-1">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              aria-label="Mở lịch sử trò chuyện"
-              size="icon"
-              variant="ghost"
-            >
-              <PanelLeftOpen aria-hidden="true" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            className="w-[88vw] max-w-[340px] gap-0 p-0"
-            side="left"
-          >
-            <SheetHeader className="flex-row items-center gap-3 border-b px-4 py-4">
-              <BrandMark className="size-8" />
-              <SheetTitle>Lịch sử trò chuyện</SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1">{historyContent}</div>
-          </SheetContent>
-        </Sheet>
         <ThemeToggle />
       </div>
     </header>
@@ -79,128 +62,37 @@ export function MobileChatHeader({ historyContent }: MobileChatHeaderProps) {
 
 type DesktopChatHeaderProps = {
   activeConversation: Conversation | null
-  desktopGridClass: string
-  isHistoryOpen: boolean
   isSourcesOpen: boolean
-  onCloseSources: () => void
   onOpenSources: () => void
-  onToggleHistory: () => void
 }
 
 export function DesktopChatHeader({
   activeConversation,
-  desktopGridClass,
-  isHistoryOpen,
   isSourcesOpen,
-  onCloseSources,
   onOpenSources,
-  onToggleHistory,
 }: DesktopChatHeaderProps) {
   return (
-    <header
-      className={cn(
-        "hidden h-16 shrink-0 border-b bg-card xl:grid dark:border-white/[0.06]",
-        desktopGridClass
-      )}
-    >
-      {isHistoryOpen ? (
-        <div className="flex items-center gap-1 border-r px-3">
-          <Button asChild aria-label="Về trang chủ" size="icon" variant="ghost">
-            <Link to={ROUTES.home}>
-              <ArrowLeft aria-hidden="true" />
-            </Link>
-          </Button>
-          <Link
-            aria-label="Trang chủ UniSage"
-            className="rounded-lg outline-offset-4 focus-visible:outline-2 focus-visible:outline-primary"
-            to={ROUTES.home}
-          >
-            <BrandLogo />
-          </Link>
-        </div>
-      ) : null}
-
-      <div
-        className={cn(
-          "flex min-w-0 items-center gap-3 px-3",
-          isSourcesOpen && "border-r"
-        )}
-      >
-        <Button
-          aria-label={
-            isHistoryOpen ? "Ẩn lịch sử trò chuyện" : "Mở lịch sử trò chuyện"
-          }
-          onClick={onToggleHistory}
-          size="icon"
-          variant="ghost"
-        >
-          {isHistoryOpen ? (
-            <PanelLeftClose aria-hidden="true" />
-          ) : (
-            <PanelLeftOpen aria-hidden="true" />
-          )}
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold">
-            {activeConversation?.title ?? "Cuộc trò chuyện mới"}
-          </h1>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {activeConversation
-              ? "Bản xem trước · câu trả lời cần được kiểm chứng"
-              : "Đặt câu hỏi để bắt đầu với UniSage"}
-          </p>
-        </div>
-        {activeConversation ? (
-          <Badge className="hidden bg-secondary text-primary hover:bg-secondary 2xl:inline-flex dark:text-secondary-foreground">
-            <Sparkles aria-hidden="true" className="text-knowledge" />
-            Có nguồn tham chiếu
-          </Badge>
-        ) : null}
-        {!isSourcesOpen ? (
-          <>
-            {activeConversation ? (
-              <Button
-                aria-label="Mở nguồn tham chiếu"
-                onClick={onOpenSources}
-                size="icon"
-                variant="ghost"
-              >
-                <PanelRightOpen aria-hidden="true" />
-              </Button>
-            ) : null}
-            <ThemeToggle />
-          </>
-        ) : null}
-        <Button
-          aria-label="Tùy chọn cuộc trò chuyện"
-          size="icon"
-          variant="ghost"
-        >
-          <MoreHorizontal aria-hidden="true" />
-        </Button>
-      </div>
-
-      {isSourcesOpen ? (
-        <div className="flex items-center gap-2 px-4">
-          <BookOpen
-            aria-hidden="true"
-            className="size-4 text-primary dark:text-info"
-          />
-          <h2 className="text-sm font-semibold">Nguồn tham chiếu</h2>
-          <Badge className="ml-auto" variant="secondary">
-            {CHAT_SOURCES.length}
-          </Badge>
+    <header className="hidden h-14 shrink-0 items-center justify-end px-4 xl:flex">
+      {/* Right actions: Open Sources button (when closed) + ThemeToggle (no ... icon) */}
+      <div className="flex items-center gap-2">
+        {!isSourcesOpen && activeConversation ? (
           <Button
-            aria-label="Ẩn nguồn tham chiếu"
-            onClick={onCloseSources}
-            size="icon"
+            aria-label="Mở nguồn tham chiếu"
+            className="h-8 gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            onClick={onOpenSources}
+            size="sm"
             variant="ghost"
           >
-            <PanelRightClose aria-hidden="true" />
+            <Sparkles className="size-3.5 text-knowledge" />
+            <span>Nguồn tham chiếu</span>
+            <Badge className="ml-0.5 size-4 justify-center rounded-full bg-muted p-0 text-[10px] leading-none text-muted-foreground">
+              {CHAT_SOURCES.length}
+            </Badge>
           </Button>
-          <ThemeToggle />
-        </div>
-      ) : null}
+        ) : null}
+
+        <ThemeToggle />
+      </div>
     </header>
   )
 }

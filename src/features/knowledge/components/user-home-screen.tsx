@@ -75,10 +75,10 @@ export function UserHomePage() {
           </p>
 
           <form
-            className="mx-auto mt-6 flex w-full max-w-3xl items-center gap-2 rounded-2xl border bg-card p-2 shadow-[0_18px_55px_rgb(0_20_70_/_0.22)] dark:border-white/[0.06] dark:bg-card dark:shadow-[0_22px_65px_rgb(0_0_0_/_0.24)]"
+            className="mx-auto mt-6 flex w-full max-w-3xl items-center gap-2.5 rounded-full border border-white/20 bg-card px-3 py-2 shadow-[0_18px_55px_rgb(0_20_70_/_0.22)] dark:border-white/[0.06] dark:bg-card dark:shadow-[0_22px_65px_rgb(0_0_0_/_0.24)]"
             onSubmit={(event) => event.preventDefault()}
           >
-            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary">
+            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary">
               <MessageSquareText
                 aria-hidden="true"
                 className="size-5 text-primary"
@@ -86,12 +86,16 @@ export function UserHomePage() {
             </div>
             <Input
               aria-label="Hỏi UniSage"
-              className="h-12 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0 dark:bg-transparent"
+              className="h-11 border-0 bg-transparent! px-2 text-base shadow-none focus-visible:ring-0 dark:border-0 dark:bg-transparent! dark:text-white"
               placeholder="Đặt câu hỏi về học vụ..."
             />
-            <Button asChild className="size-11 shrink-0" size="icon">
+            <Button
+              asChild
+              className="size-10 shrink-0 rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90"
+              size="icon"
+            >
               <Link aria-label="Mở không gian trò chuyện" to={ROUTES.chat}>
-                <Send aria-hidden="true" />
+                <Send aria-hidden="true" className="size-4.5" />
               </Link>
             </Button>
           </form>

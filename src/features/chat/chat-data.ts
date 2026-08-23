@@ -1,41 +1,7 @@
-export type Conversation = {
-  date: string
-  id: string
-  pinned: boolean
-  title: string
-}
-
 export type ChatSource = {
   meta: string
   title: string
 }
-
-export const INITIAL_CONVERSATIONS: Conversation[] = [
-  {
-    date: "Hôm nay",
-    id: "graduation-requirements",
-    pinned: false,
-    title: "Điều kiện tốt nghiệp ngành Công nghệ thông tin",
-  },
-  {
-    date: "Hôm nay",
-    id: "course-retake",
-    pinned: false,
-    title: "Đăng ký học lại học phần",
-  },
-  {
-    date: "Hôm qua",
-    id: "student-health-insurance",
-    pinned: false,
-    title: "Bảo hiểm y tế sinh viên",
-  },
-  {
-    date: "22/07",
-    id: "tuition-extension",
-    pinned: false,
-    title: "Gia hạn đóng học phí",
-  },
-]
 
 export const CHAT_SOURCES: ChatSource[] = [
   {

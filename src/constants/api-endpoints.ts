@@ -23,6 +23,19 @@ export const API_ENDPOINTS = {
     logout: "/auth/logout",
     refresh: "/auth/refresh",
   },
+  conversations: {
+    conversation: (conversationId: string) =>
+      `/conversations/${conversationId}`,
+    conversationClaim: (conversationId: string) =>
+      `/conversations/${conversationId}/claim`,
+    conversations: "/conversations",
+  },
+  messages: {
+    message: (messageId: string) => `/messages/${messageId}`,
+    messages: "/messages",
+    messagesByConversation: (conversationId: string) =>
+      `/messages/conversation/${conversationId}`,
+  },
   rbac: {
     roles: "/rbac/roles",
     role: (roleId: string) => `/rbac/roles/${roleId}`,

@@ -1,241 +1,408 @@
 import {
-  Clock3,
-  History,
-  MessageSquarePlus,
+  Home,
+  LayoutDashboard,
+  LogOut,
   MoreHorizontal,
-  Pencil,
+  PanelLeftClose,
+  PanelLeftOpen,
   Pin,
-  PinOff,
   Search,
+  SquarePen,
   Trash2,
-  X,
+  UserRound,
 } from "lucide-react"
 import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 
+import { BrandMark } from "@/components/shared/brand/brand-mark"
+import { UserAvatar } from "@/components/shared/navigation/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import type { Conversation } from "@/features/chat/chat-data"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { ROUTES } from "@/constants/paths"
+import { useAuth } from "@/features/auth/hooks/use-auth"
+import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 import { cn } from "@/lib/utils"
 
 export type ConversationHistoryProps = {
   activeConversationId: string | null
   conversations: Conversation[]
+  onClose?: () => void
   onDeleteConversation: (id: string) => void
   onNewConversation: () => void
-  onRenameConversation: (id: string, title: string) => void
-  onSearchQueryChange: (value: string) => void
+  onOpenSearch: () => void
   onSelectConversation: (id: string) => void
-  onTogglePinConversation: (id: string) => void
-  searchLabel: string
-  searchQuery: string
+}
+
+type CollapsedHistoryRailProps = {
+  activeConversationId: string | null
+  onExpand: () => void
+  onNewConversation: () => void
+  onOpenSearch: () => void
+}
+
+export function CollapsedHistoryRail({
+  activeConversationId,
+  onExpand,
+  onNewConversation,
+  onOpenSearch,
+}: CollapsedHistoryRailProps) {
+  const { session } = useAuth()
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <div className="flex h-full min-h-0 flex-col items-center justify-between py-3">
+        {/* Top action icons (Exact ChatGPT collapsed rail with hover morph) */}
+        <div className="flex flex-col items-center gap-2">
+          {/* Logo morphs to PanelLeftOpen on hover with Tooltip */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                aria-label="Mở thanh bên"
+                className="group relative size-9 cursor-pointer rounded-xl text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                onClick={onExpand}
+                size="icon"
+                variant="ghost"
+              >
+                <BrandMark className="size-6 transition-transform duration-150 group-hover:hidden" />
+                <PanelLeftOpen
+                  aria-hidden="true"
+                  className="hidden size-5 text-foreground group-hover:block"
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className="rounded-full px-3.5 py-1.5 text-xs font-medium shadow-xl"
+              side="right"
+              sideOffset={8}
+            >
+              <span>Mở thanh bên</span>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* New Chat with Shortcut Badge (Active when on new chat page) */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                aria-label="Đoạn chat mới (Ctrl + Shift + O)"
+                className={cn(
+                  "size-9 cursor-pointer rounded-xl transition-colors",
+                  !activeConversationId
+                    ? "bg-neutral-200/80 text-foreground hover:bg-neutral-200/90 dark:bg-neutral-800/80 dark:text-white dark:hover:bg-neutral-800"
+                    : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                )}
+                onClick={onNewConversation}
+                size="icon"
+                variant="ghost"
+              >
+                <SquarePen aria-hidden="true" className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium shadow-xl"
+              side="right"
+              sideOffset={8}
+            >
+              <span>Đoạn chat mới</span>
+              <kbd className="rounded-full bg-background/20 px-2 py-0.5 text-[10px] font-semibold text-background/80">
+                Ctrl + Shift + O
+              </kbd>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Search opens ChatGPT-style Search Dialog with Shortcut Badge */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                aria-label="Tìm kiếm (Ctrl + K)"
+                className="size-9 cursor-pointer rounded-xl text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                onClick={onOpenSearch}
+                size="icon"
+                variant="ghost"
+              >
+                <Search aria-hidden="true" className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium shadow-xl"
+              side="right"
+              sideOffset={8}
+            >
+              <span>Tìm kiếm</span>
+              <kbd className="rounded-full bg-background/20 px-2 py-0.5 text-[10px] font-semibold text-background/80">
+                Ctrl + K
+              </kbd>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Bottom User Avatar with Tooltip */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              aria-label="Tài khoản người dùng"
+              className="size-9 cursor-pointer rounded-full p-0"
+              onClick={onExpand}
+              size="icon"
+              variant="ghost"
+            >
+              <UserAvatar
+                avatarUrl={session?.avatarUrl}
+                className="size-7"
+                fullName={session?.fullName}
+              />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            className="rounded-full px-3.5 py-1.5 text-xs font-medium shadow-xl"
+            side="right"
+            sideOffset={8}
+          >
+            <span>{session?.fullName ?? "Tài khoản"}</span>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
+  )
 }
 
 export function ConversationHistory({
   activeConversationId,
   conversations,
+  onClose,
   onDeleteConversation,
   onNewConversation,
-  onRenameConversation,
-  onSearchQueryChange,
+  onOpenSearch,
   onSelectConversation,
-  onTogglePinConversation,
-  searchLabel,
-  searchQuery,
 }: ConversationHistoryProps) {
-  const [editingConversationId, setEditingConversationId] = useState<
-    string | null
-  >(null)
-  const [draftTitle, setDraftTitle] = useState("")
-  const normalizedQuery = searchQuery.trim().toLocaleLowerCase("vi")
-  const filteredConversations = conversations
-    .filter((conversation) =>
-      conversation.title.toLocaleLowerCase("vi").includes(normalizedQuery)
-    )
-    .sort((left, right) => Number(right.pinned) - Number(left.pinned))
+  const { logout, session } = useAuth()
+  const navigate = useNavigate()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const cancelRenaming = () => {
-    setEditingConversationId(null)
-    setDraftTitle("")
-  }
-
-  const finishRenaming = () => {
-    if (!editingConversationId) return
-
-    const nextTitle = draftTitle.trim()
-    if (nextTitle) {
-      onRenameConversation(editingConversationId, nextTitle)
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await logout()
+      await navigate(ROUTES.signIn, { replace: true })
+    } finally {
+      setIsLoggingOut(false)
     }
-
-    cancelRenaming()
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="space-y-3 p-4">
-        <Button className="w-full justify-start" onClick={onNewConversation}>
-          <MessageSquarePlus aria-hidden="true" />
-          Cuộc trò chuyện mới
-        </Button>
-        <div className="relative">
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            aria-label={searchLabel}
-            className="h-9 bg-card pr-9 pl-9 dark:border-transparent dark:bg-muted"
-            onChange={(event) => onSearchQueryChange(event.target.value)}
-            placeholder="Tìm cuộc trò chuyện..."
-            value={searchQuery}
-          />
-          {searchQuery ? (
+    <div className="flex h-full min-h-0 flex-col bg-muted/40 dark:bg-muted/15">
+      {/* Top Header: Brand + Search dialog trigger + Close (Unified 10px container padding, 8px inner padding) */}
+      <div className="flex h-14 shrink-0 items-center justify-between px-2.5">
+        <Link
+          aria-label="Trang chủ UniSage"
+          className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-sm font-semibold tracking-tight transition-opacity hover:opacity-80"
+          to={ROUTES.home}
+        >
+          <BrandMark className="size-6 shrink-0" />
+          <span className="text-base font-bold tracking-tight text-foreground">
+            UniSage
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-0.5">
+          <Button
+            aria-label="Tìm kiếm cuộc trò chuyện (Ctrl+K)"
+            className="size-8 cursor-pointer rounded-lg text-muted-foreground hover:text-foreground"
+            onClick={onOpenSearch}
+            size="icon"
+            variant="ghost"
+          >
+            <Search aria-hidden="true" className="size-4" />
+          </Button>
+
+          {onClose ? (
             <Button
-              aria-label="Xóa nội dung tìm kiếm"
-              className="absolute top-1/2 right-1 size-7 -translate-y-1/2"
-              onClick={() => onSearchQueryChange("")}
-              size="icon-sm"
-              type="button"
+              aria-label="Thu gọn thanh bên"
+              className="size-8 cursor-pointer rounded-lg text-muted-foreground hover:text-foreground"
+              onClick={onClose}
+              size="icon"
               variant="ghost"
             >
-              <X aria-hidden="true" />
+              <PanelLeftClose aria-hidden="true" className="size-5" />
             </Button>
           ) : null}
         </div>
       </div>
-      <Separator />
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="w-full min-w-0 overflow-hidden px-3 py-4">
-          <div className="mb-3 flex items-center gap-2 px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            <History aria-hidden="true" className="size-3.5" />
+
+      {/* New chat button (Exact same 10px container, 8px inner padding) */}
+      <div className="shrink-0 px-2.5 py-1">
+        <Button
+          className={cn(
+            "h-10 w-full cursor-pointer justify-start gap-2.5 rounded-xl px-2 text-sm font-medium transition-colors",
+            !activeConversationId
+              ? "bg-neutral-200/80 font-medium text-foreground hover:bg-neutral-200/90 dark:bg-neutral-800/80 dark:text-white dark:hover:bg-neutral-800"
+              : "text-foreground/80 hover:bg-neutral-200/50 hover:text-foreground dark:text-neutral-300 dark:hover:bg-neutral-800/50 dark:hover:text-white"
+          )}
+          onClick={onNewConversation}
+          variant="ghost"
+        >
+          <SquarePen aria-hidden="true" className="size-5 shrink-0" />
+          <span>Đoạn chat mới</span>
+        </Button>
+      </div>
+
+      {/* Conversations list - only this section scrolls */}
+      <ScrollArea className="min-h-0 flex-1 overflow-hidden">
+        <div className="w-full min-w-0 px-2.5 py-2">
+          <div className="mb-2 px-2 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase dark:text-neutral-400">
             Gần đây
           </div>
-          {filteredConversations.length ? (
-            <div className="min-w-0 space-y-1">
-              {filteredConversations.map((conversation) => (
+          {conversations.length ? (
+            <div className="min-w-0 space-y-0.5">
+              {conversations.map((conversation) => (
                 <div
                   className={cn(
-                    "group flex w-full max-w-full min-w-0 items-center overflow-hidden rounded-lg transition-colors",
+                    "group flex w-full max-w-full min-w-0 items-center overflow-hidden rounded-xl transition-colors",
                     conversation.id === activeConversationId
-                      ? "bg-secondary text-primary dark:text-secondary-foreground"
-                      : "hover:bg-muted"
+                      ? "bg-neutral-200/80 font-medium text-foreground hover:bg-neutral-200/90 dark:bg-neutral-800/80 dark:text-white dark:hover:bg-neutral-800"
+                      : "text-foreground/80 hover:bg-neutral-200/50 hover:text-foreground dark:text-neutral-300 dark:hover:bg-neutral-800/50 dark:hover:text-white"
                   )}
                   key={conversation.id}
                 >
-                  {editingConversationId === conversation.id ? (
-                    <div className="min-w-0 flex-1 px-2 py-2">
-                      <Input
-                        aria-label={`Đổi tên ${conversation.title}`}
-                        autoFocus
-                        className="h-8 bg-card"
-                        onBlur={cancelRenaming}
-                        onChange={(event) => setDraftTitle(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault()
-                            finishRenaming()
-                          }
+                  <button
+                    className="min-w-0 flex-1 cursor-pointer overflow-hidden px-2 py-2 text-left"
+                    onClick={() => onSelectConversation(conversation.id)}
+                    type="button"
+                  >
+                    <span className="block truncate text-sm">
+                      {conversation.title}
+                    </span>
+                  </button>
 
-                          if (event.key === "Escape") {
-                            cancelRenaming()
-                          }
-                        }}
-                        value={draftTitle}
-                      />
-                    </div>
-                  ) : (
+                  {/* Actions (Pin & More options) only visible on hover/focus */}
+                  <div className="flex items-center gap-0.5 pr-1.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                     <button
-                      className="min-w-0 flex-1 overflow-hidden px-3 py-3 text-left"
-                      onClick={() => onSelectConversation(conversation.id)}
+                      aria-label={`Ghim ${conversation.title}`}
+                      className="cursor-pointer p-1 text-muted-foreground transition-colors hover:bg-transparent! hover:text-foreground dark:text-neutral-400 dark:hover:text-white"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                      }}
                       type="button"
                     >
-                      <span className="block truncate text-sm leading-5 font-medium">
-                        {conversation.title}
-                      </span>
-                      <span className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                        {conversation.pinned ? (
-                          <Pin aria-hidden="true" className="size-3" />
-                        ) : null}
-                        {conversation.date}
-                      </span>
+                      <Pin aria-hidden="true" className="size-3.5" />
                     </button>
-                  )}
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        aria-label={`Tùy chọn cho ${conversation.title}`}
-                        className="mr-1 opacity-100 transition-opacity md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"
-                        size="icon-sm"
-                        variant="ghost"
-                      >
-                        <MoreHorizontal aria-hidden="true" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setEditingConversationId(conversation.id)
-                          setDraftTitle(conversation.title)
-                        }}
-                      >
-                        <Pencil aria-hidden="true" />
-                        Đổi tên
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={() =>
-                          onTogglePinConversation(conversation.id)
-                        }
-                      >
-                        {conversation.pinned ? (
-                          <PinOff aria-hidden="true" />
-                        ) : (
-                          <Pin aria-hidden="true" />
-                        )}
-                        {conversation.pinned
-                          ? "Bỏ ghim"
-                          : "Ghim cuộc trò chuyện"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onSelect={() => onDeleteConversation(conversation.id)}
-                        variant="destructive"
-                      >
-                        <Trash2 aria-hidden="true" />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          aria-label={`Tùy chọn cho ${conversation.title}`}
+                          className="cursor-pointer p-1 text-muted-foreground transition-colors hover:bg-transparent! hover:text-foreground dark:text-neutral-400 dark:hover:text-white"
+                          type="button"
+                        >
+                          <MoreHorizontal
+                            aria-hidden="true"
+                            className="size-3.5"
+                          />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem
+                          onSelect={() => onDeleteConversation(conversation.id)}
+                          variant="destructive"
+                        >
+                          <Trash2 aria-hidden="true" />
+                          Xóa đoạn chat
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="mx-2 rounded-lg border border-dashed px-3 py-6 text-center">
+            <div className="mx-2 rounded-xl border border-dashed py-6 text-center">
               <Search
                 aria-hidden="true"
-                className="mx-auto mb-2 size-5 text-muted-foreground"
+                className="mx-auto mb-1.5 size-4 text-muted-foreground"
               />
-              <p className="text-sm font-medium">Không tìm thấy hội thoại</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Thử tìm bằng từ khóa khác.
+              <p className="text-xs font-medium text-muted-foreground">
+                Chưa có đoạn chat nào
               </p>
             </div>
           )}
         </div>
       </ScrollArea>
-      <div className="shrink-0 border-t p-4">
-        <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Clock3 aria-hidden="true" className="size-3.5" />
-          Lịch sử được lưu trong 90 ngày
-        </p>
+
+      {/* Bottom User Account Menu (Exact same 10px container, 8px inner padding) */}
+      <div className="shrink-0 border-t border-border/40 p-2.5">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-background/80 focus-visible:outline-2 focus-visible:outline-primary dark:hover:bg-muted/50"
+              type="button"
+            >
+              <UserAvatar
+                avatarUrl={session?.avatarUrl}
+                className="size-7 shrink-0"
+                fullName={session?.fullName}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground dark:text-neutral-100">
+                  {session?.fullName ?? "Người dùng"}
+                </p>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-60" side="top">
+            <DropdownMenuLabel className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {session?.fullName ?? "Người dùng"}
+              </p>
+              <p className="truncate text-xs font-normal text-muted-foreground">
+                {session?.email}
+              </p>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => navigate(ROUTES.profile)}>
+              <UserRound aria-hidden="true" />
+              Thông tin cá nhân
+            </DropdownMenuItem>
+
+            {session?.role === "SUPER_ADMIN" ? (
+              <DropdownMenuItem onSelect={() => navigate(ROUTES.admin)}>
+                <LayoutDashboard aria-hidden="true" />
+                Quay lại trang quản trị
+              </DropdownMenuItem>
+            ) : session?.role === "INGEST_ADMIN" ? (
+              <DropdownMenuItem onSelect={() => navigate(ROUTES.ingester)}>
+                <LayoutDashboard aria-hidden="true" />
+                Quay lại trang quản trị
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onSelect={() => navigate(ROUTES.home)}>
+                <Home aria-hidden="true" />
+                Trang chủ
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={isLoggingOut}
+              onSelect={() => void handleLogout()}
+              variant="destructive"
+            >
+              <LogOut aria-hidden="true" />
+              {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   )

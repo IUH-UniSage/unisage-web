@@ -1,21 +1,37 @@
 import { useState } from "react"
 
+import { useAuth } from "@/features/auth/hooks/use-auth"
 import {
-  INITIAL_CONVERSATIONS,
-  type Conversation,
-} from "@/features/chat/chat-data"
+  useCreateConversationMutation,
+  useDeleteConversationMutation,
+  useSendMessageMutation,
+} from "@/features/chat/queries/use-mutations"
+import {
+  useConversationsQuery,
+  useMessagesQuery,
+} from "@/features/chat/queries/use-queries"
+
+const CONVERSATION_TITLE_MAX_LENGTH = 80
 
 export function useChatWorkspace() {
+  const { session } = useAuth()
+  const userId = session?.userId ?? ""
+
   const [isHistoryOpen, setIsHistoryOpen] = useState(true)
   const [isSourcesOpen, setIsSourcesOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [conversations, setConversations] = useState<Conversation[]>(() => [
-    ...INITIAL_CONVERSATIONS,
-  ])
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null)
 
+  const conversationsQuery = useConversationsQuery(userId)
+  const messagesQuery = useMessagesQuery(activeConversationId ?? "")
+  const createConversationMutation = useCreateConversationMutation(userId)
+  const sendMessageMutation = useSendMessageMutation()
+  const deleteConversationMutation = useDeleteConversationMutation(userId)
+
+  const conversations = conversationsQuery.data ?? []
+  const messages = messagesQuery.data ?? []
   const activeConversation =
     conversations.find(
       (conversation) => conversation.id === activeConversationId
@@ -32,28 +48,27 @@ export function useChatWorkspace() {
     setIsSourcesOpen(true)
   }
 
-  const renameConversation = (id: string, title: string) => {
-    setConversations((current) =>
-      current.map((conversation) =>
-        conversation.id === id ? { ...conversation, title } : conversation
-      )
-    )
-  }
+  const sendMessage = async (content: string) => {
+    let conversationId = activeConversationId
 
-  const togglePinnedConversation = (id: string) => {
-    setConversations((current) =>
-      current.map((conversation) =>
-        conversation.id === id
-          ? { ...conversation, pinned: !conversation.pinned }
-          : conversation
-      )
-    )
+    if (!conversationId) {
+      const created = await createConversationMutation.mutateAsync({
+        title: content.slice(0, CONVERSATION_TITLE_MAX_LENGTH),
+      })
+      conversationId = created.id
+      setActiveConversationId(created.id)
+      setIsSourcesOpen(true)
+    }
+
+    await sendMessageMutation.mutateAsync({
+      content,
+      conversationId,
+      role: "USER",
+    })
   }
 
   const deleteConversation = (id: string) => {
-    setConversations((current) =>
-      current.filter((conversation) => conversation.id !== id)
-    )
+    deleteConversationMutation.mutate(id)
 
     if (activeConversationId === id) {
       setActiveConversationId(null)
@@ -67,8 +82,8 @@ export function useChatWorkspace() {
       : isHistoryOpen
         ? "xl:grid-cols-[280px_minmax(0,1fr)]"
         : isSourcesOpen
-          ? "xl:grid-cols-[minmax(0,1fr)_320px]"
-          : "xl:grid-cols-[minmax(0,1fr)]"
+          ? "xl:grid-cols-[64px_minmax(0,1fr)_320px]"
+          : "xl:grid-cols-[64px_minmax(0,1fr)]"
 
   return {
     activeConversation,
@@ -77,14 +92,16 @@ export function useChatWorkspace() {
     deleteConversation,
     desktopGridClass,
     isHistoryOpen,
+    isSendingMessage:
+      createConversationMutation.isPending || sendMessageMutation.isPending,
     isSourcesOpen,
-    renameConversation,
+    messages,
     searchQuery,
     selectConversation,
+    sendMessage,
     setIsHistoryOpen,
     setIsSourcesOpen,
     setSearchQuery,
     startNewConversation,
-    togglePinnedConversation,
   }
 }
