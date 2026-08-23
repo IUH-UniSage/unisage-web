@@ -129,15 +129,16 @@ export function DocumentList({
       },
       {
         cell: ({ row }) => (
-          <div>
-            <p className="font-semibold">{row.original.title}</p>
-            <p className="text-xs text-muted-foreground">
-              {row.original.fileType?.toUpperCase() || "—"}
-            </p>
-          </div>
+          <p className="font-semibold">{row.original.title}</p>
         ),
         header: "Tiêu đề",
         id: "title",
+      },
+      {
+        cell: ({ row }) => row.original.fileType?.toUpperCase() || "—",
+        header: "Loại tệp",
+        id: "fileType",
+        meta: { className: "text-sm" },
       },
       {
         cell: ({ row }) => row.original.categoryName || "—",
@@ -221,6 +222,7 @@ export function DocumentList({
                   </p>
                   <p className="font-semibold">{document.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
+                    {document.fileType?.toUpperCase() || "—"} ·{" "}
                     {document.categoryName || "—"} ·{" "}
                     {document.departmentName || "—"}
                   </p>
