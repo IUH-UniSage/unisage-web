@@ -35,8 +35,11 @@ function SheetOverlay({
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-black/10 duration-100 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 supports-backdrop-filter:backdrop-blur-xs",
-        className
+        "fixed inset-0 z-50 duration-100 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
+        // A custom className fully replaces the dimming/blur instead of
+        // merging with it — twMerge can't reliably resolve a conflict
+        // against the `supports-backdrop-filter:` arbitrary variant below.
+        className ?? "bg-black/10 supports-backdrop-filter:backdrop-blur-xs"
       )}
       {...props}
     />
@@ -46,16 +49,18 @@ function SheetOverlay({
 function SheetContent({
   className,
   children,
+  overlayClassName,
   side = "right",
   showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
+  overlayClassName?: string
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay />
+      <SheetOverlay className={overlayClassName} />
       <SheetPrimitive.Content
         data-slot="sheet-content"
         data-side={side}
