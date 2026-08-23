@@ -7,7 +7,6 @@ pnpm preview                               # Preview production build
 pnpm test           |  pnpm test:watch     # Vitest
 pnpm test:e2e                              # Playwright
 pnpm lint && pnpm format && pnpm typecheck # Run before push/commit
-pnpm storybook                             # Component workshop, port 6006
 ```
 
 Requirement: **pnpm** (pinned via `packageManager` in `package.json`) — no npm/yarn.

@@ -8,7 +8,7 @@ Frontend for UniSage, an academic knowledge and support platform.
 - React Router and TanStack Query
 - Tailwind CSS 4, shadcn/ui (`radix-vega`), and `next-themes`
 - React Hook Form and Zod
-- Vitest, Testing Library, Storybook, and Playwright-ready tooling
+- Vitest, Testing Library, and Playwright-ready tooling
 
 ## Getting started
 
@@ -29,8 +29,6 @@ npm run lint
 npm run test
 npm run test:e2e
 npm run build
-npm run storybook
-npm run storybook:build
 ```
 
 ## Foundation routes

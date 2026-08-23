@@ -58,7 +58,7 @@ Match implementation complexity to vision. Maximalist = elaborate code. Minimali
 
 **Before implementing:**
 
-1. Review component in your Storybook / component library for API and usage
+1. Review the component's existing usages in the codebase for its API and conventions
 2. Use Figma Dev Mode to get exact specs (spacing, tokens, properties)
 3. Implement using design system components + design tokens
 

@@ -34,7 +34,6 @@ turn). Skills live at `.claude/skills/<folder>/SKILL.md`:
 | `shadcn-ui`               | `shadcn-ui`                     | shadcn/ui component discovery, installation, and customization conventions.                                         |
 | `tanstack-query`          | `tanstack-query-best-practices` | Query key structure, cache policies, mutations, and server-state patterns.                                          |
 | `playwright`              | `playwright`                    | Automating a real browser from the terminal via `playwright-cli` (navigation, screenshots, form filling).           |
-| `storybook-setup`         | `storybook-setup`               | Setting up/extending Storybook: stories, controls, a11y checks, visual regression.                                  |
 | `frontend-design-review`  | `frontend-design-review`        | Design-quality review checklist for UI PRs and components (craft, accessibility, design-system compliance).         |
 
 The first three are repo-specific workflow rules (authored for UniSage). The rest were adopted
