@@ -85,6 +85,9 @@ Verification:
 Use `feat`, `fix`, `enhance`, `refactor`, `chore`, `docs`, `test`, `style`, or `revert` based on
 the staged diff.
 
+Do not add a `Co-Authored-By: Claude ...` trailer — the user asked not to have Claude attached to
+commits on this repo, overriding the harness's usual default.
+
 ## Atomic Workflow
 
 1. Inspect `git status --short --branch`.
