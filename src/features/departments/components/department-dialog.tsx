@@ -232,7 +232,8 @@ export function DepartmentDialog({
             {/* Department Name */}
             <div className="space-y-1.5">
               <Label htmlFor="dept-name" className="text-xs font-semibold">
-                Tên đơn vị <span className="text-destructive">*</span>
+                Tên đơn vị{" "}
+                <span className="translate-y-0.5 text-destructive">*</span>
               </Label>
               <Input
                 aria-invalid={Boolean(errors.name)}
@@ -252,7 +253,8 @@ export function DepartmentDialog({
             {requiresParent ? (
               <div className="space-y-1.5">
                 <Label htmlFor="dept-parent" className="text-xs font-semibold">
-                  Trực thuộc <span className="text-destructive">*</span>
+                  Trực thuộc{" "}
+                  <span className="translate-y-0.5 text-destructive">*</span>
                 </Label>
                 <Select
                   onValueChange={(val) =>

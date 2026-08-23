@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { UserCog } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -22,11 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  createUserRequestSchema,
-  updateUserRequestSchema,
   type AppUser,
   type CreateUserRequest,
   type UpdateUserRequest,
+  type UserFormValues,
+  userFormSchema,
 } from "@/features/users/schemas/user-schemas"
 import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
@@ -56,8 +55,11 @@ export function UserDialog({
     setError,
     setValue,
     watch,
-  } = useForm<CreateUserRequest>({
+  } = useForm<UserFormValues>({
     defaultValues: {
+      accessLevelId: user?.accessLevelId ?? undefined,
+      code: user?.code ?? undefined,
+      departmentAccesses: [],
       email: user?.email ?? "",
       firstName: user?.firstName ?? "",
       gender: user?.gender ?? undefined,
@@ -65,34 +67,52 @@ export function UserDialog({
       password: "",
       phone: user?.phone ?? "",
       roleId: user?.roleId ?? undefined,
-      accessLevelId: user?.accessLevelId ?? undefined,
-      code: user?.code ?? undefined,
-      departmentAccesses: [],
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(
-      isEdit ? updateUserRequestSchema : createUserRequestSchema
-    ) as any,
+    resolver: zodResolver(userFormSchema),
   })
   const isBusy = isSaving || isSubmitting
 
-  const submit = async (values: CreateUserRequest) => {
+  const submit = async (values: UserFormValues) => {
     try {
       if (isEdit) {
         const updatePayload: UpdateUserRequest = {
-          email: values.email,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          phone: values.phone,
-          gender: values.gender,
-          roleId: values.roleId,
           accessLevelId: values.accessLevelId,
           code: values.code,
-          departmentAccesses: values.departmentAccesses,
+          departmentAccesses: values.departmentAccesses ?? [],
+          email: values.email,
+          firstName: values.firstName,
+          gender: values.gender,
+          lastName: values.lastName,
+          phone: values.phone,
+          roleId: values.roleId ?? undefined,
         }
         await onSubmit(updatePayload)
       } else {
-        await onSubmit(values)
+        if (!values.password || values.password.length < 8) {
+          setError("password", {
+            message: "Mật khẩu phải có ít nhất 8 ký tự.",
+          })
+          return
+        }
+        if (!values.roleId) {
+          setError("roleId", {
+            message: "Vui lòng chọn một vai trò.",
+          })
+          return
+        }
+        const createPayload: CreateUserRequest = {
+          accessLevelId: values.accessLevelId,
+          code: values.code,
+          departmentAccesses: values.departmentAccesses ?? [],
+          email: values.email,
+          firstName: values.firstName,
+          gender: values.gender,
+          lastName: values.lastName,
+          password: values.password,
+          phone: values.phone,
+          roleId: values.roleId,
+        }
+        await onSubmit(createPayload)
       }
     } catch (error) {
       if (!applyFieldErrors(error, setError)) {
@@ -120,7 +140,9 @@ export function UserDialog({
           {/* Name row */}
           <div className="grid grid-cols-2 gap-4 rounded-xl border p-3">
             <div className="space-y-2">
-              <Label htmlFor="user-lastname">Họ</Label>
+              <Label htmlFor="user-lastname">
+                Họ <span className="translate-y-0.5 text-destructive">*</span>
+              </Label>
               <Input
                 aria-invalid={Boolean(errors.lastName)}
                 autoFocus
@@ -136,7 +158,9 @@ export function UserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="user-firstname">Tên</Label>
+              <Label htmlFor="user-firstname">
+                Tên <span className="translate-y-0.5 text-destructive">*</span>
+              </Label>
               <Input
                 aria-invalid={Boolean(errors.firstName)}
                 id="user-firstname"
@@ -153,7 +177,10 @@ export function UserDialog({
 
           <div className="space-y-4 rounded-xl border p-3">
             <div className="space-y-2">
-              <Label htmlFor="user-email">Email</Label>
+              <Label htmlFor="user-email">
+                Email{" "}
+                <span className="translate-y-0.5 text-destructive">*</span>
+              </Label>
               <Input
                 aria-invalid={Boolean(errors.email)}
                 id="user-email"
@@ -170,7 +197,10 @@ export function UserDialog({
 
             {!isEdit ? (
               <div className="space-y-2">
-                <Label htmlFor="user-password">Mật khẩu</Label>
+                <Label htmlFor="user-password">
+                  Mật khẩu{" "}
+                  <span className="translate-y-0.5 text-destructive">*</span>
+                </Label>
                 <Input
                   aria-invalid={Boolean(errors.password)}
                   id="user-password"
@@ -196,14 +226,21 @@ export function UserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="user-code">Mã nhân viên</Label>
-              <Input id="user-code" placeholder="NV001" {...register("code")} />
+              <Label htmlFor="user-code">Mã GV/SV</Label>
+              <Input
+                id="user-code"
+                placeholder="Ví dụ: 20012345, GV001..."
+                {...register("code")}
+              />
             </div>
           </div>
 
           {/* Role */}
           <div className="space-y-2 rounded-xl border p-3">
-            <Label htmlFor="user-role">Vai trò</Label>
+            <Label htmlFor="user-role">
+              Vai trò{" "}
+              <span className="translate-y-0.5 text-destructive">*</span>
+            </Label>
             <Select
               onValueChange={(value) =>
                 setValue("roleId", value, { shouldDirty: true })
@@ -246,7 +283,6 @@ export function UserDialog({
               </Button>
             </DialogClose>
             <Button disabled={isBusy} type="submit">
-              <UserCog aria-hidden="true" />
               {isBusy
                 ? "Đang lưu..."
                 : user
