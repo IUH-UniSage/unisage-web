@@ -80,13 +80,6 @@ export function CategoryList({
         id: "description",
       },
       {
-        cell: ({ row }) => (
-          <EntityStatusBadge isActive={row.original.isActive} />
-        ),
-        header: "Trạng thái",
-        id: "status",
-      },
-      {
         cell: ({ row }) => row.original.createdBy || "System",
         header: "Người tạo",
         id: "createdBy",
@@ -97,6 +90,13 @@ export function CategoryList({
         header: "Ngày tạo",
         id: "createdAt",
         meta: { className: "text-sm" },
+      },
+      {
+        cell: ({ row }) => (
+          <EntityStatusBadge isActive={row.original.isActive} />
+        ),
+        header: "Trạng thái",
+        id: "status",
       },
       {
         cell: ({ row }) => (

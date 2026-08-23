@@ -161,6 +161,12 @@ export function DocumentList({
         meta: { className: "text-sm" },
       },
       {
+        cell: ({ row }) => formatAuditDate(row.original.createdAt),
+        header: "Ngày tạo",
+        id: "createdAt",
+        meta: { className: "text-sm" },
+      },
+      {
         cell: ({ row }) => (
           <Badge
             className={cn(
@@ -174,12 +180,6 @@ export function DocumentList({
         ),
         header: "Trạng thái",
         id: "status",
-      },
-      {
-        cell: ({ row }) => formatAuditDate(row.original.createdAt),
-        header: "Ngày tạo",
-        id: "createdAt",
-        meta: { className: "text-sm" },
       },
       {
         cell: ({ row }) => (
