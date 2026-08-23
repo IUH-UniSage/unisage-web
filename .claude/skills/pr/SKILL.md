@@ -53,6 +53,8 @@ characters when practical.
   `Impact`.
 - Include a compact Mermaid diagram for architecture, request flow, or three or more connected
   components. Omit `Flow` for isolated style, docs, or config changes.
+- For a UI change, attach the before/after (desktop + 375px mobile) screenshots captured per
+  `ui-rules.md` in `Screenshots`; omit that section entirely for non-UI changes.
 - Write exact commands and results in `Test`.
 - Write `None` in `Note` when there are no dependencies, limitations, or migration steps.
 - For stacked PRs, identify the dependency and the base-change sequence in `Note`.

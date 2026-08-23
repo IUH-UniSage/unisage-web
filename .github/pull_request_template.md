@@ -36,6 +36,13 @@ List affected UI areas, routes, endpoints, storage, services, or developer workf
 
 ---
 
+#### Screenshots
+
+Attach before/after screenshots for any UI change (desktop and 375px mobile per `ui-rules.md`).
+Remove this section for non-UI changes.
+
+---
+
 #### Test
 
 List exact commands and results. Do not claim checks that did not run.
