@@ -116,6 +116,11 @@ const DocumentPage = lazy(async () => {
   return { default: DocumentPage }
 })
 
+const ChatModelPage = lazy(async () => {
+  const { ChatModelPage } = await import("@/pages/system-admin/chat-model-page")
+  return { default: ChatModelPage }
+})
+
 // Array order = nav display order, per workspace, in the order each
 // workspace's filtered view encounters entries - see getWorkspaceFeatures().
 // Placing an entry earlier moves it earlier in every workspace it belongs
@@ -206,7 +211,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     workspaces: ["system-admin"],
   },
   {
-    element: <WorkspacePlaceholderPage title="Cấu hình AI" />,
+    element: <ChatModelPage />,
     icon: Bot,
     key: "admin-models",
     label: "Cấu hình AI",
