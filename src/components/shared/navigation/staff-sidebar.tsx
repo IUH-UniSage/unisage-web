@@ -3,6 +3,7 @@ import {
   Activity,
   BookOpen,
   Bot,
+  Building,
   CircleHelp,
   FileText,
   Gauge,
@@ -76,6 +77,12 @@ const navigation: Record<StaffWorkspace, NavigationItem[]> = {
       label: "Quản lý người dùng",
       requiredPermissions: PERMISSION_POLICIES.adminUsers,
       to: ROUTES.adminUsers,
+    },
+    {
+      icon: Building,
+      label: "Phòng ban",
+      requiredPermissions: PERMISSION_POLICIES.adminDepartments,
+      to: ROUTES.adminDepartments,
     },
     {
       icon: ShieldPlus,
