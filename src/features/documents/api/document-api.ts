@@ -48,6 +48,14 @@ export const documentApi = {
     readApiResponse(response.data, z.null())
   },
 
+  async getDocument(documentId: string): Promise<Document> {
+    const response = await httpClient.get<ApiResponse<Document>>(
+      API_ENDPOINTS.documents.document(documentId)
+    )
+
+    return readSuccessData(response.data, documentSchema)
+  },
+
   async getDocuments(page: number, limit: number): Promise<DocumentPage> {
     const response = await httpClient.get<ApiResponse<DocumentPage>>(
       API_ENDPOINTS.documents.documents,

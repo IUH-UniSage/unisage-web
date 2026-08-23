@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FileUp, UploadCloud } from "lucide-react"
+import { UploadCloud, X } from "lucide-react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -21,12 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
 import { useAccessLevelsQuery } from "@/features/access-level/queries/use-queries"
 import { useCategoriesQuery } from "@/features/categories/queries/use-queries"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 import { flattenDepartmentTreeWithDepth } from "@/features/departments/utils/tree"
 import {
+  ALLOWED_DOCUMENT_FILE_EXTENSIONS,
   documentFormSchema,
   type Document,
   type DocumentFormValues,
@@ -75,6 +78,9 @@ export function DocumentDialog({
     },
     resolver: zodResolver(documentFormSchema),
   })
+  const [sourceMode, setSourceMode] = useState<"upload" | "url">(
+    document?.sourceUrl ? "url" : "upload"
+  )
   const isBusy = isSaving || isSubmitting
   const selectedFile = watch("file")
   const categoryId = watch("categoryId")
@@ -125,66 +131,130 @@ export function DocumentDialog({
           </div>
 
           <div className="space-y-3 rounded-xl border p-3">
-            <Label htmlFor="document-file">Tệp tài liệu</Label>
-            <label
-              className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed p-4 text-center hover:bg-muted/40"
-              htmlFor="document-file"
+            <Label>
+              Nguồn tài liệu{" "}
+              <span className="translate-y-0.5 text-destructive">*</span>
+            </Label>
+
+            <Tabs
+              onValueChange={(value) => {
+                setSourceMode(value as "upload" | "url")
+                if (value === "upload") {
+                  setValue("sourceUrl", "")
+                } else {
+                  setValue("file", null, { shouldValidate: true })
+                }
+              }}
+              value={sourceMode}
             >
-              <UploadCloud
-                aria-hidden="true"
-                className="size-5 text-muted-foreground"
-              />
-              <span className="text-sm">
-                {selectedFile ? selectedFile.name : "Chọn tệp để tải lên"}
-              </span>
-              <input
-                accept="*/*"
-                className="sr-only"
-                id="document-file"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null
-                  setValue("file", file, { shouldValidate: true })
-                  if (file && !watch("fileType")) {
-                    const extension = file.name.split(".").pop()
-                    if (extension) setValue("fileType", extension.toUpperCase())
-                  }
-                }}
-                type="file"
-              />
-            </label>
+              <TabsList className="w-full">
+                <TabsTrigger className="flex-1" value="upload">
+                  Tải tệp lên
+                </TabsTrigger>
+                <TabsTrigger className="flex-1" value="url">
+                  Dán đường dẫn
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="document-source-url">Hoặc đường dẫn nguồn</Label>
-              <Input
-                aria-invalid={Boolean(errors.sourceUrl)}
-                id="document-source-url"
-                placeholder="https://..."
-                {...register("sourceUrl")}
-              />
-            </div>
-            {errors.sourceUrl ? (
-              <p className="text-xs text-destructive">
-                {errors.sourceUrl.message}
-              </p>
+              <TabsContent className="mt-3" value="upload">
+                {selectedFile ? (
+                  <div className="flex items-center justify-between gap-2 rounded-lg border p-3">
+                    <span className="truncate text-sm">
+                      {selectedFile.name}
+                    </span>
+                    <Button
+                      aria-label="Bỏ chọn tệp"
+                      onClick={() =>
+                        setValue("file", null, { shouldValidate: true })
+                      }
+                      size="icon-sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <X aria-hidden="true" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label
+                    className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed p-4 text-center hover:bg-muted/40"
+                    htmlFor="document-file"
+                  >
+                    <UploadCloud
+                      aria-hidden="true"
+                      className="size-5 text-muted-foreground"
+                    />
+                    <span className="text-sm">Chọn tệp để tải lên</span>
+                    <span className="text-xs text-muted-foreground">
+                      Chỉ chấp nhận:{" "}
+                      {ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(", ")}
+                    </span>
+                    <input
+                      accept={ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(",")}
+                      className="sr-only"
+                      id="document-file"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] ?? null
+                        setValue("file", file, { shouldValidate: true })
+                        if (!file) return
+
+                        const lastDot = file.name.lastIndexOf(".")
+                        const nameWithoutExtension =
+                          lastDot > 0 ? file.name.slice(0, lastDot) : file.name
+                        const extension =
+                          lastDot > 0 ? file.name.slice(lastDot + 1) : ""
+
+                        if (extension) {
+                          setValue("fileType", extension.toUpperCase())
+                        }
+                        if (!watch("title")) {
+                          setValue("title", nameWithoutExtension)
+                        }
+                      }}
+                      type="file"
+                    />
+                  </label>
+                )}
+                {errors.file ? (
+                  <p className="mt-2 text-xs text-destructive">
+                    {errors.file.message}
+                  </p>
+                ) : null}
+              </TabsContent>
+
+              <TabsContent className="mt-3" value="url">
+                <Input
+                  aria-invalid={Boolean(errors.sourceUrl)}
+                  id="document-source-url"
+                  placeholder="https://..."
+                  {...register("sourceUrl")}
+                />
+                {errors.sourceUrl ? (
+                  <p className="mt-2 text-xs text-destructive">
+                    {errors.sourceUrl.message}
+                  </p>
+                ) : null}
+              </TabsContent>
+            </Tabs>
+
+            {sourceMode === "url" ? (
+              <div className="space-y-2">
+                <Label htmlFor="document-file-type">
+                  Loại tệp{" "}
+                  <span className="translate-y-0.5 text-destructive">*</span>
+                </Label>
+                <Input
+                  aria-invalid={Boolean(errors.fileType)}
+                  id="document-file-type"
+                  placeholder="PDF, DOCX..."
+                  {...register("fileType")}
+                />
+                {errors.fileType ? (
+                  <p className="text-xs text-destructive">
+                    {errors.fileType.message}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
-
-            <div className="space-y-2">
-              <Label htmlFor="document-file-type">
-                Loại tệp{" "}
-                <span className="translate-y-0.5 text-destructive">*</span>
-              </Label>
-              <Input
-                aria-invalid={Boolean(errors.fileType)}
-                id="document-file-type"
-                placeholder="PDF, DOCX..."
-                {...register("fileType")}
-              />
-              {errors.fileType ? (
-                <p className="text-xs text-destructive">
-                  {errors.fileType.message}
-                </p>
-              ) : null}
-            </div>
           </div>
 
           <div className="space-y-3 rounded-xl border p-3">
@@ -285,7 +355,6 @@ export function DocumentDialog({
               </Button>
             </DialogClose>
             <Button disabled={isBusy} type="submit">
-              <FileUp aria-hidden="true" />
               {isBusy
                 ? "Đang lưu..."
                 : document

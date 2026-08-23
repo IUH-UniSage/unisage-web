@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { DocumentDetailDialog } from "@/features/documents/components/document-detail-dialog"
 import { DocumentDialog } from "@/features/documents/components/document-dialog"
 import { DocumentList } from "@/features/documents/components/document-list"
 import { useDocumentDashboard } from "@/features/documents/hooks/use-document-dashboard"
@@ -46,9 +47,22 @@ export function DocumentDashboard() {
         onEdit={dashboard.openEdit}
         onPageChange={dashboard.setPage}
         onRequestDelete={dashboard.requestDelete}
+        onViewDetail={dashboard.openDocumentDetail}
         totalItems={dashboard.totalItems}
         totalPages={dashboard.totalPages}
       />
+
+      {dashboard.viewingDocumentId ? (
+        <DocumentDetailDialog
+          canUpdate={dashboard.canUpdate}
+          documentId={dashboard.viewingDocumentId}
+          onEdit={dashboard.openEdit}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeDocumentDetail()
+          }}
+          open
+        />
+      ) : null}
 
       {dashboard.isDialogOpen ? (
         <DocumentDialog

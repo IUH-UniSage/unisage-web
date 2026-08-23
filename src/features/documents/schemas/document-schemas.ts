@@ -1,5 +1,21 @@
 import { z } from "zod"
 
+// Mirrors com.unisage.backend.entity.enums.AllowedFileType — keep in sync with
+// the backend whitelist (enforced in FileServiceImpl.upload()) when it changes.
+export const ALLOWED_DOCUMENT_FILE_EXTENSIONS = [
+  ".txt",
+  ".pdf",
+  ".docx",
+  ".doc",
+]
+
+function hasAllowedExtension(filename: string): boolean {
+  const lower = filename.toLowerCase()
+  return ALLOWED_DOCUMENT_FILE_EXTENSIONS.some((extension) =>
+    lower.endsWith(extension)
+  )
+}
+
 export const docStatusSchema = z.enum([
   "PENDING",
   "PROCESSING",
@@ -63,9 +79,22 @@ export const documentFormSchema = z
       .min(1, "Tiêu đề không được để trống.")
       .max(255, "Tiêu đề không được vượt quá 255 ký tự."),
   })
-  .refine((values) => Boolean(values.file) || Boolean(values.sourceUrl), {
-    message: "Cần tải tệp lên hoặc nhập đường dẫn nguồn.",
-    path: ["sourceUrl"],
+  .superRefine((values, ctx) => {
+    if (!values.file && !values.sourceUrl) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Cần tải tệp lên hoặc nhập đường dẫn nguồn.",
+        path: ["sourceUrl"],
+      })
+    }
+
+    if (values.file && !hasAllowedExtension(values.file.name)) {
+      ctx.addIssue({
+        code: "custom",
+        message: `Định dạng file không được hỗ trợ. Chỉ chấp nhận: ${ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(", ")}.`,
+        path: ["file"],
+      })
+    }
   })
 
 export type Document = z.infer<typeof documentSchema>

@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FolderPlus } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -143,7 +142,6 @@ export function CategoryDialog({
               </Button>
             </DialogClose>
             <Button disabled={isBusy} type="submit">
-              <FolderPlus aria-hidden="true" />
               {isBusy
                 ? "Đang lưu..."
                 : category

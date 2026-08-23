@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { Download, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useMemo } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +28,7 @@ type DocumentActionsProps = {
   document: Document
   onEdit: (document: Document) => void
   onRequestDelete: (document: Document) => void
+  onViewDetail: (document: Document) => void
 }
 
 function DocumentActions({
@@ -36,8 +37,9 @@ function DocumentActions({
   document,
   onEdit,
   onRequestDelete,
+  onViewDetail,
 }: DocumentActionsProps) {
-  if (!canUpdate && !canDelete) return null
+  const canDownload = Boolean(document.fileUrl)
 
   return (
     <DropdownMenu>
@@ -51,6 +53,22 @@ function DocumentActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => onViewDetail(document)}>
+          <Eye aria-hidden="true" />
+          Xem chi tiết
+        </DropdownMenuItem>
+        {canDownload ? (
+          <DropdownMenuItem asChild>
+            <a
+              href={document.fileUrl ?? undefined}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <Download aria-hidden="true" />
+              Tải xuống
+            </a>
+          </DropdownMenuItem>
+        ) : null}
         {canUpdate ? (
           <DropdownMenuItem onSelect={() => onEdit(document)}>
             <Pencil aria-hidden="true" />
@@ -79,6 +97,7 @@ type DocumentListProps = {
   onEdit: (document: Document) => void
   onPageChange: (page: number) => void
   onRequestDelete: (document: Document) => void
+  onViewDetail: (document: Document) => void
   totalItems: number
   totalPages: number
 }
@@ -91,6 +110,7 @@ export function DocumentList({
   onEdit,
   onPageChange,
   onRequestDelete,
+  onViewDetail,
   totalItems,
   totalPages,
 }: DocumentListProps) {
@@ -160,6 +180,7 @@ export function DocumentList({
             document={row.original}
             onEdit={onEdit}
             onRequestDelete={onRequestDelete}
+            onViewDetail={onViewDetail}
           />
         ),
         header: "Hành động",
@@ -167,7 +188,14 @@ export function DocumentList({
         meta: { className: "text-right", headerClassName: "text-right" },
       },
     ],
-    [canDelete, canUpdate, firstRowNumber, onEdit, onRequestDelete]
+    [
+      canDelete,
+      canUpdate,
+      firstRowNumber,
+      onEdit,
+      onRequestDelete,
+      onViewDetail,
+    ]
   )
 
   return (
@@ -203,6 +231,7 @@ export function DocumentList({
                   document={document}
                   onEdit={onEdit}
                   onRequestDelete={onRequestDelete}
+                  onViewDetail={onViewDetail}
                 />
               </div>
               <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3">

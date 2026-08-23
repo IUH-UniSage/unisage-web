@@ -26,22 +26,30 @@ export function useDocumentDashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingDocument, setEditingDocument] = useState<Document>()
   const [deletingDocument, setDeletingDocument] = useState<Document>()
+  const [viewingDocumentId, setViewingDocumentId] = useState<string>()
 
   const documents = documentsQuery.data?.data ?? []
   const totalItems = documentsQuery.data?.totalItems ?? 0
   const totalPages = Math.max(1, documentsQuery.data?.totalPages ?? 1)
 
   const openCreate = () => {
+    setViewingDocumentId(undefined)
     setEditingDocument(undefined)
     setIsDialogOpen(true)
   }
 
   const openEdit = (document: Document) => {
+    setViewingDocumentId(undefined)
     setEditingDocument(document)
     setIsDialogOpen(true)
   }
 
   const closeDialog = () => setIsDialogOpen(false)
+
+  const openDocumentDetail = (document: Document) =>
+    setViewingDocumentId(document.id)
+
+  const closeDocumentDetail = () => setViewingDocumentId(undefined)
 
   const save = async (input: DocumentFormValues) => {
     if (editingDocument) {
@@ -77,6 +85,7 @@ export function useDocumentDashboard() {
     canUpdate: can(PERMISSIONS.documentUpdate),
     closeDeleteDialog,
     closeDialog,
+    closeDocumentDetail,
     confirmDelete,
     deletingDocument,
     documents,
@@ -86,6 +95,7 @@ export function useDocumentDashboard() {
     isPending: documentsQuery.isPending,
     isSaving: createDocument.isPending || updateDocument.isPending,
     openCreate,
+    openDocumentDetail,
     openEdit,
     page,
     requestDelete,
@@ -93,5 +103,6 @@ export function useDocumentDashboard() {
     setPage,
     totalItems,
     totalPages,
+    viewingDocumentId,
   }
 }
