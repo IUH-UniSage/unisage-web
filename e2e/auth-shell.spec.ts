@@ -6,7 +6,7 @@ test("logs out and clears the cached profile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile-chromium")
 
   await authenticateAs(page)
-  await page.route("**/api/v1/auth/logout", async (route) => {
+  await page.route("**/api/v1/master/auth/logout", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       json: {
