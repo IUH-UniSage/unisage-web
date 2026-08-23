@@ -8,14 +8,12 @@ const auditFieldsSchema = z.object({
 })
 
 export const accessPermissionSchema = auditFieldsSchema.extend({
-  accessLevel: z.number().int().nullable(),
   id: z.uuid(),
   isActive: z.boolean(),
   name: z.string().trim().min(1),
 })
 
 export const rolePermissionSchema = z.object({
-  accessLevel: z.number().int().nullable(),
   id: z.uuid(),
   name: z.string().trim().min(1),
 })
@@ -61,7 +59,6 @@ export const createRoleRequestSchema = roleRequestSchema
 export const updateRoleRequestSchema = roleRequestSchema
 
 export const permissionRequestSchema = z.object({
-  accessLevel: z.number().int().nullable(),
   isActive: z.boolean(),
   name: z
     .string()

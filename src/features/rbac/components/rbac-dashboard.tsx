@@ -99,7 +99,6 @@ export function RbacDashboard() {
                 currentPage={dashboard.permissionPage}
                 isBulkUpdating={dashboard.isBulkUpdatingPermissions}
                 isFiltered={dashboard.isPermissionFiltersApplied}
-                level={dashboard.permissionLevel}
                 onApplyFilters={dashboard.applyPermissionFilters}
                 onBulkClear={dashboard.clearPermissionSelection}
                 onBulkDeactivate={() =>
@@ -110,7 +109,6 @@ export function RbacDashboard() {
                 }
                 onDetail={dashboard.openPermissionDetail}
                 onEditPermission={dashboard.openEditPermission}
-                onLevelChange={dashboard.setPermissionLevel}
                 onPageChange={dashboard.setPermissionPage}
                 onResetFilters={dashboard.resetPermissionFilters}
                 onSearchChange={dashboard.setPermissionSearch}

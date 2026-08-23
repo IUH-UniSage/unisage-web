@@ -61,19 +61,6 @@ export function PermissionDetailDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <div className="rounded-lg border bg-muted/30 p-3.5">
-            <p className="text-xs font-semibold text-muted-foreground">
-              Cấp độ truy cập
-            </p>
-            <p className="mt-1.5">
-              {permission.accessLevel === null ? (
-                <Badge variant="outline">Không giới hạn</Badge>
-              ) : (
-                <Badge variant="secondary">Cấp {permission.accessLevel}</Badge>
-              )}
-            </p>
-          </div>
-
           <div className="grid grid-cols-2 gap-3 border-t pt-3 text-xs text-muted-foreground">
             <div>
               <span className="block text-[11px]">Người tạo</span>

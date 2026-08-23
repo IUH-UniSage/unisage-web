@@ -7,7 +7,6 @@ import {
 } from "@/features/rbac/schemas/rbac-schemas"
 
 const permission = {
-  accessLevel: null,
   createdAt: "2026-07-28T08:00:00",
   createdBy: "system",
   id: "b76398bd-c8ac-4fa8-803e-0a91e207347c",
@@ -31,7 +30,6 @@ describe("rbac schemas", () => {
           name: "SUPER_ADMIN",
           permissions: [
             {
-              accessLevel: permission.accessLevel,
               id: permission.id,
               name: permission.name,
             },

@@ -80,11 +80,7 @@ export function groupPermissions(
 
   return [...groups.entries()]
     .map(([resource, items]) => ({
-      items: items.sort((left, right) => {
-        const levelDifference =
-          (left.accessLevel ?? 0) - (right.accessLevel ?? 0)
-        return left.name.localeCompare(right.name) || levelDifference
-      }),
+      items: items.sort((left, right) => left.name.localeCompare(right.name)),
       resource,
     }))
     .sort((left, right) =>

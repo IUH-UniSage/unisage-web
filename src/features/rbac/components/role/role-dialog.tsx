@@ -316,11 +316,6 @@ export function RoleDialog({
                                 {permission.name}
                               </span>
                             </span>
-                            {permission.accessLevel !== null ? (
-                              <Badge variant="secondary">
-                                {permission.accessLevel}
-                              </Badge>
-                            ) : null}
                           </label>
                         )
                       })}
