@@ -3,40 +3,74 @@ import {
   History,
   MessageSquarePlus,
   MoreHorizontal,
-  Pencil,
-  Pin,
-  PinOff,
   Search,
   Trash2,
   X,
 } from "lucide-react"
-import { useState } from "react"
 
+import { BrandMark } from "@/components/shared/brand/brand-mark"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import type { Conversation } from "@/features/chat/chat-data"
+import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 import { cn } from "@/lib/utils"
+import { formatRelativeTime } from "@/utils/date"
 
 export type ConversationHistoryProps = {
   activeConversationId: string | null
   conversations: Conversation[]
   onDeleteConversation: (id: string) => void
   onNewConversation: () => void
-  onRenameConversation: (id: string, title: string) => void
   onSearchQueryChange: (value: string) => void
   onSelectConversation: (id: string) => void
-  onTogglePinConversation: (id: string) => void
   searchLabel: string
   searchQuery: string
+}
+
+type CollapsedHistoryRailProps = {
+  onExpand: () => void
+  onNewConversation: () => void
+}
+
+export function CollapsedHistoryRail({
+  onExpand,
+  onNewConversation,
+}: CollapsedHistoryRailProps) {
+  return (
+    <div className="flex h-full min-h-0 flex-col items-center gap-1 py-3">
+      <Button
+        aria-label="Mở lịch sử trò chuyện"
+        onClick={onExpand}
+        size="icon"
+        variant="ghost"
+      >
+        <BrandMark className="size-6" />
+      </Button>
+      <Button
+        aria-label="Cuộc trò chuyện mới"
+        onClick={onNewConversation}
+        size="icon"
+        variant="ghost"
+      >
+        <MessageSquarePlus aria-hidden="true" />
+      </Button>
+      <Button
+        aria-label="Tìm cuộc trò chuyện"
+        onClick={onExpand}
+        size="icon"
+        variant="ghost"
+      >
+        <Search aria-hidden="true" />
+      </Button>
+    </div>
+  )
 }
 
 export function ConversationHistory({
@@ -44,44 +78,23 @@ export function ConversationHistory({
   conversations,
   onDeleteConversation,
   onNewConversation,
-  onRenameConversation,
   onSearchQueryChange,
   onSelectConversation,
-  onTogglePinConversation,
   searchLabel,
   searchQuery,
 }: ConversationHistoryProps) {
-  const [editingConversationId, setEditingConversationId] = useState<
-    string | null
-  >(null)
-  const [draftTitle, setDraftTitle] = useState("")
   const normalizedQuery = searchQuery.trim().toLocaleLowerCase("vi")
-  const filteredConversations = conversations
-    .filter((conversation) =>
-      conversation.title.toLocaleLowerCase("vi").includes(normalizedQuery)
-    )
-    .sort((left, right) => Number(right.pinned) - Number(left.pinned))
-
-  const cancelRenaming = () => {
-    setEditingConversationId(null)
-    setDraftTitle("")
-  }
-
-  const finishRenaming = () => {
-    if (!editingConversationId) return
-
-    const nextTitle = draftTitle.trim()
-    if (nextTitle) {
-      onRenameConversation(editingConversationId, nextTitle)
-    }
-
-    cancelRenaming()
-  }
+  const filteredConversations = conversations.filter((conversation) =>
+    conversation.title.toLocaleLowerCase("vi").includes(normalizedQuery)
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="space-y-3 p-4">
-        <Button className="w-full justify-start" onClick={onNewConversation}>
+        <Button
+          className="w-full justify-start rounded-xl"
+          onClick={onNewConversation}
+        >
           <MessageSquarePlus aria-hidden="true" />
           Cuộc trò chuyện mới
         </Button>
@@ -92,7 +105,7 @@ export function ConversationHistory({
           />
           <Input
             aria-label={searchLabel}
-            className="h-9 bg-card pr-9 pl-9 dark:border-transparent dark:bg-muted"
+            className="h-9 rounded-xl bg-card pr-9 pl-9 dark:border-transparent dark:bg-muted"
             onChange={(event) => onSearchQueryChange(event.target.value)}
             placeholder="Tìm cuộc trò chuyện..."
             value={searchQuery}
@@ -119,61 +132,35 @@ export function ConversationHistory({
             Gần đây
           </div>
           {filteredConversations.length ? (
-            <div className="min-w-0 space-y-1">
+            <div className="min-w-0 space-y-0.5">
               {filteredConversations.map((conversation) => (
                 <div
                   className={cn(
-                    "group flex w-full max-w-full min-w-0 items-center overflow-hidden rounded-lg transition-colors",
+                    "group flex w-full max-w-full min-w-0 items-center overflow-hidden rounded-xl transition-colors",
                     conversation.id === activeConversationId
-                      ? "bg-secondary text-primary dark:text-secondary-foreground"
-                      : "hover:bg-muted"
+                      ? "bg-secondary/70 text-primary dark:text-secondary-foreground"
+                      : "hover:bg-muted/70"
                   )}
                   key={conversation.id}
                 >
-                  {editingConversationId === conversation.id ? (
-                    <div className="min-w-0 flex-1 px-2 py-2">
-                      <Input
-                        aria-label={`Đổi tên ${conversation.title}`}
-                        autoFocus
-                        className="h-8 bg-card"
-                        onBlur={cancelRenaming}
-                        onChange={(event) => setDraftTitle(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            event.preventDefault()
-                            finishRenaming()
-                          }
-
-                          if (event.key === "Escape") {
-                            cancelRenaming()
-                          }
-                        }}
-                        value={draftTitle}
-                      />
-                    </div>
-                  ) : (
-                    <button
-                      className="min-w-0 flex-1 overflow-hidden px-3 py-3 text-left"
-                      onClick={() => onSelectConversation(conversation.id)}
-                      type="button"
-                    >
-                      <span className="block truncate text-sm leading-5 font-medium">
-                        {conversation.title}
-                      </span>
-                      <span className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                        {conversation.pinned ? (
-                          <Pin aria-hidden="true" className="size-3" />
-                        ) : null}
-                        {conversation.date}
-                      </span>
-                    </button>
-                  )}
+                  <button
+                    className="min-w-0 flex-1 overflow-hidden px-3 py-2.5 text-left"
+                    onClick={() => onSelectConversation(conversation.id)}
+                    type="button"
+                  >
+                    <span className="block truncate text-sm leading-5 font-medium">
+                      {conversation.title}
+                    </span>
+                    <span className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      {formatRelativeTime(conversation.createdAt)}
+                    </span>
+                  </button>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         aria-label={`Tùy chọn cho ${conversation.title}`}
-                        className="mr-1 opacity-100 transition-opacity md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"
+                        className="mr-1 rounded-full opacity-100 transition-opacity md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100"
                         size="icon-sm"
                         variant="ghost"
                       >
@@ -181,30 +168,6 @@ export function ConversationHistory({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setEditingConversationId(conversation.id)
-                          setDraftTitle(conversation.title)
-                        }}
-                      >
-                        <Pencil aria-hidden="true" />
-                        Đổi tên
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={() =>
-                          onTogglePinConversation(conversation.id)
-                        }
-                      >
-                        {conversation.pinned ? (
-                          <PinOff aria-hidden="true" />
-                        ) : (
-                          <Pin aria-hidden="true" />
-                        )}
-                        {conversation.pinned
-                          ? "Bỏ ghim"
-                          : "Ghim cuộc trò chuyện"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onSelect={() => onDeleteConversation(conversation.id)}
                         variant="destructive"
@@ -218,7 +181,7 @@ export function ConversationHistory({
               ))}
             </div>
           ) : (
-            <div className="mx-2 rounded-lg border border-dashed px-3 py-6 text-center">
+            <div className="mx-2 rounded-2xl border border-dashed px-3 py-6 text-center">
               <Search
                 aria-hidden="true"
                 className="mx-auto mb-2 size-5 text-muted-foreground"

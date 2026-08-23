@@ -7,6 +7,7 @@ import {
   MobileChatHeader,
 } from "@/features/chat/components/chat-workspace-header"
 import {
+  CollapsedHistoryRail,
   ConversationHistory,
   type ConversationHistoryProps,
 } from "@/features/chat/components/conversation-history"
@@ -21,10 +22,8 @@ export function ChatPage() {
     conversations: workspace.conversations,
     onDeleteConversation: workspace.deleteConversation,
     onNewConversation: workspace.startNewConversation,
-    onRenameConversation: workspace.renameConversation,
     onSearchQueryChange: workspace.setSearchQuery,
     onSelectConversation: workspace.selectConversation,
-    onTogglePinConversation: workspace.togglePinnedConversation,
     searchLabel: "Tìm kiếm cuộc trò chuyện",
     searchQuery: workspace.searchQuery,
   }
@@ -57,17 +56,29 @@ export function ChatPage() {
           workspace.desktopGridClass
         )}
       >
-        {workspace.isHistoryOpen ? (
-          <aside className="hidden min-h-0 border-r bg-muted/30 xl:block dark:border-white/[0.06] dark:bg-card">
+        <aside className="hidden min-h-0 border-r bg-muted/30 xl:block dark:border-white/[0.06] dark:bg-card">
+          {workspace.isHistoryOpen ? (
             <ConversationHistory {...historyProps} />
-          </aside>
-        ) : null}
+          ) : (
+            <CollapsedHistoryRail
+              onExpand={() => workspace.setIsHistoryOpen(true)}
+              onNewConversation={workspace.startNewConversation}
+            />
+          )}
+        </aside>
 
         <section className="flex min-h-0 min-w-0 flex-col bg-background">
           {workspace.activeConversation ? (
-            <ActiveConversation />
+            <ActiveConversation
+              isSending={workspace.isSendingMessage}
+              messages={workspace.messages}
+              onSendMessage={workspace.sendMessage}
+            />
           ) : (
-            <NewConversation />
+            <NewConversation
+              isSending={workspace.isSendingMessage}
+              onSendMessage={workspace.sendMessage}
+            />
           )}
         </section>
 
