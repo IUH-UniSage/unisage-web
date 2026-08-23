@@ -83,7 +83,10 @@ export function PermissionDialog({
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
           <div className="space-y-2 rounded-xl border p-3">
-            <Label htmlFor="permission-name">Tên quyền</Label>
+            <Label htmlFor="permission-name">
+              Tên quyền{" "}
+              <span className="translate-y-0.5 text-destructive">*</span>
+            </Label>
             <Input
               aria-invalid={Boolean(errors.name)}
               autoFocus

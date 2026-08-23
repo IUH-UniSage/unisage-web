@@ -1,4 +1,11 @@
 export const API_ENDPOINTS = {
+  departments: {
+    department: (departmentId: string) => `/departments/${departmentId}`,
+    departmentRecover: (departmentId: string) =>
+      `/departments/${departmentId}/recover`,
+    departments: "/departments",
+    departmentsRoots: "/departments/roots",
+  },
   accessLevels: {
     accessLevel: (accessLevelId: string) => `/access-levels/${accessLevelId}`,
     accessLevels: "/access-levels",
@@ -20,5 +27,12 @@ export const API_ENDPOINTS = {
       `/rbac/permissions/${permissionId}/recover`,
     permissionsBulkDelete: "/rbac/permissions/bulk",
     permissionsBulkRecover: "/rbac/permissions/bulk/recover",
+  },
+  users: {
+    user: (userId: string) => `/users/${userId}`,
+    userRecover: (userId: string) => `/users/${userId}/recover`,
+    users: "/users",
+    usersBulkDelete: "/users/bulk",
+    usersBulkRecover: "/users/bulk/recover",
   },
 } as const

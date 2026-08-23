@@ -6,6 +6,7 @@ const policy = (
 
 export const PERMISSION_POLICIES = {
   adminAccessLevels: policy(PERMISSIONS.accessLevelRead),
+  adminDepartments: policy(PERMISSIONS.departmentRead),
   adminUsers: policy(PERMISSIONS.userRead),
   adminDocuments: policy(PERMISSIONS.documentRead),
   adminLogs: policy(PERMISSIONS.auditLogRead, PERMISSIONS.llmTraceLogRead),

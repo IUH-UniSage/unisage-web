@@ -6,9 +6,9 @@ description: Scaffold a full CRUD admin feature (list + filters + create/edit di
 # CRUD feature scaffold
 
 Generates a complete admin CRUD feature module in `unisage-web`, following the **exact** file
-layout, naming, and UI composition already proven in `src/features/rbac/`. That feature
-is the canonical reference — when in doubt about a pattern, open the matching file there and copy
-its shape, don't invent a new one.
+layout, naming, and UI composition already proven in `src/features/rbac/`. That feature is the
+canonical reference — when in doubt about a pattern, open the matching file there and copy its
+shape, don't invent a new one.
 
 ## 1. Gather the inputs first
 
@@ -38,14 +38,27 @@ If the user gives you a Jira ticket, an OpenAPI spec, or a backend controller fi
 answering directly, derive these inputs from that source and confirm your reading back to them
 briefly before generating files.
 
-## 2. Reuse, don't reimplement, these shared pieces
+## 2. Multi-task epics: one branch, commit per task
+
+If the work spans several tasks under one Jira epic, branch once from `main` (per
+`git-commit-instructions/SKILL.md` naming) and reuse that branch for every task. Per task: build
+it, run section 5's verification, screenshot the affected page and compare it against `rbac`
+(or an earlier screenshot of the same page), then stage only that task's real diff (`git status`/
+`git diff --stat` — Windows line-ending noise and any concurrent hand-edits on this branch can
+make a file show as "modified" with no real content change; verify before staging) and commit with
+that task's own `[UNISAGE-N]` key. Never batch unrelated tasks into one commit, and never commit or
+push without the user's explicit go-ahead each time.
+
+## 3. Reuse, don't reimplement, these shared pieces
 
 - `src/hooks/use-selection.ts` — `useSelection<T>()` for the row-checkbox `Set` selection state
   (`selectedIds`, `toggle`, `toggleAll`, `clear`). Use it instead of hand-rolling
   toggle/toggleAll/clear logic per entity.
 - `src/components/shared/list/entity-actions-menu.tsx` — `EntityActionsMenu` for the row "..."
-  dropdown (edit + activate/deactivate). Takes `canUpdate`, `canDelete`, `entityLabel`, `isActive`,
-  `onEdit`, `onStatusRequest`.
+  dropdown. Takes `entityLabel`, `canUpdate`/`canDelete`, `isActive`, `onEdit`, `onStatusRequest`,
+  an optional `onDetail` (adds a "Xem chi tiết" item with an `Eye` icon, first in the list), and an
+  optional `children` slot for extra feature-specific items. Use this rather than hand-rolling a
+  `DropdownMenu` per feature.
 - `src/components/shared/list/list-toolbar.tsx` — `ListToolbar` for the search+filters+reset row
   above the table. Pass the filter `<Select>`s as `children`.
 - `src/components/shared/list/bulk-actions-bar.tsx` — `BulkActionsBar` for the "N selected" bar
@@ -124,12 +137,20 @@ entityNoun, assignedToNoun, isSubmitting, onConfirm, onOpenChange })` — the bu
 - `src/constants/resource-types.ts` pattern — if the entity has a backend enum that needs a
   Vietnamese label + badge color, add a sibling constants file the same shape (label map + badge
   color map + `get*Label`/`get*BadgeClassName` helpers), don't hardcode labels inline in JSX.
+- **View-detail dialog** (`<feature>-detail-dialog.tsx`) — a "Xem chi tiết" row action (wired via
+  `EntityActionsMenu`'s `onDetail`) that opens a read-only, centered `Dialog`: header with entity
+  name + `EntityStatusBadge` + a one-line subtitle/category badge; body with a
+  `rounded-lg border bg-muted/30 p-3.5` block for the main description, an optional related-items
+  list capped `max-h-36 overflow-y-auto`, and a `grid grid-cols-2 gap-3 border-t pt-3 text-xs
+text-muted-foreground` block for createdBy/createdAt/updatedAt via `formatAuditDate`; footer with
+  an always-present "Đóng" button and a conditional "Chỉnh sửa" button (gated on `canUpdate`) that
+  closes itself (`onOpenChange(false)`) before calling `onEdit(entity)`.
 
 Check these files still exist with this shape before relying on them — they get refactored
 occasionally; grep for the export name if a path 404s, and check whether the shape described here
 still matches before copying it wholesale.
 
-## 3. File generation order
+## 4. File generation order
 
 Follow `architecture.md`'s feature flow exactly: **schemas → api → queries/keys.ts →
 queries/options.ts + use-queries/use-mutations → hooks → components → pages → routes**.
@@ -175,13 +196,18 @@ need a full refetch after an edit.
 
 The page-level hook: fetches via the query, holds filter/search/page state, computes the filtered
 
-- paginated slice, exposes selection state (via `useSelection`), dialog open/close state
-  (including the pending bulk-action state — `pending<Entity>BulkAction: "deactivate" | "recover" |
-null` plus a derived `pending<Entity>BulkCount`, see point 2 above), and the mutation-calling
-  action functions the components call. Check `use-rbac-dashboard.ts` first for the
-  current filter-state pattern in use on this branch (search + selects can be either "live" or
-  "apply on click" — the branch has had both at different points; match whatever's currently there
-  rather than assuming) before copying its shape.
+- paginated slice, exposes selection state (via `useSelection`), dialog open/close state (including
+  the pending bulk-action state — `pending<Entity>BulkAction: "deactivate" | "recover" | null` plus a
+  derived `pending<Entity>BulkCount`, see point 3 above), and the mutation-calling action functions
+  the components call. Check `use-rbac-dashboard.ts` first for the current filter-state pattern in
+  use on this branch (search + selects can be either "live" or "apply on click" — the branch has had
+  both at different points; match whatever's currently there rather than assuming) before copying its
+  shape.
+
+For the view-detail dialog: a `viewing<Entity>` piece of state (undefined = closed) plus
+`open<Entity>Detail(entity)`/`close<Entity>Detail()` — see `openRoleDetail`/`closeRoleDetail` in
+`use-rbac-dashboard.ts`. `openEdit`/`openCreate` must clear the viewing state before opening the
+edit/create dialog, so the detail dialog and the edit dialog never end up mounted at once.
 
 ### `src/features/<feature>/components/`
 
@@ -193,19 +219,23 @@ component staying directly in `components/` (see `role/`, `permission/`, and
 
 - `<feature>-list.tsx` — table (desktop, via `DataTable` + a memoized `ColumnDef[]`) + card list
   (mobile, `md:hidden`, still hand-written JSX), wrapped in `ListToolbar` +
-  `BulkActionsBar` + `EntityActionsMenu` (row actions) + `EntityStatusBadge` (status column) +
-  `Pagination` + `SearchEmpty` — matching `role-list.tsx`'s composition.
+  `BulkActionsBar` + `EntityActionsMenu` (row actions, `onDetail` wired to open the detail dialog)
+  - `EntityStatusBadge` (status column) + `Pagination` + `SearchEmpty` — matching `role-list.tsx`'s
+    composition.
 - `<feature>-dialog.tsx` — create/edit form dialog via `react-hook-form` + `zodResolver`, grouped
   into bordered `rounded-xl border p-3` sections (see `permission-dialog.tsx`), toggle fields via
-  `ToggleOptionCard`, wired to `error-handler.ts` per point 2 above, submit button with a
+  `ToggleOptionCard`, wired to `error-handler.ts` per point 3 above, submit button with a
   contextual icon, `isSaving` and `isSubmitting` combined into one `isBusy` disabled flag.
+- `<feature>-detail-dialog.tsx` — the read-only "Xem chi tiết" dialog described in point 3 above.
+  Generate this for every feature, not as an optional extra.
 - `<feature>-status-dialog.tsx` — a thin wrapper over `EntityStatusDialog` (single-row
   activate/deactivate), if this entity soft-deletes. The dashboard/hook also needs a
-  `BulkStatusDialog` render for the bulk-action confirm (see point 2 above) — this one has no
+  `BulkStatusDialog` render for the bulk-action confirm (see point 3 above) — this one has no
   per-feature wrapper file, it's rendered directly from `<feature>-dashboard.tsx` or the page.
 - `<feature>-dashboard.tsx` (only if this entity shares a page with another, tabbed, like
   roles/permissions, composed via `TabbedListPage`) or skip straight to the page if it's
-  standalone.
+  standalone. This is where the detail dialog gets rendered too, alongside the create/edit dialog
+  and the status/bulk dialogs.
 
 ### `src/pages/<area>/<feature>-page.tsx`
 
@@ -223,7 +253,7 @@ requiredPermissions={PERMISSION_POLICIES.<key>} strategy="all" fallbackTo={ROUTE
 Update `src/features/<feature>/index.ts` if the feature is consumed from outside its own folder —
 otherwise it can stay a placeholder comment like `rbac`'s currently does.
 
-## 4. Verification (never skip)
+## 5. Verification (never skip)
 
 Run the full matrix from `checklist.md` before calling the scaffold done:
 
@@ -233,9 +263,11 @@ pnpm test
 ```
 
 Then start the dev server and screenshot the new list page at both 375px and 1280px per
-`ui-rules.md` — a scaffolded feature that has never been rendered is not verified, it's typed.
+`ui-rules.md` — a scaffolded feature that has never been rendered is not verified, it's typed. If a
+new runtime dependency was installed for this feature, make sure `package.json`/`pnpm-lock.yaml`
+are staged along with the feature code — that's a real diff, not line-ending noise.
 
-## 5. Standing rules that still apply here
+## 6. Standing rules that still apply here
 
 - **Never commit or push** anything this skill generates without the user's explicit prior
   approval — same rule as everywhere else in this project.

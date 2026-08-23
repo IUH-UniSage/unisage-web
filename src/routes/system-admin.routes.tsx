@@ -26,6 +26,17 @@ const AccessLevelPage = lazy(async () => {
   return { default: AccessLevelPage }
 })
 
+const UserPage = lazy(async () => {
+  const { UserPage } = await import("@/pages/system-admin/user-page")
+  return { default: UserPage }
+})
+
+const DepartmentPage = lazy(async () => {
+  const { DepartmentPage } =
+    await import("@/pages/system-admin/department-page")
+  return { default: DepartmentPage }
+})
+
 export const systemAdminRoutes: RouteObject = {
   path: ROUTES.admin,
   element: (
@@ -46,7 +57,19 @@ export const systemAdminRoutes: RouteObject = {
           requiredPermissions={PERMISSION_POLICIES.adminUsers}
           strategy="any"
         >
-          <WorkspacePlaceholderPage title="Quản lý người dùng" />
+          <UserPage />
+        </PermissionRoute>
+      ),
+    },
+    {
+      path: ROUTE_SEGMENTS.departments,
+      element: (
+        <PermissionRoute
+          fallbackTo={ROUTES.admin}
+          requiredPermissions={PERMISSION_POLICIES.adminDepartments}
+          strategy="any"
+        >
+          <DepartmentPage />
         </PermissionRoute>
       ),
     },

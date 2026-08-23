@@ -163,7 +163,10 @@ export function RoleDialog({
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="role-name">Tên vai trò</Label>
+              <Label htmlFor="role-name">
+                Tên vai trò{" "}
+                <span className="translate-y-0.5 text-destructive">*</span>
+              </Label>
               <Input
                 aria-invalid={Boolean(errors.name)}
                 autoFocus
