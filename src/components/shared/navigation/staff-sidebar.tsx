@@ -1,19 +1,4 @@
-import type { LucideIcon } from "lucide-react"
-import {
-  Activity,
-  BookOpen,
-  Bot,
-  CircleHelp,
-  FileText,
-  Gauge,
-  HeartPulse,
-  Layers,
-  Settings,
-  ShieldCheck,
-  ShieldPlus,
-  UploadCloud,
-  Users,
-} from "lucide-react"
+import { CircleHelp } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
 import { BrandLogo } from "@/components/shared/brand/brand-logo"
@@ -21,106 +6,11 @@ import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/constants/paths"
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSION_POLICIES } from "@/features/auth/utils/permission-policies"
-import type { PermissionRequirement } from "@/utils/permissions"
+import type { StaffWorkspace } from "@/routes/feature-registry"
+import { getWorkspaceNavItems } from "@/routes/feature-registry"
 import { cn } from "@/lib/utils"
 
-export type StaffWorkspace = "ingester" | "system-admin"
-
-type NavigationItem = {
-  icon: LucideIcon
-  label: string
-  requiredPermissions?: readonly PermissionRequirement[]
-  requiredStrategy?: "all" | "any"
-  to: string
-}
-
-const navigation: Record<StaffWorkspace, NavigationItem[]> = {
-  ingester: [
-    {
-      icon: Gauge,
-      label: "Tổng quan",
-      requiredPermissions: PERMISSION_POLICIES.ingesterOverview,
-      to: ROUTES.ingester,
-    },
-    {
-      icon: FileText,
-      label: "Tài liệu",
-      requiredPermissions: PERMISSION_POLICIES.ingesterDocuments,
-      to: ROUTES.ingesterDocuments,
-    },
-    {
-      icon: UploadCloud,
-      label: "Đang xử lý",
-      requiredPermissions: PERMISSION_POLICIES.ingesterProcessing,
-      to: ROUTES.ingesterProcessing,
-    },
-    {
-      icon: ShieldCheck,
-      label: "Kiểm tra chất lượng",
-      requiredPermissions: PERMISSION_POLICIES.ingesterQuality,
-      to: ROUTES.ingesterQuality,
-    },
-    {
-      icon: Settings,
-      label: "Cài đặt",
-      requiredPermissions: PERMISSION_POLICIES.ingesterSettings,
-      to: ROUTES.ingesterSettings,
-    },
-  ],
-  "system-admin": [
-    { icon: Gauge, label: "Tổng quan", to: ROUTES.admin },
-    {
-      icon: Users,
-      label: "Quản lý người dùng",
-      requiredPermissions: PERMISSION_POLICIES.adminUsers,
-      to: ROUTES.adminUsers,
-    },
-    {
-      icon: ShieldPlus,
-      label: "Vai trò & phân quyền",
-      requiredPermissions: PERMISSION_POLICIES.adminRbac,
-      requiredStrategy: "all",
-      to: ROUTES.adminRbac,
-    },
-    {
-      icon: Layers,
-      label: "Cấp độ truy cập",
-      requiredPermissions: PERMISSION_POLICIES.adminAccessLevels,
-      to: ROUTES.adminAccessLevels,
-    },
-    {
-      icon: BookOpen,
-      label: "Quản trị tài liệu",
-      requiredPermissions: PERMISSION_POLICIES.adminDocuments,
-      to: ROUTES.adminDocuments,
-    },
-    {
-      icon: Activity,
-      label: "Nhật ký hệ thống",
-      requiredPermissions: PERMISSION_POLICIES.adminLogs,
-      to: ROUTES.adminLogs,
-    },
-    {
-      icon: Bot,
-      label: "Cấu hình AI",
-      requiredPermissions: PERMISSION_POLICIES.adminModels,
-      to: ROUTES.adminModels,
-    },
-    {
-      icon: HeartPulse,
-      label: "Tình trạng dịch vụ",
-      requiredPermissions: PERMISSION_POLICIES.adminHealth,
-      to: ROUTES.adminHealth,
-    },
-    {
-      icon: Settings,
-      label: "Cài đặt",
-      requiredPermissions: PERMISSION_POLICIES.adminSettings,
-      to: ROUTES.adminSettings,
-    },
-  ],
-}
+export type { StaffWorkspace }
 
 type StaffSidebarProps = {
   className?: string
@@ -136,7 +26,7 @@ export function StaffSidebar({
   const { canAny, canEvery } = usePermissions()
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
-  const visibleNavigation = navigation[workspace].filter(
+  const visibleNavigation = getWorkspaceNavItems(workspace).filter(
     ({ requiredPermissions, requiredStrategy = "any" }) =>
       !requiredPermissions ||
       (requiredStrategy === "all"

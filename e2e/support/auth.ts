@@ -1,5 +1,21 @@
 import type { Page } from "@playwright/test"
 
+// createSessionFromResponse() derives userId by decoding the access token's
+// JWT `sub` claim (see src/features/auth/utils/jwt.ts) - a plain string
+// token has no payload segment to decode and breaks the session build, so
+// the mocked token must be shaped like a real JWT with the session's userId
+// as its subject.
+function fakeJwt(subject: string): string {
+  const base64url = (payload: Record<string, unknown>) =>
+    Buffer.from(JSON.stringify(payload)).toString("base64url")
+
+  return [
+    base64url({ alg: "none", typ: "JWT" }),
+    base64url({ sub: subject }),
+    "signature",
+  ].join(".")
+}
+
 const sessionByRole = {
   INGEST_ADMIN: {
     code: "NV001",
@@ -62,13 +78,13 @@ export async function authenticateAs(
       storageKey: "unisage_user_profile",
     }
   )
-  await page.route("**/api/v1/auth/refresh", async (route) => {
+  await page.route("**/api/v1/master/auth/refresh", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       json: {
         code: 1000,
         data: {
-          accessToken: "access-token",
+          accessToken: fakeJwt(session.userId),
           avatarUrl: session.avatarUrl,
           code: account.code,
           email: session.email,

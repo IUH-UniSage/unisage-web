@@ -75,7 +75,11 @@ push without the user's explicit go-ahead each time.
   rewrite; pin `@tanstack/react-table@^8` if reinstalling) wrapper around the shadcn `Table`
   primitives. Define a `ColumnDef<TEntity, unknown>[]` (memoized with `useMemo`) instead of hand
   writing `<TableRow>`/`<TableCell>` JSX — see `role-list.tsx`/`permission-list.tsx` for the
-  pattern (select-checkbox column, STT column via `row.index`, an actions column). `meta` on a
+  pattern (select-checkbox column, STT column via `row.index`, an actions column). **Column
+  order**: the status column (`EntityStatusBadge` or equivalent) always goes immediately before
+  the actions column — last data column, right before "Hành động" — never earlier (e.g. not
+  between description and the audit columns). `role-list.tsx`/`user-list.tsx` already follow this;
+  match them rather than any other existing list if they disagree. `meta` on a
   column has **two separate** class fields — don't collapse them into one:
   - `meta.className` — body **cell** only (e.g. `"text-sm text-muted-foreground"`,
     `"text-right"`).

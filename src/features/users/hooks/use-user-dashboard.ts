@@ -15,8 +15,7 @@ import type {
   CreateUserRequest,
   UpdateUserRequest,
 } from "@/features/users/schemas/user-schemas"
-import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSIONS } from "@/utils/permissions"
+import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 
 export type StatusFilter = "ACTIVE" | "all" | "INACTIVE"
 
@@ -54,7 +53,7 @@ export function useUserDashboard() {
   const recoverUser = useRecoverUserMutation()
   const deleteUsersBulk = useDeleteUsersBulkMutation()
   const recoverUsersBulk = useRecoverUsersBulkMutation()
-  const { can } = usePermissions()
+  const { canCreate, canDelete, canUpdate } = useResourcePermissions("user")
 
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -268,9 +267,9 @@ export function useUserDashboard() {
     appliedSearch,
     appliedStatus,
     applyFilters,
-    canCreate: can(PERMISSIONS.userCreate),
-    canDelete: can(PERMISSIONS.userDelete),
-    canUpdate: can(PERMISSIONS.userUpdate),
+    canCreate,
+    canDelete,
+    canUpdate,
     clearSelection,
     closeBulkActionDialog: () => setPendingBulkAction(null),
     closeDetail,

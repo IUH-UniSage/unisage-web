@@ -90,12 +90,20 @@ export function RoleDetailDialog({
               </span>
             </div>
             {role.updatedAt ? (
-              <div className="col-span-2">
-                <span className="block text-[11px]">Cập nhật lần cuối</span>
-                <span className="font-medium text-foreground">
-                  {formatAuditDate(role.updatedAt)}
-                </span>
-              </div>
+              <>
+                <div>
+                  <span className="block text-[11px]">Người cập nhật</span>
+                  <span className="font-medium text-foreground">
+                    {role.updatedBy || "Hệ thống"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[11px]">Cập nhật lần cuối</span>
+                  <span className="font-medium text-foreground">
+                    {formatAuditDate(role.updatedAt)}
+                  </span>
+                </div>
+              </>
             ) : null}
           </div>
         </div>
