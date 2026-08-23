@@ -1,31 +1,47 @@
-import { MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
+import { Eye, MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
+import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
 type EntityActionsMenuProps = {
-  canDelete: boolean
-  canUpdate: boolean
+  canDelete?: boolean
+  canUpdate?: boolean
+  children?: ReactNode
+  detailLabel?: string
+  editLabel?: string
   entityLabel: string
-  isActive: boolean
-  onEdit: () => void
-  onStatusRequest: () => void
+  isActive?: boolean
+  onDetail?: () => void
+  onEdit?: () => void
+  onStatusRequest?: () => void
 }
 
 export function EntityActionsMenu({
-  canDelete,
-  canUpdate,
+  canDelete = false,
+  canUpdate = false,
+  children,
+  detailLabel = "Xem chi tiết",
+  editLabel = "Chỉnh sửa",
   entityLabel,
-  isActive,
+  isActive = true,
+  onDetail,
   onEdit,
   onStatusRequest,
 }: EntityActionsMenuProps) {
-  if (!canUpdate && !canDelete) return null
+  const hasActions = Boolean(
+    onDetail ||
+    (canUpdate && onEdit) ||
+    (canDelete && onStatusRequest) ||
+    children
+  )
+  if (!hasActions) return null
 
   return (
     <DropdownMenu>
@@ -35,28 +51,57 @@ export function EntityActionsMenu({
           size="icon-sm"
           variant="ghost"
         >
-          <MoreHorizontal aria-hidden="true" />
+          <MoreHorizontal aria-hidden="true" className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {canUpdate ? (
-          <DropdownMenuItem onSelect={onEdit}>
-            <Pencil aria-hidden="true" />
-            Chỉnh sửa
+      <DropdownMenuContent
+        align="end"
+        className="w-48"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {onDetail ? (
+          <DropdownMenuItem
+            onClick={(event) => {
+              event.stopPropagation()
+              onDetail()
+            }}
+          >
+            <Eye aria-hidden="true" className="size-4" />
+            <span>{detailLabel}</span>
           </DropdownMenuItem>
         ) : null}
-        {canDelete ? (
+        {canUpdate && onEdit ? (
           <DropdownMenuItem
-            onSelect={onStatusRequest}
-            variant={isActive ? "destructive" : "default"}
+            onClick={(event) => {
+              event.stopPropagation()
+              onEdit()
+            }}
           >
-            {isActive ? (
-              <Power aria-hidden="true" />
-            ) : (
-              <RotateCcw aria-hidden="true" />
-            )}
-            {isActive ? "Vô hiệu hóa" : "Khôi phục"}
+            <Pencil aria-hidden="true" className="size-4" />
+            <span>{editLabel}</span>
           </DropdownMenuItem>
+        ) : null}
+        {children}
+        {canDelete && onStatusRequest ? (
+          <>
+            {onDetail || (canUpdate && onEdit) || children ? (
+              <DropdownMenuSeparator />
+            ) : null}
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation()
+                onStatusRequest()
+              }}
+              variant={isActive ? "destructive" : "default"}
+            >
+              {isActive ? (
+                <Power aria-hidden="true" className="size-4" />
+              ) : (
+                <RotateCcw aria-hidden="true" className="size-4" />
+              )}
+              <span>{isActive ? "Vô hiệu hóa" : "Khôi phục"}</span>
+            </DropdownMenuItem>
+          </>
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>

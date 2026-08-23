@@ -102,6 +102,40 @@ export const updateUserRequestSchema = z.object({
   extraInfo: z.string().nullish(),
 })
 
+export const userFormSchema = z.object({
+  accessLevelId: z.uuid().nullish(),
+  code: z.string().trim().nullish(),
+  departmentAccesses: z
+    .array(
+      z.object({
+        accessLevel: z.number().int().nonnegative(),
+        departmentId: z.uuid(),
+      })
+    )
+    .optional(),
+  email: z
+    .string()
+    .trim()
+    .email("Địa chỉ email không hợp lệ.")
+    .max(255, "Email không được vượt quá 255 ký tự."),
+  firstName: z
+    .string()
+    .trim()
+    .min(1, "Tên không được để trống.")
+    .max(100, "Tên không được vượt quá 100 ký tự."),
+  gender: z.string().nullish(),
+  lastName: z
+    .string()
+    .trim()
+    .min(1, "Họ không được để trống.")
+    .max(100, "Họ không được vượt quá 100 ký tự."),
+  password: z.string().optional(),
+  phone: z.string().trim().nullish(),
+  roleId: z.string().nullish(),
+})
+
+export type UserFormValues = z.infer<typeof userFormSchema>
+
 export type AppUser = z.infer<typeof appUserSchema>
 export type AppUserPage = z.infer<typeof appUserPageSchema>
 export type CreateUserRequest = z.infer<typeof createUserRequestSchema>
