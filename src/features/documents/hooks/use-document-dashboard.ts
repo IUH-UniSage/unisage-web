@@ -10,8 +10,7 @@ import type {
   Document,
   DocumentFormValues,
 } from "@/features/documents/schemas/document-schemas"
-import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSIONS } from "@/utils/permissions"
+import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 
 export const DOCUMENT_PAGE_SIZE = 10
 
@@ -21,7 +20,7 @@ export function useDocumentDashboard() {
   const createDocument = useCreateDocumentMutation()
   const updateDocument = useUpdateDocumentMutation()
   const deleteDocument = useDeleteDocumentMutation()
-  const { can } = usePermissions()
+  const { canCreate, canDelete, canUpdate } = useResourcePermissions("document")
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingDocument, setEditingDocument] = useState<Document>()
@@ -80,9 +79,9 @@ export function useDocumentDashboard() {
   }
 
   return {
-    canCreate: can(PERMISSIONS.documentCreate),
-    canDelete: can(PERMISSIONS.documentDelete),
-    canUpdate: can(PERMISSIONS.documentUpdate),
+    canCreate,
+    canDelete,
+    canUpdate,
     closeDeleteDialog,
     closeDialog,
     closeDocumentDetail,

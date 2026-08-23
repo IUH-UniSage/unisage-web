@@ -10,8 +10,7 @@ import type {
   AccessLevel,
   CreateAccessLevelRequest,
 } from "@/features/access-level/schemas/access-level-schemas"
-import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSIONS } from "@/utils/permissions"
+import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 
 const EMPTY_ACCESS_LEVELS: AccessLevel[] = []
 export const ACCESS_LEVEL_PAGE_SIZE = 10
@@ -26,7 +25,8 @@ export function useAccessLevelDashboard() {
   const createAccessLevel = useCreateAccessLevelMutation()
   const updateAccessLevel = useUpdateAccessLevelMutation()
   const deleteAccessLevel = useDeleteAccessLevelMutation()
-  const { can } = usePermissions()
+  const { canCreate, canDelete, canUpdate } =
+    useResourcePermissions("access_level")
 
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
@@ -96,9 +96,9 @@ export function useAccessLevelDashboard() {
 
   return {
     accessLevels,
-    canCreate: can(PERMISSIONS.accessLevelCreate),
-    canDelete: can(PERMISSIONS.accessLevelDelete),
-    canUpdate: can(PERMISSIONS.accessLevelUpdate),
+    canCreate,
+    canDelete,
+    canUpdate,
     closeDeleteDialog,
     closeDialog,
     confirmDelete,

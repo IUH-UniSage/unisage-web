@@ -20,8 +20,7 @@ import {
   getUnitTypeByDepth,
   type DepartmentUnitType,
 } from "@/features/departments/utils/tree"
-import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSIONS } from "@/utils/permissions"
+import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 
 export type StatusFilter = "active" | "all" | "inactive"
 export type TypeFilter = "all" | DepartmentUnitType
@@ -61,7 +60,8 @@ export function useDepartmentDashboard() {
   const updateDepartment = useUpdateDepartmentMutation()
   const deleteDepartment = useDeleteDepartmentMutation()
   const recoverDepartment = useRecoverDepartmentMutation()
-  const { can } = usePermissions()
+  const { canCreate, canDelete, canUpdate } =
+    useResourcePermissions("department")
 
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -267,9 +267,9 @@ export function useDepartmentDashboard() {
     appliedStatus,
     appliedType,
     applyFilters,
-    canCreate: can(PERMISSIONS.departmentCreate),
-    canDelete: can(PERMISSIONS.departmentDelete),
-    canUpdate: can(PERMISSIONS.departmentUpdate),
+    canCreate,
+    canDelete,
+    canUpdate,
     closeDetail,
     closeDialog,
     closeStatusDialog: () => setStatusDepartment(undefined),

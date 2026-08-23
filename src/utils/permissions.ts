@@ -58,6 +58,24 @@ export const PERMISSIONS = {
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
 
+// Canonical resource names that map to backend permission conventions.
+// Adding a new resource here automatically makes it usable with useResourcePermissions().
+export type ResourceName =
+  | "user"
+  | "role"
+  | "permission"
+  | "category"
+  | "access_level"
+  | "department"
+  | "document"
+  | "chat_model"
+  | "conversation"
+  | "message"
+  | "audit_log"
+  | "llm_trace_log"
+  | "ingest"
+  | "super_admin"
+
 export type PermissionRequirement =
   | Permission
   | {

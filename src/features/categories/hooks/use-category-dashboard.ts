@@ -10,8 +10,7 @@ import type {
   Category,
   CreateCategoryRequest,
 } from "@/features/categories/schemas/category-schemas"
-import { usePermissions } from "@/features/auth/hooks/use-permissions"
-import { PERMISSIONS } from "@/utils/permissions"
+import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 
 const EMPTY_CATEGORIES: Category[] = []
 export const CATEGORY_PAGE_SIZE = 10
@@ -28,7 +27,7 @@ export function useCategoryDashboard() {
   const createCategory = useCreateCategoryMutation()
   const updateCategory = useUpdateCategoryMutation()
   const deactivateCategory = useDeactivateCategoryMutation()
-  const { can } = usePermissions()
+  const { canCreate, canDelete, canUpdate } = useResourcePermissions("category")
 
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
@@ -101,9 +100,9 @@ export function useCategoryDashboard() {
   }
 
   return {
-    canCreate: can(PERMISSIONS.categoryCreate),
-    canDelete: can(PERMISSIONS.categoryDelete),
-    canUpdate: can(PERMISSIONS.categoryUpdate),
+    canCreate,
+    canDelete,
+    canUpdate,
     categories,
     closeDeactivateDialog,
     closeDialog,
