@@ -166,12 +166,14 @@ export function useRbacDashboard() {
 
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [editingRole, setEditingRole] = useState<AccessRole>()
+  const [viewingRole, setViewingRole] = useState<AccessRole>()
   const [statusRole, setStatusRole] = useState<AccessRole>()
   const [pendingRoleBulkAction, setPendingRoleBulkAction] = useState<
     "deactivate" | "recover" | null
   >(null)
   const [isPermissionDialogOpen, setIsPermissionDialogOpen] = useState(false)
   const [editingPermission, setEditingPermission] = useState<AccessPermission>()
+  const [viewingPermission, setViewingPermission] = useState<AccessPermission>()
   const [statusPermission, setStatusPermission] = useState<AccessPermission>()
   const [pendingPermissionBulkAction, setPendingPermissionBulkAction] =
     useState<"deactivate" | "recover" | null>(null)
@@ -268,12 +270,21 @@ export function useRbacDashboard() {
   const currentRolePage = Math.min(rolePage, roleTotalPages)
   const currentPermissionPage = Math.min(permissionPage, permissionTotalPages)
 
+  const openRoleDetail = (role: AccessRole) => {
+    setViewingRole(role)
+  }
+
+  const closeRoleDetail = () => {
+    setViewingRole(undefined)
+  }
+
   const openCreateRole = () => {
     setEditingRole(undefined)
     setIsRoleDialogOpen(true)
   }
 
   const openEditRole = (role: AccessRole) => {
+    setViewingRole(undefined)
     setEditingRole(role)
     setIsRoleDialogOpen(true)
   }
@@ -362,12 +373,21 @@ export function useRbacDashboard() {
     setPendingRoleBulkAction(null)
   }
 
+  const openPermissionDetail = (permission: AccessPermission) => {
+    setViewingPermission(permission)
+  }
+
+  const closePermissionDetail = () => {
+    setViewingPermission(undefined)
+  }
+
   const openCreatePermission = () => {
     setEditingPermission(undefined)
     setIsPermissionDialogOpen(true)
   }
 
   const openEditPermission = (permission: AccessPermission) => {
+    setViewingPermission(undefined)
     setEditingPermission(permission)
     setIsPermissionDialogOpen(true)
   }
@@ -495,8 +515,10 @@ export function useRbacDashboard() {
     canUpdateRoles: can(PERMISSIONS.roleUpdate),
     clearPermissionSelection,
     clearRoleSelection,
+    closePermissionDetail,
     closePermissionDialog: () => setIsPermissionDialogOpen(false),
     closePermissionStatusDialog: () => setStatusPermission(undefined),
+    closeRoleDetail,
     closeRoleDialog: () => setIsRoleDialogOpen(false),
     closeRoleBulkActionDialog: () => setPendingRoleBulkAction(null),
     closePermissionBulkActionDialog: () => setPendingPermissionBulkAction(null),
@@ -528,6 +550,8 @@ export function useRbacDashboard() {
     openCreateRole,
     openEditPermission,
     openEditRole,
+    openPermissionDetail,
+    openRoleDetail,
     pagedPermissions: paginate(filteredPermissions, currentPermissionPage),
     pagedRoles: paginate(filteredRoles, currentRolePage),
     permissionLevel: pendingPermissionLevel,
@@ -593,5 +617,7 @@ export function useRbacDashboard() {
     toggleAllRolesOnPage,
     togglePermissionSelection,
     toggleRoleSelection,
+    viewingPermission,
+    viewingRole,
   }
 }

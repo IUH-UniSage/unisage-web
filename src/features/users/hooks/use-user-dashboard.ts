@@ -1,4 +1,5 @@
 import { useDeferredValue, useMemo, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 
 import {
   useCreateUserMutation,
@@ -31,6 +32,20 @@ function matchesStatus(userStatus: string, filter: StatusFilter) {
   return filter === "all" || userStatus === filter
 }
 
+const PARAM_DEFAULTS = {
+  page: "1",
+  search: "",
+  status: "all",
+} as const
+
+type Param = keyof typeof PARAM_DEFAULTS
+
+const URL_PARAM_KEYS = {
+  page: "page",
+  search: "q",
+  status: "status",
+} as const satisfies Record<Param, string>
+
 export function useUserDashboard() {
   const usersQuery = useUsersQuery()
   const createUser = useCreateUserMutation()
@@ -41,11 +56,50 @@ export function useUserDashboard() {
   const recoverUsersBulk = useRecoverUsersBulkMutation()
   const { can } = usePermissions()
 
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
-  const [page, setPage] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const getParam = (key: Param) =>
+    searchParams.get(URL_PARAM_KEYS[key]) ?? PARAM_DEFAULTS[key]
+
+  const setParams = (updates: Partial<Record<Param, string>>) => {
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
+        for (const key of Object.keys(updates) as Param[]) {
+          const value = updates[key]
+          const urlKey = URL_PARAM_KEYS[key]
+          if (value === undefined || value === PARAM_DEFAULTS[key]) {
+            next.delete(urlKey)
+          } else {
+            next.set(urlKey, value)
+          }
+        }
+        return next
+      },
+      { replace: true }
+    )
+  }
+
+  const getPage = () => {
+    const p = Number.parseInt(getParam("page"), 10)
+    return Number.isFinite(p) && p > 0 ? p : 1
+  }
+
+  // Applied filters (from URL)
+  const appliedSearch = getParam("search")
+  const appliedStatus = getParam("status") as StatusFilter
+  const page = getPage()
+
+  // Pending filters (in UI inputs before pressing 'Lọc')
+  const [pendingSearch, setPendingSearch] = useState(appliedSearch)
+  const [pendingStatus, setPendingStatus] =
+    useState<StatusFilter>(appliedStatus)
+
+  const isFiltered = appliedSearch.trim() !== "" || appliedStatus !== "all"
+
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<AppUser>()
+  const [viewingUser, setViewingUser] = useState<AppUser>()
   const [statusUser, setStatusUser] = useState<AppUser>()
   const [pendingBulkAction, setPendingBulkAction] = useState<
     "deactivate" | "recover" | null
@@ -53,7 +107,7 @@ export function useUserDashboard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
 
   const users = usersQuery.data?.data ?? EMPTY_USERS
-  const deferredSearch = useDeferredValue(search)
+  const deferredSearch = useDeferredValue(appliedSearch)
 
   const filteredUsers = useMemo(() => {
     const normalizedSearch = deferredSearch.trim().toLocaleLowerCase("vi")
@@ -69,10 +123,10 @@ export function useUserDashboard() {
           .includes(normalizedSearch)
 
       return (
-        matchesSearch && matchesStatus(user.status ?? "ACTIVE", statusFilter)
+        matchesSearch && matchesStatus(user.status ?? "ACTIVE", appliedStatus)
       )
     })
-  }, [deferredSearch, statusFilter, users])
+  }, [appliedStatus, deferredSearch, users])
 
   const totalPages = Math.max(
     1,
@@ -80,12 +134,43 @@ export function useUserDashboard() {
   )
   const currentPage = Math.min(page, totalPages)
 
+  const applyFilters = () => {
+    setParams({
+      page: "1",
+      search: pendingSearch.trim(),
+      status: pendingStatus,
+    })
+  }
+
+  const resetFilters = () => {
+    setPendingSearch(PARAM_DEFAULTS.search)
+    setPendingStatus(PARAM_DEFAULTS.status)
+    setParams({
+      page: PARAM_DEFAULTS.page,
+      search: PARAM_DEFAULTS.search,
+      status: PARAM_DEFAULTS.status,
+    })
+  }
+
+  const setPage = (p: number) => {
+    setParams({ page: String(p) })
+  }
+
+  const openDetail = (user: AppUser) => {
+    setViewingUser(user)
+  }
+
+  const closeDetail = () => {
+    setViewingUser(undefined)
+  }
+
   const openCreate = () => {
     setEditingUser(undefined)
     setIsDialogOpen(true)
   }
 
   const openEdit = (user: AppUser) => {
+    setViewingUser(undefined)
     setEditingUser(user)
     setIsDialogOpen(true)
   }
@@ -180,11 +265,15 @@ export function useUserDashboard() {
   }
 
   return {
+    appliedSearch,
+    appliedStatus,
+    applyFilters,
     canCreate: can(PERMISSIONS.userCreate),
     canDelete: can(PERMISSIONS.userDelete),
     canUpdate: can(PERMISSIONS.userUpdate),
     clearSelection,
     closeBulkActionDialog: () => setPendingBulkAction(null),
+    closeDetail,
     closeDialog: () => setIsDialogOpen(false),
     closeStatusDialog: () => setStatusUser(undefined),
     confirmBulkAction,
@@ -193,10 +282,12 @@ export function useUserDashboard() {
     filteredCount: filteredUsers.length,
     isBulkUpdating: deleteUsersBulk.isPending || recoverUsersBulk.isPending,
     isDialogOpen,
+    isFiltered,
     isPending: usersQuery.isPending,
     isSaving: createUser.isPending || updateUser.isPending,
     isUpdatingStatus: deleteUser.isPending || recoverUser.isPending,
     openCreate,
+    openDetail,
     openEdit,
     page: currentPage,
     pagedUsers: paginate(filteredUsers, currentPage),
@@ -204,23 +295,19 @@ export function useUserDashboard() {
     pendingBulkCount,
     requestBulkAction: setPendingBulkAction,
     requestStatusChange: setStatusUser,
+    resetFilters,
     save,
-    search,
+    search: pendingSearch,
     selectedIds,
-    setPage: (p: number) => setPage(p),
-    setSearch: (value: string) => {
-      setSearch(value)
-      setPage(1)
-    },
-    setStatusFilter: (value: StatusFilter) => {
-      setStatusFilter(value)
-      setPage(1)
-    },
-    statusFilter,
+    setPage,
+    setSearch: setPendingSearch,
+    setStatusFilter: setPendingStatus,
+    statusFilter: pendingStatus,
     statusUser,
     toggleAllOnPage,
     toggleSelection,
     totalPages,
     users,
+    viewingUser,
   }
 }

@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
+import { Eye, MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
 import { useMemo } from "react"
 
 import { BulkActionsBar } from "@/components/shared/list/bulk-actions-bar"
@@ -43,6 +43,7 @@ type RoleListProps = {
   onBulkDeactivate: () => void
   onBulkRecover: () => void
   onApplyFilters: () => void
+  onDetail: (role: AccessRole) => void
   onEditRole: (role: AccessRole) => void
   onPageChange: (page: number) => void
   onPermissionChange: (value: string) => void
@@ -105,6 +106,7 @@ function RolePermissionBadges({ role }: { role: AccessRole }) {
 type RoleActionsProps = {
   canDeleteRoles: boolean
   canUpdateRoles: boolean
+  onDetail: (role: AccessRole) => void
   onEditRole: (role: AccessRole) => void
   onStatusRequest: (role: AccessRole) => void
   role: AccessRole
@@ -113,12 +115,11 @@ type RoleActionsProps = {
 function RoleActions({
   canDeleteRoles,
   canUpdateRoles,
+  onDetail,
   onEditRole,
   onStatusRequest,
   role,
 }: RoleActionsProps) {
-  if (!canUpdateRoles && !canDeleteRoles) return null
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -131,6 +132,10 @@ function RoleActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => onDetail(role)}>
+          <Eye aria-hidden="true" />
+          Xem chi tiết
+        </DropdownMenuItem>
         {canUpdateRoles ? (
           <DropdownMenuItem onSelect={() => onEditRole(role)}>
             <Pencil aria-hidden="true" />
@@ -165,6 +170,7 @@ export function RoleList({
   onBulkClear,
   onBulkDeactivate,
   onBulkRecover,
+  onDetail,
   onEditRole,
   onPageChange,
   onPermissionChange,
@@ -258,6 +264,7 @@ export function RoleList({
           <RoleActions
             canDeleteRoles={canDeleteRoles}
             canUpdateRoles={canUpdateRoles}
+            onDetail={onDetail}
             onEditRole={onEditRole}
             onStatusRequest={onStatusRequest}
             role={row.original}
@@ -273,6 +280,7 @@ export function RoleList({
       canDeleteRoles,
       canUpdateRoles,
       firstRowNumber,
+      onDetail,
       onEditRole,
       onStatusRequest,
       onToggleAllSelection,
@@ -364,6 +372,7 @@ export function RoleList({
                   <RoleActions
                     canDeleteRoles={canDeleteRoles}
                     canUpdateRoles={canUpdateRoles}
+                    onDetail={onDetail}
                     onEditRole={onEditRole}
                     onStatusRequest={onStatusRequest}
                     role={role}

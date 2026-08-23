@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
+import { Eye, MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
 import { useMemo } from "react"
 
 import { BulkActionsBar } from "@/components/shared/list/bulk-actions-bar"
@@ -38,6 +38,7 @@ function userDisplayName(user: AppUser) {
 type UserActionsProps = {
   canDelete: boolean
   canUpdate: boolean
+  onDetail: (user: AppUser) => void
   onEdit: (user: AppUser) => void
   onStatusRequest: (user: AppUser) => void
   user: AppUser
@@ -46,12 +47,11 @@ type UserActionsProps = {
 function UserActions({
   canDelete,
   canUpdate,
+  onDetail,
   onEdit,
   onStatusRequest,
   user,
 }: UserActionsProps) {
-  if (!canUpdate && !canDelete) return null
-
   const isActive = user.status === "ACTIVE"
 
   return (
@@ -66,6 +66,10 @@ function UserActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => onDetail(user)}>
+          <Eye aria-hidden="true" />
+          Xem chi tiết
+        </DropdownMenuItem>
         {canUpdate ? (
           <DropdownMenuItem onSelect={() => onEdit(user)}>
             <Pencil aria-hidden="true" />
@@ -96,9 +100,11 @@ type UserListProps = {
   currentPage: number
   isBulkUpdating: boolean
   isFiltered: boolean
+  onApplyFilters: () => void
   onBulkClear: () => void
   onBulkDeactivate: () => void
   onBulkRecover: () => void
+  onDetail: (user: AppUser) => void
   onEdit: (user: AppUser) => void
   onPageChange: (page: number) => void
   onResetFilters: () => void
@@ -121,9 +127,11 @@ export function UserList({
   currentPage,
   isBulkUpdating,
   isFiltered,
+  onApplyFilters,
   onBulkClear,
   onBulkDeactivate,
   onBulkRecover,
+  onDetail,
   onEdit,
   onPageChange,
   onResetFilters,
@@ -175,16 +183,34 @@ export function UserList({
       },
       {
         cell: ({ row }) => (
-          <>
-            <p className="font-semibold">{userDisplayName(row.original)}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {row.original.email ?? "—"}
-              {row.original.code ? ` · ${row.original.code}` : ""}
-            </p>
-          </>
+          <p className="font-semibold">{userDisplayName(row.original)}</p>
         ),
         header: "Người dùng",
         id: "name",
+      },
+      {
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">
+            {row.original.code ?? "—"}
+          </span>
+        ),
+        header: "Mã GV/SV",
+        id: "code",
+        meta: {
+          className: "text-sm",
+        },
+      },
+      {
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">
+            {row.original.email ?? "—"}
+          </span>
+        ),
+        header: "Email",
+        id: "email",
+        meta: {
+          className: "text-sm",
+        },
       },
       {
         cell: ({ row }) => {
@@ -243,6 +269,7 @@ export function UserList({
           <UserActions
             canDelete={canDelete}
             canUpdate={canUpdate}
+            onDetail={onDetail}
             onEdit={onEdit}
             onStatusRequest={onStatusRequest}
             user={row.original}
@@ -258,6 +285,7 @@ export function UserList({
       canDelete,
       canUpdate,
       firstRowNumber,
+      onDetail,
       onEdit,
       onStatusRequest,
       onToggleAllSelection,
@@ -271,12 +299,12 @@ export function UserList({
     <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
       <ListToolbar
         isFiltered={isFiltered}
-        onApplyFilters={() => undefined}
+        onApplyFilters={onApplyFilters}
         onResetFilters={onResetFilters}
         onSearchChange={onSearchChange}
         search={search}
         searchAriaLabel="Tìm người dùng"
-        searchPlaceholder="Tìm tên, email hoặc mã nhân viên..."
+        searchPlaceholder="Tìm tên, email hoặc mã GV/SV..."
       >
         <Select
           onValueChange={(value) => onStatusChange(value as StatusFilter)}
@@ -343,6 +371,7 @@ export function UserList({
                   <UserActions
                     canDelete={canDelete}
                     canUpdate={canUpdate}
+                    onDetail={onDetail}
                     onEdit={onEdit}
                     onStatusRequest={onStatusRequest}
                     user={user}

@@ -4,9 +4,11 @@ import { BulkStatusDialog } from "@/components/shared/dialog/bulk-status-dialog"
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PermissionDetailDialog } from "@/features/rbac/components/permission/permission-detail-dialog"
 import { PermissionDialog } from "@/features/rbac/components/permission/permission-dialog"
 import { PermissionList } from "@/features/rbac/components/permission/permission-list"
 import { PermissionStatusDialog } from "@/features/rbac/components/permission/permission-status-dialog"
+import { RoleDetailDialog } from "@/features/rbac/components/role/role-detail-dialog"
 import { RoleDialog } from "@/features/rbac/components/role/role-dialog"
 import { RoleList } from "@/features/rbac/components/role/role-list"
 import { RoleStatusDialog } from "@/features/rbac/components/role/role-status-dialog"
@@ -65,6 +67,7 @@ export function RbacDashboard() {
                   dashboard.requestRoleBulkAction("deactivate")
                 }
                 onBulkRecover={() => dashboard.requestRoleBulkAction("recover")}
+                onDetail={dashboard.openRoleDetail}
                 onEditRole={dashboard.openEditRole}
                 onPageChange={dashboard.setRolePage}
                 onPermissionChange={dashboard.setRolePermission}
@@ -105,6 +108,7 @@ export function RbacDashboard() {
                 onBulkRecover={() =>
                   dashboard.requestPermissionBulkAction("recover")
                 }
+                onDetail={dashboard.openPermissionDetail}
                 onEditPermission={dashboard.openEditPermission}
                 onLevelChange={dashboard.setPermissionLevel}
                 onPageChange={dashboard.setPermissionPage}
@@ -130,6 +134,30 @@ export function RbacDashboard() {
         title={isRoleTab ? "Danh sách vai trò" : "Danh sách quyền hạn"}
         value={dashboard.activeTab}
       />
+
+      {dashboard.viewingRole ? (
+        <RoleDetailDialog
+          canUpdate={dashboard.canUpdateRoles}
+          onEdit={dashboard.openEditRole}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeRoleDetail()
+          }}
+          open
+          role={dashboard.viewingRole}
+        />
+      ) : null}
+
+      {dashboard.viewingPermission ? (
+        <PermissionDetailDialog
+          canUpdate={dashboard.canUpdatePermissions}
+          onEdit={dashboard.openEditPermission}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closePermissionDetail()
+          }}
+          open
+          permission={dashboard.viewingPermission}
+        />
+      ) : null}
 
       {dashboard.isRoleDialogOpen ? (
         <RoleDialog

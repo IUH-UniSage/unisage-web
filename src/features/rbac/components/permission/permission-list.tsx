@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
+import { Eye, MoreHorizontal, Pencil, Power, RotateCcw } from "lucide-react"
 import { useMemo } from "react"
 
 import { BulkActionsBar } from "@/components/shared/list/bulk-actions-bar"
@@ -41,6 +41,7 @@ import { formatAuditDate } from "@/utils/date-format"
 type PermissionActionsProps = {
   canDeletePermissions: boolean
   canUpdatePermissions: boolean
+  onDetail: (permission: AccessPermission) => void
   onEditPermission: (permission: AccessPermission) => void
   onStatusRequest: (permission: AccessPermission) => void
   permission: AccessPermission
@@ -49,12 +50,11 @@ type PermissionActionsProps = {
 function PermissionActions({
   canDeletePermissions,
   canUpdatePermissions,
+  onDetail,
   onEditPermission,
   onStatusRequest,
   permission,
 }: PermissionActionsProps) {
-  if (!canUpdatePermissions && !canDeletePermissions) return null
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -67,6 +67,10 @@ function PermissionActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => onDetail(permission)}>
+          <Eye aria-hidden="true" />
+          Xem chi tiết
+        </DropdownMenuItem>
         {canUpdatePermissions ? (
           <DropdownMenuItem onSelect={() => onEditPermission(permission)}>
             <Pencil aria-hidden="true" />
@@ -102,6 +106,7 @@ type PermissionListProps = {
   onBulkClear: () => void
   onBulkDeactivate: () => void
   onBulkRecover: () => void
+  onDetail: (permission: AccessPermission) => void
   onEditPermission: (permission: AccessPermission) => void
   onLevelChange: (value: PermissionLevelFilter) => void
   onPageChange: (page: number) => void
@@ -130,6 +135,7 @@ export function PermissionList({
   onBulkClear,
   onBulkDeactivate,
   onBulkRecover,
+  onDetail,
   onEditPermission,
   onLevelChange,
   onPageChange,
@@ -235,6 +241,7 @@ export function PermissionList({
           <PermissionActions
             canDeletePermissions={canDeletePermissions}
             canUpdatePermissions={canUpdatePermissions}
+            onDetail={onDetail}
             onEditPermission={onEditPermission}
             onStatusRequest={onStatusRequest}
             permission={row.original}
@@ -250,6 +257,7 @@ export function PermissionList({
       canDeletePermissions,
       canUpdatePermissions,
       firstRowNumber,
+      onDetail,
       onEditPermission,
       onStatusRequest,
       onToggleAllSelection,
@@ -356,6 +364,7 @@ export function PermissionList({
                     <PermissionActions
                       canDeletePermissions={canDeletePermissions}
                       canUpdatePermissions={canUpdatePermissions}
+                      onDetail={onDetail}
                       onEditPermission={onEditPermission}
                       onStatusRequest={onStatusRequest}
                       permission={permission}

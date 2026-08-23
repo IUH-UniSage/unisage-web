@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { BulkStatusDialog } from "@/components/shared/dialog/bulk-status-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UserDetailDialog } from "@/features/users/components/user-detail-dialog"
 import { UserDialog } from "@/features/users/components/user-dialog"
 import { UserList } from "@/features/users/components/user-list"
 import { UserStatusDialog } from "@/features/users/components/user-status-dialog"
@@ -49,18 +50,15 @@ export function UserDashboard() {
           canUpdate={dashboard.canUpdate}
           currentPage={dashboard.page}
           isBulkUpdating={dashboard.isBulkUpdating}
-          isFiltered={
-            dashboard.search.trim() !== "" || dashboard.statusFilter !== "all"
-          }
+          isFiltered={dashboard.isFiltered}
+          onApplyFilters={dashboard.applyFilters}
           onBulkClear={dashboard.clearSelection}
           onBulkDeactivate={() => dashboard.requestBulkAction("deactivate")}
           onBulkRecover={() => dashboard.requestBulkAction("recover")}
+          onDetail={dashboard.openDetail}
           onEdit={dashboard.openEdit}
           onPageChange={dashboard.setPage}
-          onResetFilters={() => {
-            dashboard.setSearch("")
-            dashboard.setStatusFilter("all")
-          }}
+          onResetFilters={dashboard.resetFilters}
           onSearchChange={dashboard.setSearch}
           onStatusChange={dashboard.setStatusFilter}
           onStatusRequest={dashboard.requestStatusChange}
@@ -74,6 +72,18 @@ export function UserDashboard() {
           users={dashboard.pagedUsers}
         />
       </div>
+
+      {dashboard.viewingUser ? (
+        <UserDetailDialog
+          canUpdate={dashboard.canUpdate}
+          onEdit={dashboard.openEdit}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeDetail()
+          }}
+          open
+          user={dashboard.viewingUser}
+        />
+      ) : null}
 
       {dashboard.isDialogOpen ? (
         <UserDialog
