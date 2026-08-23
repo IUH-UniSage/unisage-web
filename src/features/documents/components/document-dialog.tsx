@@ -110,7 +110,8 @@ export function DocumentDialog({
         >
           <div className="space-y-2 rounded-xl border p-3">
             <Label htmlFor="document-title">
-              Tiêu đề <span className="text-destructive">*</span>
+              Tiêu đề{" "}
+              <span className="translate-y-0.5 text-destructive">*</span>
             </Label>
             <Input
               aria-invalid={Boolean(errors.title)}
@@ -169,7 +170,8 @@ export function DocumentDialog({
 
             <div className="space-y-2">
               <Label htmlFor="document-file-type">
-                Loại tệp <span className="text-destructive">*</span>
+                Loại tệp{" "}
+                <span className="translate-y-0.5 text-destructive">*</span>
               </Label>
               <Input
                 aria-invalid={Boolean(errors.fileType)}

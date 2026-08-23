@@ -83,7 +83,8 @@ export function CategoryDialog({
         >
           <div className="space-y-2 rounded-xl border p-3">
             <Label htmlFor="category-name">
-              Tên danh mục <span className="text-destructive">*</span>
+              Tên danh mục{" "}
+              <span className="translate-y-0.5 text-destructive">*</span>
             </Label>
             <Input
               aria-invalid={Boolean(errors.name)}
@@ -98,7 +99,7 @@ export function CategoryDialog({
 
           <div className="space-y-2 rounded-xl border p-3">
             <Label htmlFor="category-description">
-              Mô tả <span className="text-destructive">*</span>
+              Mô tả <span className="translate-y-0.5 text-destructive">*</span>
             </Label>
             <Textarea
               aria-invalid={Boolean(errors.description)}
