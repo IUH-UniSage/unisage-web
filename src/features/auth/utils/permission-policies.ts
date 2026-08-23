@@ -16,6 +16,7 @@ export const PERMISSION_POLICIES = {
   adminRbac: policy(PERMISSIONS.roleRead, PERMISSIONS.permissionRead),
   adminSettings: policy(PERMISSIONS.superAdminAll),
   ingesterOverview: policy(PERMISSIONS.ingestAll, PERMISSIONS.documentRead),
+  ingesterCategories: policy(PERMISSIONS.categoryRead),
   ingesterDocuments: policy(PERMISSIONS.documentRead),
   ingesterProcessing: policy(PERMISSIONS.ingestAll),
   ingesterQuality: policy(PERMISSIONS.documentRead),
