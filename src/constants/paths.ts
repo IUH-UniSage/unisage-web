@@ -49,3 +49,11 @@ export const ROUTES = {
 } as const
 
 export type RouteKey = keyof typeof ROUTES
+
+export function ingesterIngestWizardPath(documentId: string): string {
+  return `${ROUTES.ingesterProcessing}/${documentId}`
+}
+
+export function adminDocumentIngestWizardPath(documentId: string): string {
+  return `${ROUTES.adminDocuments}/${documentId}/ingest`
+}

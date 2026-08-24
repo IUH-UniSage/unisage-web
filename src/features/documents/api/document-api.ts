@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   documentPageSchema,
   documentSchema,
+  type DocStatus,
   type Document,
   type DocumentFormValues,
   type DocumentPage,
@@ -73,6 +74,18 @@ export const documentApi = {
       API_ENDPOINTS.documents.document(documentId),
       toFormData(input),
       { headers: { "Content-Type": undefined } }
+    )
+
+    return readSuccessData(response.data, documentSchema)
+  },
+
+  async updateDocumentStatus(
+    documentId: string,
+    status: DocStatus
+  ): Promise<Document> {
+    const response = await httpClient.patch<ApiResponse<Document>>(
+      API_ENDPOINTS.documents.documentStatus(documentId),
+      { status }
     )
 
     return readSuccessData(response.data, documentSchema)

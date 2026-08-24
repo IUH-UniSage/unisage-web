@@ -1,5 +1,7 @@
 import { useState } from "react"
 
+import { usePermissions } from "@/features/auth/hooks/use-permissions"
+import { PERMISSION_POLICIES } from "@/features/auth/utils/permission-policies"
 import {
   useCreateDocumentMutation,
   useDeleteDocumentMutation,
@@ -21,11 +23,14 @@ export function useDocumentDashboard() {
   const updateDocument = useUpdateDocumentMutation()
   const deleteDocument = useDeleteDocumentMutation()
   const { canCreate, canDelete, canUpdate } = useResourcePermissions("document")
+  const { canAny } = usePermissions()
+  const canProcess = canAny(PERMISSION_POLICIES.ingesterProcessing)
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingDocument, setEditingDocument] = useState<Document>()
   const [deletingDocument, setDeletingDocument] = useState<Document>()
   const [viewingDocumentId, setViewingDocumentId] = useState<string>()
+  const [uploadedDocument, setUploadedDocument] = useState<Document>()
 
   const documents = documentsQuery.data?.data ?? []
   const totalItems = documentsQuery.data?.totalItems ?? 0
@@ -57,11 +62,14 @@ export function useDocumentDashboard() {
         input,
       })
     } else {
-      await createDocument.mutateAsync(input)
+      const created = await createDocument.mutateAsync(input)
+      setUploadedDocument(created)
     }
 
     setIsDialogOpen(false)
   }
+
+  const closeUploadSuccessDialog = () => setUploadedDocument(undefined)
 
   const requestDelete = (document: Document) => setDeletingDocument(document)
 
@@ -81,10 +89,12 @@ export function useDocumentDashboard() {
   return {
     canCreate,
     canDelete,
+    canProcess,
     canUpdate,
     closeDeleteDialog,
     closeDialog,
     closeDocumentDetail,
+    closeUploadSuccessDialog,
     confirmDelete,
     deletingDocument,
     documents,
@@ -102,6 +112,7 @@ export function useDocumentDashboard() {
     setPage,
     totalItems,
     totalPages,
+    uploadedDocument,
     viewingDocumentId,
   }
 }

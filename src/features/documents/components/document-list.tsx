@@ -6,6 +6,7 @@ import {
   Pencil,
   Search,
   Trash2,
+  UploadCloud,
 } from "lucide-react"
 import { useMemo } from "react"
 
@@ -32,22 +33,27 @@ import { formatAuditDate } from "@/utils/date-format"
 
 type DocumentActionsProps = {
   canDelete: boolean
+  canProcess: boolean
   canUpdate: boolean
   document: Document
   onEdit: (document: Document) => void
+  onProcess: (document: Document) => void
   onRequestDelete: (document: Document) => void
   onViewDetail: (document: Document) => void
 }
 
 function DocumentActions({
   canDelete,
+  canProcess,
   canUpdate,
   document,
   onEdit,
+  onProcess,
   onRequestDelete,
   onViewDetail,
 }: DocumentActionsProps) {
   const canDownload = Boolean(document.fileUrl)
+  const canProcessThisDocument = canProcess && document.status !== "COMPLETED"
 
   return (
     <DropdownMenu>
@@ -77,6 +83,12 @@ function DocumentActions({
             </a>
           </DropdownMenuItem>
         ) : null}
+        {canProcessThisDocument ? (
+          <DropdownMenuItem onSelect={() => onProcess(document)}>
+            <UploadCloud aria-hidden="true" />
+            Xử lý nạp liệu
+          </DropdownMenuItem>
+        ) : null}
         {canUpdate ? (
           <DropdownMenuItem onSelect={() => onEdit(document)}>
             <Pencil aria-hidden="true" />
@@ -99,11 +111,13 @@ function DocumentActions({
 
 type DocumentListProps = {
   canDelete: boolean
+  canProcess: boolean
   canUpdate: boolean
   currentPage: number
   documents: Document[]
   onEdit: (document: Document) => void
   onPageChange: (page: number) => void
+  onProcess: (document: Document) => void
   onRequestDelete: (document: Document) => void
   onViewDetail: (document: Document) => void
   totalItems: number
@@ -112,11 +126,13 @@ type DocumentListProps = {
 
 export function DocumentList({
   canDelete,
+  canProcess,
   canUpdate,
   currentPage,
   documents,
   onEdit,
   onPageChange,
+  onProcess,
   onRequestDelete,
   onViewDetail,
   totalItems,
@@ -185,9 +201,11 @@ export function DocumentList({
         cell: ({ row }) => (
           <DocumentActions
             canDelete={canDelete}
+            canProcess={canProcess}
             canUpdate={canUpdate}
             document={row.original}
             onEdit={onEdit}
+            onProcess={onProcess}
             onRequestDelete={onRequestDelete}
             onViewDetail={onViewDetail}
           />
@@ -199,9 +217,11 @@ export function DocumentList({
     ],
     [
       canDelete,
+      canProcess,
       canUpdate,
       firstRowNumber,
       onEdit,
+      onProcess,
       onRequestDelete,
       onViewDetail,
     ]
@@ -261,9 +281,11 @@ export function DocumentList({
                 </div>
                 <DocumentActions
                   canDelete={canDelete}
+                  canProcess={canProcess}
                   canUpdate={canUpdate}
                   document={document}
                   onEdit={onEdit}
+                  onProcess={onProcess}
                   onRequestDelete={onRequestDelete}
                   onViewDetail={onViewDetail}
                 />

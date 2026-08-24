@@ -1,15 +1,34 @@
 import { Plus } from "lucide-react"
+import { useLocation, useNavigate } from "react-router-dom"
 
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  adminDocumentIngestWizardPath,
+  ingesterIngestWizardPath,
+  ROUTES,
+} from "@/constants/paths"
 import { DocumentDetailDialog } from "@/features/documents/components/document-detail-dialog"
 import { DocumentDialog } from "@/features/documents/components/document-dialog"
 import { DocumentList } from "@/features/documents/components/document-list"
+import { DocumentUploadSuccessDialog } from "@/features/documents/components/document-upload-success-dialog"
 import { useDocumentDashboard } from "@/features/documents/hooks/use-document-dashboard"
+import { EmbedCompletionWatchers } from "@/features/ingestion"
 
 export function DocumentDashboard() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const dashboard = useDocumentDashboard()
+
+  // Quản trị tài liệu is registered in both the system-admin and ingester
+  // workspaces (see feature-registry.tsx) - the ingest wizard route it links
+  // to is role-gated per workspace, so which one to link to depends on which
+  // workspace this instance of the page is currently mounted under.
+  const wizardPath = (documentId: string) =>
+    location.pathname.startsWith(ROUTES.admin)
+      ? adminDocumentIngestWizardPath(documentId)
+      : ingesterIngestWizardPath(documentId)
 
   if (dashboard.isPending) {
     return <DocumentSkeleton />
@@ -41,16 +60,20 @@ export function DocumentDashboard() {
 
       <DocumentList
         canDelete={dashboard.canDelete}
+        canProcess={dashboard.canProcess}
         canUpdate={dashboard.canUpdate}
         currentPage={dashboard.page}
         documents={dashboard.documents}
         onEdit={dashboard.openEdit}
         onPageChange={dashboard.setPage}
+        onProcess={(document) => navigate(wizardPath(document.id))}
         onRequestDelete={dashboard.requestDelete}
         onViewDetail={dashboard.openDocumentDetail}
         totalItems={dashboard.totalItems}
         totalPages={dashboard.totalPages}
       />
+
+      <EmbedCompletionWatchers documents={dashboard.documents} />
 
       {dashboard.viewingDocumentId ? (
         <DocumentDetailDialog
@@ -73,6 +96,20 @@ export function DocumentDashboard() {
           }}
           onSubmit={dashboard.save}
           open
+        />
+      ) : null}
+
+      {dashboard.uploadedDocument ? (
+        <DocumentUploadSuccessDialog
+          documentTitle={dashboard.uploadedDocument.title}
+          onIngestNow={() => {
+            const documentId = dashboard.uploadedDocument?.id
+            dashboard.closeUploadSuccessDialog()
+            if (documentId) navigate(wizardPath(documentId))
+          }}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeUploadSuccessDialog()
+          }}
         />
       ) : null}
 

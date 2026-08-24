@@ -116,6 +116,12 @@ const DocumentPage = lazy(async () => {
   return { default: DocumentPage }
 })
 
+const IngesterProcessingPage = lazy(async () => {
+  const { IngesterProcessingPage } =
+    await import("@/pages/ingester/ingester-processing-page")
+  return { default: IngesterProcessingPage }
+})
+
 // Array order = nav display order, per workspace, in the order each
 // workspace's filtered view encounters entries - see getWorkspaceFeatures().
 // Placing an entry earlier moves it earlier in every workspace it belongs
@@ -233,7 +239,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     workspaces: ["system-admin"],
   },
   {
-    element: <WorkspacePlaceholderPage title="Hàng đợi xử lý" />,
+    element: <IngesterProcessingPage />,
     icon: UploadCloud,
     key: "ingester-processing",
     label: "Đang xử lý",

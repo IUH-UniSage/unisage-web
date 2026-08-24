@@ -20,6 +20,33 @@ export function UserDashboard() {
     return <UserSkeleton />
   }
 
+  if (dashboard.viewingUser) {
+    return (
+      <UserDetailDialog
+        canUpdate={dashboard.canUpdate}
+        onEdit={dashboard.openEdit}
+        onOpenChange={(open) => {
+          if (!open) dashboard.closeDetail()
+        }}
+        user={dashboard.viewingUser}
+      />
+    )
+  }
+
+  if (dashboard.isDialogOpen) {
+    return (
+      <UserDialog
+        isSaving={dashboard.isSaving}
+        onOpenChange={(open) => {
+          if (!open) dashboard.closeDialog()
+        }}
+        onSubmit={dashboard.save}
+        roles={roles}
+        user={dashboard.editingUser}
+      />
+    )
+  }
+
   return (
     <>
       <div className="space-y-4">
@@ -72,31 +99,6 @@ export function UserDashboard() {
           users={dashboard.pagedUsers}
         />
       </div>
-
-      {dashboard.viewingUser ? (
-        <UserDetailDialog
-          canUpdate={dashboard.canUpdate}
-          onEdit={dashboard.openEdit}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeDetail()
-          }}
-          open
-          user={dashboard.viewingUser}
-        />
-      ) : null}
-
-      {dashboard.isDialogOpen ? (
-        <UserDialog
-          isSaving={dashboard.isSaving}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeDialog()
-          }}
-          onSubmit={dashboard.save}
-          open
-          roles={roles}
-          user={dashboard.editingUser}
-        />
-      ) : null}
 
       {dashboard.statusUser ? (
         <UserStatusDialog
