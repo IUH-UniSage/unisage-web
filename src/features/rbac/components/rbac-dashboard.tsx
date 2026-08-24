@@ -24,6 +24,33 @@ export function RbacDashboard() {
     return <RbacSkeleton />
   }
 
+  if (dashboard.viewingRole) {
+    return (
+      <RoleDetailDialog
+        canUpdate={dashboard.canUpdateRoles}
+        onEdit={dashboard.openEditRole}
+        onOpenChange={(open) => {
+          if (!open) dashboard.closeRoleDetail()
+        }}
+        role={dashboard.viewingRole}
+      />
+    )
+  }
+
+  if (dashboard.isRoleDialogOpen) {
+    return (
+      <RoleDialog
+        isSaving={dashboard.isSavingRole}
+        onOpenChange={(open) => {
+          if (!open) dashboard.closeRoleDialog()
+        }}
+        onSubmit={dashboard.saveRole}
+        permissions={dashboard.permissions}
+        role={dashboard.editingRole}
+      />
+    )
+  }
+
   const isRoleTab = dashboard.activeTab === "roles"
 
   return (
@@ -133,18 +160,6 @@ export function RbacDashboard() {
         value={dashboard.activeTab}
       />
 
-      {dashboard.viewingRole ? (
-        <RoleDetailDialog
-          canUpdate={dashboard.canUpdateRoles}
-          onEdit={dashboard.openEditRole}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeRoleDetail()
-          }}
-          open
-          role={dashboard.viewingRole}
-        />
-      ) : null}
-
       {dashboard.viewingPermission ? (
         <PermissionDetailDialog
           canUpdate={dashboard.canUpdatePermissions}
@@ -154,19 +169,6 @@ export function RbacDashboard() {
           }}
           open
           permission={dashboard.viewingPermission}
-        />
-      ) : null}
-
-      {dashboard.isRoleDialogOpen ? (
-        <RoleDialog
-          isSaving={dashboard.isSavingRole}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeRoleDialog()
-          }}
-          onSubmit={dashboard.saveRole}
-          open
-          permissions={dashboard.permissions}
-          role={dashboard.editingRole}
         />
       ) : null}
 
