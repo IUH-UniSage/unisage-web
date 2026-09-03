@@ -4,15 +4,13 @@ import { useNavigate } from "react-router-dom"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Document } from "@/features/documents/schemas/document-schemas"
-import {
-  ChunkEditorPanel,
-  ChunkingConfigPanel,
-  ChunkingConfirmActions,
-  ChunkListPanel,
-  EmbeddingStep,
-  ErrorAlert,
-  PreviewStep,
-} from "@/features/ingestion/components/ingest-wizard-steps"
+import { ChunkEditorPanel } from "@/features/ingestion/components/steps/chunking/chunk-editor-panel"
+import { ChunkListPanel } from "@/features/ingestion/components/steps/chunking/chunk-list-panel"
+import { ChunkingConfigPanel } from "@/features/ingestion/components/steps/chunking/config-panel"
+import { ChunkingConfirmActions } from "@/features/ingestion/components/steps/chunking/confirm-actions"
+import { EmbeddingStep } from "@/features/ingestion/components/steps/embedding-step"
+import { PreviewStep } from "@/features/ingestion/components/steps/preview-step"
+import { ErrorAlert } from "@/features/ingestion/components/steps/step-primitives"
 import { useIngestWizard } from "@/features/ingestion/hooks/use-ingest-wizard"
 import { cn } from "@/lib/utils"
 
@@ -46,11 +44,9 @@ function StepIndicator({ activeStep }: { activeStep: VisualStep }) {
                 aria-current={isActive ? "step" : undefined}
                 className={cn(
                   "grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold",
-                  isDone
+                  isDone || isActive
                     ? "bg-primary text-primary-foreground"
-                    : isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                    : "bg-muted text-muted-foreground"
                 )}
               >
                 {isDone ? (

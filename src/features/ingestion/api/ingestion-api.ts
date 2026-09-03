@@ -4,14 +4,12 @@ import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
   chunkingResponseSchema,
   embeddingAcceptedResponseSchema,
-  embeddingStatusResponseSchema,
   ingestionJobResponseSchema,
   previewResponseSchema,
   type ChunkingRequest,
   type ChunkingResponse,
   type EmbeddingAcceptedResponse,
   type EmbeddingRequest,
-  type EmbeddingStatusResponse,
   type IngestionJobResponse,
   type PreviewRequest,
   type PreviewResponse,
@@ -39,30 +37,11 @@ export const ingestionApi = {
   },
 
   /**
-   * Clears a document's ingestion job row once its embed task has reached a
-   * terminal state (SUCCESS/FAILURE) - a no-op server-side if none exists.
-   */
-  async deleteJob(documentId: string): Promise<void> {
-    await aiHttpClient.delete(API_ENDPOINTS.ingestion.job(documentId))
-  },
-
-  /**
-   * Poll-friendly HTTP equivalent of one WebSocket progress frame - lets a
-   * caller detect an embed task finishing without keeping a WebSocket open.
-   */
-  async getEmbeddingStatus(taskId: string): Promise<EmbeddingStatusResponse> {
-    const response = await aiHttpClient.get(
-      API_ENDPOINTS.ingestion.embeddingStatus(taskId)
-    )
-
-    return readAiSuccessData(response.data, embeddingStatusResponseSchema)
-  },
-
-  /**
-   * Returns the resumable chunking draft for a document, or `null` if none
-   * exists yet - a 404 here is a valid outcome ("no draft"), not an error,
-   * so it's translated to `null` rather than left for the caller to
-   * distinguish from a real failure.
+   * Returns the resumable ingestion record for a document, or `null` if
+   * none exists yet - a 404 here is a valid outcome ("no draft"), not an
+   * error, so it's translated to `null` rather than left for the caller to
+   * distinguish from a real failure. When the record is at the embedding
+   * step the response carries the live task state inline (`task_state`).
    */
   async getJob(documentId: string): Promise<IngestionJobResponse | null> {
     try {

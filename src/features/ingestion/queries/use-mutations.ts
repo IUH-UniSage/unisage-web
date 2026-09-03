@@ -38,13 +38,3 @@ export function useEmbedMutation() {
     mutationFn: (input: EmbeddingRequest) => ingestionApi.embed(input),
   })
 }
-
-// Fires once the wizard observes the embed task reach a terminal state, to
-// clear the now-stale ingestion job row - not a user-facing action, so no
-// toast either way.
-export function useDeleteIngestionJobMutation() {
-  return useMutation({
-    meta: { suppressGlobalError: true },
-    mutationFn: (documentId: string) => ingestionApi.deleteJob(documentId),
-  })
-}

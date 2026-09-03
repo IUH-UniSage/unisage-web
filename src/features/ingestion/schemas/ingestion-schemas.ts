@@ -54,19 +54,39 @@ export const embeddingAcceptedResponseSchema = z.object({
   task_id: z.string(),
 })
 
-export const embeddingStatusResponseSchema = z.object({
-  percent: z.number(),
-  state: z.string(),
-})
+export const ingestionStepSchema = z.enum(["chunked", "embedding"])
 
 export const ingestionJobResponseSchema = z.object({
   object_key: z.string(),
-  current_step: z.string(),
-  chunking_strategy: z.string(),
+  current_step: ingestionStepSchema,
+  chunking_strategy: chunkingStrategyNameSchema,
   chunking_params: z.record(z.string(), z.unknown()),
   chunks: z.array(chunkSchema),
   task_id: z.string().nullable(),
+  // Present only while `current_step` is "embedding" - the live Celery task
+  // progress, read server-side so the reconciliation sweep needs one call.
+  task_state: z.string().nullable().optional(),
+  task_percent: z.number().nullable().optional(),
 })
+
+// One frame from `WS /ingestion/events` (the broadcast progress/completion
+// channel). The relay already filters frames to the caller's departments.
+export const ingestionEventSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("progress"),
+    task_id: z.string(),
+    document_id: z.string(),
+    department_id: z.string(),
+    percent: z.number(),
+  }),
+  z.object({
+    type: z.literal("completed"),
+    task_id: z.string(),
+    document_id: z.string(),
+    department_id: z.string(),
+    state: z.string(),
+  }),
+])
 
 // Form-side schema for the chunking step's strategy-params inputs - mirrors
 // exactly what app/rag/chunking/strategy.py's dispatch() reads per strategy
@@ -95,7 +115,6 @@ export type EmbeddingRequest = z.infer<typeof embeddingRequestSchema>
 export type EmbeddingAcceptedResponse = z.infer<
   typeof embeddingAcceptedResponseSchema
 >
-export type EmbeddingStatusResponse = z.infer<
-  typeof embeddingStatusResponseSchema
->
+export type IngestionStep = z.infer<typeof ingestionStepSchema>
 export type IngestionJobResponse = z.infer<typeof ingestionJobResponseSchema>
+export type IngestionEvent = z.infer<typeof ingestionEventSchema>

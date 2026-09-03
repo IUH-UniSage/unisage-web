@@ -1,4 +1,4 @@
-export { EmbedCompletionWatchers } from "@/features/ingestion/components/embed-completion-watchers"
+export { DocumentStatusSync } from "@/features/ingestion/components/document-status-sync"
 export { IngesterDashboardPage } from "@/features/ingestion/components/ingester-dashboard"
 export { IngestWizardPageContent } from "@/features/ingestion/components/ingest-wizard-page-content"
 export { IngesterProcessingList } from "@/features/ingestion/components/ingester-processing-list"

@@ -59,10 +59,7 @@ export const API_ENDPOINTS = {
   ingestion: {
     chunking: "/ingestion/chunking",
     embedding: "/ingestion/embedding",
-    embeddingProgress: (taskId: string) =>
-      `/ingestion/embedding/${taskId}/progress`,
-    embeddingStatus: (taskId: string) =>
-      `/ingestion/embedding/${taskId}/status`,
+    events: "/ingestion/events",
     job: (documentId: string) => `/ingestion/jobs/${documentId}`,
     preview: "/ingestion/preview",
   },

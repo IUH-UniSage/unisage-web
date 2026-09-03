@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from "react"
 
+import { useUpdateDocumentStatusMutation } from "@/features/documents/queries/use-mutations"
 import type { Document } from "@/features/documents/schemas/document-schemas"
-import { useEmbeddingProgress } from "@/features/ingestion/hooks/use-embedding-progress"
-import { useReportEmbedCompletion } from "@/features/ingestion/hooks/use-report-embed-completion"
+import {
+  EMBEDDING_CONNECTING,
+  isTerminalTaskState,
+  terminalStateToDocStatus,
+  type EmbeddingProgress,
+} from "@/features/ingestion/constants"
+import { useIngestionEvents } from "@/features/ingestion/hooks/use-ingestion-events"
 import {
   useChunkMutation,
   useEmbedMutation,
@@ -16,12 +22,19 @@ import type {
 
 export type WizardStep = "preview" | "chunking" | "review" | "embedding"
 
+const COMPLETED_PROGRESS: EmbeddingProgress = { percent: 100, state: "SUCCESS" }
+
 export function useIngestWizard(document: Document) {
   const jobQuery = useIngestionJobQuery(document.id)
   const previewMutation = usePreviewMutation()
   const chunkMutation = useChunkMutation()
   const embedMutation = useEmbedMutation()
-  const reportEmbedCompletion = useReportEmbedCompletion()
+  const updateDocumentStatus = useUpdateDocumentStatusMutation()
+
+  // A document already marked COMPLETED never needs the live channel or a
+  // task-status read (an old task_id can read back as PENDING once the
+  // Celery result TTL lapses) - the wizard just shows the done view.
+  const alreadyComplete = document.status === "COMPLETED"
 
   const [step, setStep] = useState<WizardStep>("preview")
   const [previewText, setPreviewText] = useState<string>()
@@ -53,28 +66,46 @@ export function useIngestWizard(document: Document) {
   const [hasHydrated, setHasHydrated] = useState(false)
   const hasAutoStartedPreview = useRef(false)
 
-  const embeddingProgress = useEmbeddingProgress(embeddingTaskId)
-  const hasReportedTerminalStatus = useRef(false)
+  const [embeddingProgress, setEmbeddingProgress] = useState<EmbeddingProgress>(
+    alreadyComplete ? COMPLETED_PROGRESS : EMBEDDING_CONNECTING
+  )
+  const hasReportedTerminalStatus = useRef(alreadyComplete)
 
-  // Once the embed task reaches a terminal state: tell Java so
-  // Document.status leaves PENDING/PROCESSING (COMPLETED removes the
-  // document from the Processing queue entirely, FAILED keeps it there so
-  // the user can retry), and clear unisage-agent's ingestion job row so a
-  // future resume doesn't reconnect to a task whose result has already been
-  // consumed. Guarded to fire once per embed dispatch (WS can send the
-  // terminal frame more than once before the socket closes).
+  // Live progress for this wizard's own embed task, off the shared
+  // `/ingestion/events` channel. Only connect while actually on the
+  // embedding step and not resuming a finished document.
+  useIngestionEvents(
+    (event) => {
+      if (event.task_id !== embeddingTaskId) return
+      setEmbeddingProgress(
+        event.type === "progress"
+          ? { percent: event.percent, state: "PROGRESS" }
+          : {
+              percent: 100,
+              state: event.state === "FAILURE" ? "FAILURE" : "SUCCESS",
+            }
+      )
+    },
+    { enabled: step === "embedding" && !alreadyComplete }
+  )
+
+  // Once the embed task reaches a terminal state, tell Java so
+  // Document.status leaves PENDING (COMPLETED removes the document from the
+  // Processing queue; FAILED keeps it there so the user can retry). Guarded
+  // to fire once per embed dispatch (a terminal frame can arrive more than
+  // once before the socket closes).
   useEffect(() => {
     if (hasReportedTerminalStatus.current) return
-    if (
-      embeddingProgress.state !== "SUCCESS" &&
-      embeddingProgress.state !== "FAILURE"
-    ) {
-      return
-    }
+    if (!isTerminalTaskState(embeddingProgress.state)) return
 
     hasReportedTerminalStatus.current = true
-    reportEmbedCompletion(document.id, embeddingProgress.state)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reportEmbedCompletion closes over useMutation results, not a reactive dependency; document.id is stable for the wizard's lifetime
+    updateDocumentStatus.mutate({
+      documentId: document.id,
+      status: terminalStateToDocStatus(
+        embeddingProgress.state === "FAILURE" ? "FAILURE" : "SUCCESS"
+      ),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateDocumentStatus closes over useMutation results, not a reactive dependency; document.id is stable for the wizard's lifetime
   }, [embeddingProgress.state])
 
   // A document created without a department (a public, no-package document -
@@ -85,12 +116,29 @@ export function useIngestWizard(document: Document) {
   const missingDepartmentInfo =
     !document.departmentId || document.minAccessLevel == null
 
+  // The document fields every step needs, narrowed to non-null once. The
+  // wizard UI already blocks on `missingDepartmentInfo`, so in practice
+  // this is non-null whenever a step action can run.
+  const processCtx =
+    document.departmentId != null &&
+    document.sourceUrl != null &&
+    document.minAccessLevel != null
+      ? {
+          departmentId: document.departmentId,
+          sourceUrl: document.sourceUrl,
+          accessLevel: document.minAccessLevel,
+        }
+      : null
+
   if (!hasHydrated && !jobQuery.isFetching && !missingDepartmentInfo) {
     setHasHydrated(true)
 
     const job = jobQuery.data
-    if (job) {
-      setChunkingStrategy(job.chunking_strategy as ChunkingStrategyName)
+    if (alreadyComplete) {
+      setStep("embedding")
+      if (job) setChunks(job.chunks)
+    } else if (job) {
+      setChunkingStrategy(job.chunking_strategy)
       setChunkingParams(job.chunking_params)
       setChunks(job.chunks)
       if (job.current_step === "embedding" && job.task_id) {
@@ -103,12 +151,12 @@ export function useIngestWizard(document: Document) {
   }
 
   const runPreview = () => {
-    if (!document.departmentId || !document.sourceUrl) return
+    if (!processCtx) return
 
     previewMutation.mutate(
       {
-        department_id: document.departmentId,
-        object_key: document.sourceUrl,
+        department_id: processCtx.departmentId,
+        object_key: processCtx.sourceUrl,
       },
       {
         onSuccess: (response) => {
@@ -140,16 +188,16 @@ export function useIngestWizard(document: Document) {
     strategy: ChunkingStrategyName,
     params: Record<string, unknown>
   ) => {
-    if (!document.departmentId || !document.sourceUrl) return
+    if (!processCtx) return
 
     setChunkingStrategy(strategy)
     setChunkingParams(params)
 
     chunkMutation.mutate(
       {
-        department_id: document.departmentId,
+        department_id: processCtx.departmentId,
         document_id: document.id,
-        object_key: document.sourceUrl,
+        object_key: processCtx.sourceUrl,
         params,
         strategy,
       },
@@ -171,21 +219,15 @@ export function useIngestWizard(document: Document) {
   }
 
   const runEmbed = () => {
-    if (
-      !document.departmentId ||
-      !document.sourceUrl ||
-      document.minAccessLevel == null
-    ) {
-      return
-    }
+    if (!processCtx) return
 
     embedMutation.mutate(
       {
-        access_level: document.minAccessLevel,
+        access_level: processCtx.accessLevel,
         chunks,
-        department_id: document.departmentId,
+        department_id: processCtx.departmentId,
         document_id: document.id,
-        object_key: document.sourceUrl,
+        object_key: processCtx.sourceUrl,
       },
       {
         onSuccess: (response) => {

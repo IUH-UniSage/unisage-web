@@ -14,7 +14,7 @@ import { DocumentDialog } from "@/features/documents/components/document-dialog"
 import { DocumentList } from "@/features/documents/components/document-list"
 import { DocumentUploadSuccessDialog } from "@/features/documents/components/document-upload-success-dialog"
 import { useDocumentDashboard } from "@/features/documents/hooks/use-document-dashboard"
-import { EmbedCompletionWatchers } from "@/features/ingestion"
+import { DocumentStatusSync } from "@/features/ingestion"
 
 export function DocumentDashboard() {
   const navigate = useNavigate()
@@ -73,7 +73,7 @@ export function DocumentDashboard() {
         totalPages={dashboard.totalPages}
       />
 
-      <EmbedCompletionWatchers documents={dashboard.documents} />
+      <DocumentStatusSync documents={dashboard.documents} />
 
       {dashboard.viewingDocumentId ? (
         <DocumentDetailDialog

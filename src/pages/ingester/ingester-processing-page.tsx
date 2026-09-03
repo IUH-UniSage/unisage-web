@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom"
 
 import { ingesterIngestWizardPath } from "@/constants/paths"
 import {
-  EmbedCompletionWatchers,
+  DocumentStatusSync,
   IngesterProcessingList,
   useIngesterProcessing,
 } from "@/features/ingestion"
@@ -37,7 +37,7 @@ export function IngesterProcessingPage() {
         totalPages={processing.totalPages}
       />
 
-      <EmbedCompletionWatchers documents={processing.documents} />
+      <DocumentStatusSync documents={processing.documents} />
     </div>
   )
 }
