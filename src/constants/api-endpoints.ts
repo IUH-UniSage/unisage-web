@@ -24,6 +24,12 @@ export const API_ENDPOINTS = {
     logout: "/auth/logout",
     refresh: "/auth/refresh",
   },
+  chatModels: {
+    chatModel: (chatModelId: string) => `/chat-models/${chatModelId}`,
+    chatModelRecover: (chatModelId: string) =>
+      `/chat-models/${chatModelId}/recover`,
+    chatModels: "/chat-models",
+  },
   conversations: {
     conversation: (conversationId: string) =>
       `/conversations/${conversationId}`,
