@@ -1,4 +1,9 @@
 export const API_ENDPOINTS = {
+  // unisage-agent (Python) routes, reached via aiHttpClient - distinct from
+  // `documents` below, which is backend-java's `/documents` via httpClient.
+  agentDocuments: {
+    chunks: (documentId: string) => `/documents/${documentId}/chunks`,
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,

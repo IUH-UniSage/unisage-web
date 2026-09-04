@@ -17,7 +17,7 @@ import {
   type ChunkingFormValues,
 } from "@/features/ingestion/schemas/ingestion-schemas"
 import { cn } from "@/lib/utils"
-import { getAiErrorMessage } from "@/utils/ai-response"
+import { getErrorMessage } from "@/utils/error-handler"
 
 export function ChunkingConfigPanel({ wizard }: StepProps) {
   const {
@@ -83,7 +83,7 @@ export function ChunkingConfigPanel({ wizard }: StepProps) {
       {errors.strategy ? (
         <p className="text-xs text-destructive">{errors.strategy.message}</p>
       ) : null}
-      {error ? <ErrorAlert message={getAiErrorMessage(error)} /> : null}
+      {error ? <ErrorAlert message={getErrorMessage(error)} /> : null}
 
       <div className="pt-2">
         <Button

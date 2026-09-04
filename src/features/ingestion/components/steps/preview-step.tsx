@@ -9,7 +9,7 @@ import {
   estimateTokens,
   type StepProps,
 } from "@/features/ingestion/components/steps/shared"
-import { getAiErrorMessage } from "@/utils/ai-response"
+import { getErrorMessage } from "@/utils/error-handler"
 
 export function PreviewStep({ wizard }: StepProps) {
   const isLoading = wizard.previewMutation.isPending
@@ -40,7 +40,7 @@ export function PreviewStep({ wizard }: StepProps) {
           <p className="text-xs font-bold">Đang tải nội dung tài liệu...</p>
         </div>
       ) : error ? (
-        <ErrorAlert message={getAiErrorMessage(error)} />
+        <ErrorAlert message={getErrorMessage(error)} />
       ) : (
         <div className="max-h-112 overflow-y-auto rounded-3xl border border-border bg-card p-5 text-sm leading-relaxed font-medium whitespace-pre-wrap text-foreground shadow-sm">
           {wizard.previewText}

@@ -15,7 +15,7 @@ import {
   type PreviewResponse,
 } from "@/features/ingestion/schemas/ingestion-schemas"
 import { aiHttpClient } from "@/lib/ai-client"
-import { readAiSuccessData } from "@/utils/ai-response"
+import { readSuccessData } from "@/utils/api-response"
 
 export const ingestionApi = {
   async chunk(input: ChunkingRequest): Promise<ChunkingResponse> {
@@ -24,7 +24,7 @@ export const ingestionApi = {
       input
     )
 
-    return readAiSuccessData(response.data, chunkingResponseSchema)
+    return readSuccessData(response.data, chunkingResponseSchema)
   },
 
   async embed(input: EmbeddingRequest): Promise<EmbeddingAcceptedResponse> {
@@ -33,7 +33,7 @@ export const ingestionApi = {
       input
     )
 
-    return readAiSuccessData(response.data, embeddingAcceptedResponseSchema)
+    return readSuccessData(response.data, embeddingAcceptedResponseSchema)
   },
 
   /**
@@ -49,7 +49,7 @@ export const ingestionApi = {
         API_ENDPOINTS.ingestion.job(documentId)
       )
 
-      return readAiSuccessData(response.data, ingestionJobResponseSchema)
+      return readSuccessData(response.data, ingestionJobResponseSchema)
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return null
@@ -65,6 +65,6 @@ export const ingestionApi = {
       input
     )
 
-    return readAiSuccessData(response.data, previewResponseSchema)
+    return readSuccessData(response.data, previewResponseSchema)
   },
 }

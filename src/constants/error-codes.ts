@@ -54,6 +54,25 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
 
   // System
   9999: "Có lỗi xảy ra, bạn thử lại sau nhé.",
+
+  // AI Agent (unisage-agent, 4xxx/5xxx) - Java never uses this range, so no
+  // collision merging both backends' codes into one map.
+  4001: "Câu hỏi không hợp lệ, kiểm tra lại giúp mình.",
+  4002: "Bạn không có quyền dùng chức năng này.",
+  4003: "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại.",
+  4004: "Định dạng file này chưa được hỗ trợ nạp liệu.",
+  4005: "Chiến lược chia đoạn này không áp dụng được cho loại file này.",
+  4006: "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại.",
+  4007: "Bạn không có quyền xử lý tài liệu.",
+  4008: "Bạn không có quyền truy cập phòng ban của tài liệu này.",
+  4009: "Thông tin nhập chưa hợp lệ, kiểm tra lại giúp mình.",
+  4041: "Không tìm thấy file gốc của tài liệu này.",
+  4042: "Tài liệu này chưa được chia đoạn.",
+  4043: "Không tìm thấy bản nháp nạp liệu cho tài liệu này.",
+  5000: "Có lỗi xảy ra, bạn thử lại sau nhé.",
+  5001: "Hệ thống AI phản hồi quá lâu, thử lại sau nhé.",
+  5002: "Hệ thống AI đang gặp sự cố, thử lại sau nhé.",
+  5003: "Có lỗi xảy ra, bạn thử lại sau nhé.",
 }
 
 export function getErrorMessage(code: number, fallback: string): string {

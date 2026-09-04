@@ -6,7 +6,7 @@ import {
   StepActions,
 } from "@/features/ingestion/components/steps/step-primitives"
 import { type StepProps } from "@/features/ingestion/components/steps/shared"
-import { getAiErrorMessage } from "@/utils/ai-response"
+import { getErrorMessage } from "@/utils/error-handler"
 
 export function ChunkingConfirmActions({ wizard }: StepProps) {
   const isSubmitting = wizard.embedMutation.isPending
@@ -16,7 +16,7 @@ export function ChunkingConfirmActions({ wizard }: StepProps) {
 
   return (
     <div className="space-y-4 pt-2">
-      {error ? <ErrorAlert message={getAiErrorMessage(error)} /> : null}
+      {error ? <ErrorAlert message={getErrorMessage(error)} /> : null}
       <StepActions>
         <Button
           className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-xs font-black tracking-widest text-primary-foreground uppercase shadow-lg shadow-primary/20 hover:bg-primary/90 sm:w-auto sm:px-6"

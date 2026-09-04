@@ -15,3 +15,14 @@ export function useDocumentsQuery(page: number, limit: number) {
     placeholderData: keepPreviousData,
   })
 }
+
+export function useDocumentChunksQuery(
+  documentId: string | undefined,
+  { page = 1, limit = 20 }: { limit?: number; page?: number } = {}
+) {
+  return useQuery({
+    ...documentOptions.chunks(documentId ?? "", page, limit),
+    enabled: Boolean(documentId),
+    placeholderData: keepPreviousData,
+  })
+}

@@ -25,6 +25,7 @@ import {
   getDocStatusBadgeClassName,
   getDocStatusLabel,
 } from "@/constants/doc-status"
+import { DocumentChunksSection } from "@/features/documents/components/document-chunks-section"
 import { DocumentFilePreview } from "@/features/documents/components/document-file-preview"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 import type { Document } from "@/features/documents/schemas/document-schemas"
@@ -275,6 +276,8 @@ export function DocumentDetailDialog({
           )}
         </CardContent>
       </Card>
+
+      <DocumentChunksSection documentId={document.id} />
 
       {/* Audit Info Card */}
       <Card className="border bg-card shadow-none">

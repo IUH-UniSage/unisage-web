@@ -22,6 +22,13 @@ function firstString(...values: unknown[]): string | undefined {
   )
 }
 
+// Both backends (Java's `ApiResponse`, unisage-agent's `ApiResponse`) now
+// return `{code, message, ...}` on error, and both author `message` directly
+// in Vietnamese - this reads the backend's own message as-is, same as
+// before unisage-agent adopted the shared envelope. `constants/error-codes.ts`
+// (keyed by the same numeric `code`) is a separate, deliberately unused-here
+// override map, only consulted by `ApiResponseError` for the rare "2xx HTTP
+// status but code !== 1000" case.
 export function getErrorMessage(
   error: unknown,
   fallback = DEFAULT_ERROR_MESSAGE
