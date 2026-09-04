@@ -25,8 +25,8 @@ import {
   getDocStatusBadgeClassName,
   getDocStatusLabel,
 } from "@/constants/doc-status"
+import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { DocumentChunksSection } from "@/features/documents/components/document-chunks-section"
-import { DocumentFilePreview } from "@/features/documents/components/document-file-preview"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"

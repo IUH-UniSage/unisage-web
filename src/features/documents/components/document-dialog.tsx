@@ -35,7 +35,7 @@ import { useAccessLevelsQuery } from "@/features/access-level/queries/use-querie
 import { useCategoriesQuery } from "@/features/categories/queries/use-queries"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 import { flattenDepartmentTreeWithDepth } from "@/features/departments/utils/tree"
-import { DocumentFilePreview } from "@/features/documents/components/document-file-preview"
+import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import {
   ALLOWED_DOCUMENT_FILE_EXTENSIONS,
   documentEditFormSchema,

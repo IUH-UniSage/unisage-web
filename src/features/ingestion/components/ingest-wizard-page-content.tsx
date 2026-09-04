@@ -129,7 +129,7 @@ export function IngestWizardPageContent({
           ) : (
             <>
               {wizard.step === "preview" ? (
-                <PreviewStep wizard={wizard} />
+                <PreviewStep document={document} wizard={wizard} />
               ) : null}
               {wizard.step === "chunking" || wizard.step === "review" ? (
                 <div className="space-y-6">

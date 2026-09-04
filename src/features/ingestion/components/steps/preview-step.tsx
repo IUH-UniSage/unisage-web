@@ -1,6 +1,8 @@
 import { ChevronRight, FileText, Loader2 } from "lucide-react"
 
+import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { Button } from "@/components/ui/button"
+import type { Document } from "@/features/documents/schemas/document-schemas"
 import {
   ErrorAlert,
   StepActions,
@@ -11,7 +13,9 @@ import {
 } from "@/features/ingestion/components/steps/shared"
 import { getErrorMessage } from "@/utils/error-handler"
 
-export function PreviewStep({ wizard }: StepProps) {
+type PreviewStepProps = StepProps & { document: Document }
+
+export function PreviewStep({ document, wizard }: PreviewStepProps) {
   const isLoading = wizard.previewMutation.isPending
   const error = wizard.previewMutation.error
 
@@ -41,6 +45,12 @@ export function PreviewStep({ wizard }: StepProps) {
         </div>
       ) : error ? (
         <ErrorAlert message={getErrorMessage(error)} />
+      ) : document.fileUrl ? (
+        <DocumentFilePreview
+          fileType={document.fileType}
+          fileUrl={document.fileUrl}
+          title={document.title}
+        />
       ) : (
         <div className="max-h-112 overflow-y-auto rounded-3xl border border-border bg-card p-5 text-sm leading-relaxed font-medium whitespace-pre-wrap text-foreground shadow-sm">
           {wizard.previewText}
