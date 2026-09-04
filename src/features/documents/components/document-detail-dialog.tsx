@@ -25,21 +25,11 @@ import {
   getDocStatusBadgeClassName,
   getDocStatusLabel,
 } from "@/constants/doc-status"
+import { DocumentFilePreview } from "@/features/documents/components/document-file-preview"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
-
-// Browsers render PDF/plain-text natively via <iframe> - no viewer needed.
-// DOC/DOCX has no native browser renderer; previewing those would require an
-// external viewer (Google Docs Viewer, Office Online), which isn't wired up.
-const BROWSER_PREVIEWABLE_TYPES = new Set(["PDF", "TXT"])
-
-function isPreviewableInBrowser(fileType: string | null | undefined): boolean {
-  return Boolean(
-    fileType && BROWSER_PREVIEWABLE_TYPES.has(fileType.toUpperCase())
-  )
-}
 
 type DocumentDetailDialogProps = {
   canUpdate: boolean
@@ -248,21 +238,11 @@ export function DocumentDetailDialog({
         <CardContent className="space-y-4 pt-6">
           {document.fileUrl ? (
             <div className="space-y-4">
-              {isPreviewableInBrowser(document.fileType) ? (
-                <iframe
-                  className="h-[500px] w-full rounded-xl border bg-background shadow-xs"
-                  src={document.fileUrl}
-                  title={`Xem trước ${document.title}`}
-                />
-              ) : (
-                <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
-                  Trình duyệt không hỗ trợ xem trước trực tiếp định dạng{" "}
-                  <span className="font-semibold text-foreground">
-                    {document.fileType?.toUpperCase() || "này"}
-                  </span>
-                  . Vui lòng tải tệp về để xem nội dung.
-                </div>
-              )}
+              <DocumentFilePreview
+                fileType={document.fileType}
+                fileUrl={document.fileUrl}
+                title={document.title}
+              />
 
               <div className="flex flex-wrap items-center gap-3">
                 <a

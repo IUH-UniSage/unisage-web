@@ -1,0 +1,305 @@
+import { useEffect, useRef, useState } from "react"
+
+import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from "@/lib/utils"
+
+type PreviewKind = "docx" | "iframe" | "txt" | "unsupported" | "xlsx"
+
+// Browsers render PDF natively via <iframe> - no viewer needed. TXT is
+// fetched and decoded as UTF-8 ourselves (see TxtPreview) instead of relying
+// on the iframe, because the server doesn't always send a charset in its
+// Content-Type header and the browser then guesses one, garbling Vietnamese
+// text. DOCX and XLSX have no native browser renderer, so they're rendered
+// client-side (docx-preview / xlsx, lazy-loaded below). Legacy .doc/.xls
+// (pre-OOXML binary formats) aren't supported by either library.
+function getPreviewKind(fileType: string | null | undefined): PreviewKind {
+  switch (fileType?.toUpperCase()) {
+    case "PDF":
+      return "iframe"
+    case "TXT":
+      return "txt"
+    case "DOCX":
+      return "docx"
+    case "XLSX":
+      return "xlsx"
+    default:
+      return "unsupported"
+  }
+}
+
+type DocumentFilePreviewProps = {
+  fileType: string | null | undefined
+  fileUrl: string
+  title: string
+}
+
+export function DocumentFilePreview({
+  fileType,
+  fileUrl,
+  title,
+}: DocumentFilePreviewProps) {
+  const kind = getPreviewKind(fileType)
+
+  if (kind === "iframe") {
+    return (
+      <iframe
+        className="h-125 w-full rounded-xl border bg-background shadow-xs"
+        src={fileUrl}
+        title={`Xem trước ${title}`}
+      />
+    )
+  }
+
+  if (kind === "txt") {
+    return <TxtPreview fileUrl={fileUrl} />
+  }
+
+  if (kind === "docx") {
+    return <DocxPreview fileUrl={fileUrl} />
+  }
+
+  if (kind === "xlsx") {
+    return <XlsxPreview fileUrl={fileUrl} />
+  }
+
+  return (
+    <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
+      Trình duyệt không hỗ trợ xem trước trực tiếp định dạng{" "}
+      <span className="font-semibold text-foreground">
+        {fileType?.toUpperCase() || "này"}
+      </span>
+      . Vui lòng tải tệp về để xem nội dung.
+    </div>
+  )
+}
+
+function PreviewFrame({
+  children,
+  className,
+  html,
+}: {
+  children?: React.ReactNode
+  className?: string
+  html?: string
+}) {
+  const sharedClassName = cn(
+    "h-125 w-full overflow-auto rounded-xl border bg-muted/20 p-4",
+    className
+  )
+
+  if (html !== undefined) {
+    return (
+      <div
+        className={sharedClassName}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    )
+  }
+
+  return <div className={sharedClassName}>{children}</div>
+}
+
+function PreviewError({ message }: { message: string }) {
+  return (
+    <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
+      {message}
+    </div>
+  )
+}
+
+function TxtPreview({ fileUrl }: { fileUrl: string }) {
+  const [text, setText] = useState<string>()
+  const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const response = await fetch(fileUrl)
+        if (!response.ok) throw new Error("Không tải được tệp TXT.")
+        const buffer = await response.arrayBuffer()
+        if (cancelled) return
+
+        setText(new TextDecoder("utf-8").decode(buffer))
+        setStatus("ready")
+      } catch {
+        if (!cancelled) setStatus("error")
+      }
+    }
+
+    void load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [fileUrl])
+
+  if (status === "error") {
+    return (
+      <PreviewError message="Không thể hiển thị bản xem trước tệp TXT này. Vui lòng tải tệp về để xem nội dung." />
+    )
+  }
+
+  if (status === "loading" || text === undefined) {
+    return (
+      <PreviewFrame className="space-y-2">
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+      </PreviewFrame>
+    )
+  }
+
+  return (
+    <PreviewFrame className="bg-background">
+      <pre className="font-mono text-sm whitespace-pre-wrap text-foreground">
+        {text}
+      </pre>
+    </PreviewFrame>
+  )
+}
+
+function DocxPreview({ fileUrl }: { fileUrl: string }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
+
+  useEffect(() => {
+    let cancelled = false
+
+    const render = async () => {
+      const container = containerRef.current
+      if (!container) return
+
+      try {
+        const [{ renderAsync }, response] = await Promise.all([
+          import("docx-preview"),
+          fetch(fileUrl),
+        ])
+        if (!response.ok) throw new Error("Không tải được tệp DOCX.")
+        const blob = await response.blob()
+        if (cancelled) return
+
+        container.replaceChildren()
+        // inWrapper (default true) makes docx-preview add its own
+        // `.docx-wrapper` with flex centering, so multi-page docs sit
+        // centered instead of pinned to the left inside our wider frame.
+        await renderAsync(blob, container, container)
+        if (!cancelled) setStatus("ready")
+      } catch {
+        if (!cancelled) setStatus("error")
+      }
+    }
+
+    void render()
+
+    return () => {
+      cancelled = true
+    }
+  }, [fileUrl])
+
+  if (status === "error") {
+    return (
+      <PreviewError message="Không thể hiển thị bản xem trước tệp DOCX này. Vui lòng tải tệp về để xem nội dung." />
+    )
+  }
+
+  return (
+    <PreviewFrame className={cn(status === "loading" && "space-y-2")}>
+      {status === "loading" ? (
+        <>
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+        </>
+      ) : null}
+      <div
+        className={cn(status === "loading" && "hidden")}
+        ref={containerRef}
+      />
+    </PreviewFrame>
+  )
+}
+
+function XlsxPreview({ fileUrl }: { fileUrl: string }) {
+  const [sheets, setSheets] = useState<{ html: string; name: string }[]>()
+  const [activeSheet, setActiveSheet] = useState(0)
+  const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const [XLSX, response] = await Promise.all([
+          import("xlsx"),
+          fetch(fileUrl),
+        ])
+        if (!response.ok) throw new Error("Không tải được tệp XLSX.")
+        const buffer = await response.arrayBuffer()
+        if (cancelled) return
+
+        const workbook = XLSX.read(buffer, { type: "array" })
+        const nextSheets = workbook.SheetNames.map((name) => ({
+          html: XLSX.utils.sheet_to_html(workbook.Sheets[name]),
+          name,
+        }))
+
+        setSheets(nextSheets)
+        setActiveSheet(0)
+        setStatus("ready")
+      } catch {
+        if (!cancelled) setStatus("error")
+      }
+    }
+
+    void load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [fileUrl])
+
+  if (status === "error") {
+    return (
+      <PreviewError message="Không thể hiển thị bản xem trước tệp XLSX này. Vui lòng tải tệp về để xem nội dung." />
+    )
+  }
+
+  if (status === "loading" || !sheets) {
+    return (
+      <PreviewFrame className="space-y-2">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-40 w-full" />
+      </PreviewFrame>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {sheets.length > 1 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {sheets.map((sheet, index) => (
+            <button
+              className={cn(
+                "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                index === activeSheet
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50"
+              )}
+              key={sheet.name}
+              onClick={() => setActiveSheet(index)}
+              type="button"
+            >
+              {sheet.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <PreviewFrame
+        className="[&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1 [&_td]:text-xs"
+        html={sheets[activeSheet].html}
+      />
+    </div>
+  )
+}
