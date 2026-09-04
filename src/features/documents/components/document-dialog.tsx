@@ -8,9 +8,11 @@ import {
   UploadCloud,
   X,
 } from "lucide-react"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 
+// TODO(url-source): re-enable when the "Dán đường dẫn URL" flow is
+// implemented - see the commented-out Tabs block further down this file.
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -28,14 +30,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
 import { useAccessLevelsQuery } from "@/features/access-level/queries/use-queries"
 import { useCategoriesQuery } from "@/features/categories/queries/use-queries"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 import { flattenDepartmentTreeWithDepth } from "@/features/departments/utils/tree"
+import { DocumentFilePreview } from "@/features/documents/components/document-file-preview"
 import {
   ALLOWED_DOCUMENT_FILE_EXTENSIONS,
+  documentEditFormSchema,
   documentFormSchema,
   type Document,
   type DocumentFormValues,
@@ -83,13 +86,15 @@ export function DocumentDialog({
       sourceUrl: document?.sourceUrl ?? "",
       title: document?.title ?? "",
     },
-    resolver: zodResolver(documentFormSchema),
+    resolver: zodResolver(isEdit ? documentEditFormSchema : documentFormSchema),
   })
 
-  const [sourceMode, setSourceMode] = useState<"upload" | "url">(
-    document?.sourceUrl ? "url" : "upload"
-  )
   const isBusy = isSaving || isSubmitting
+  // TODO(url-source): re-enable when the "Dán đường dẫn URL" flow is
+  // implemented - see the commented-out Tabs block further down this file.
+  // const [sourceMode, setSourceMode] = useState<"upload" | "url">(
+  //   document?.sourceUrl ? "url" : "upload"
+  // )
   const selectedFile = watch("file")
   const categoryId = watch("categoryId")
   const departmentId = watch("departmentId")
@@ -204,32 +209,95 @@ export function DocumentDialog({
               </CardTitle>
             </div>
             <CardDescription>
-              Tải lên tệp tài liệu trực tiếp từ máy tính hoặc cung cấp đường dẫn
-              URL liên kết.
+              {isEdit
+                ? "Xem trước tệp tài liệu hiện tại. Thay thế tệp khi chỉnh sửa sẽ được bổ sung sau."
+                : "Tải lên tệp tài liệu trực tiếp từ máy tính."}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <Tabs
-              onValueChange={(value) => {
-                setSourceMode(value as "upload" | "url")
-                if (value === "upload") {
-                  setValue("sourceUrl", "")
-                } else {
-                  setValue("file", null, { shouldValidate: true })
-                }
-              }}
-              value={sourceMode}
-            >
-              <TabsList className="w-full max-w-md">
-                <TabsTrigger className="flex-1" value="upload">
-                  Tải tệp lên
-                </TabsTrigger>
-                <TabsTrigger className="flex-1" value="url">
-                  Dán đường dẫn URL
-                </TabsTrigger>
-              </TabsList>
+            {isEdit ? (
+              document?.fileUrl ? (
+                <DocumentFilePreview
+                  fileType={document.fileType}
+                  fileUrl={document.fileUrl}
+                  title={document.title}
+                />
+              ) : (
+                <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
+                  {document?.sourceUrl
+                    ? `Tài liệu này trỏ tới nguồn ngoài: ${document.sourceUrl}`
+                    : "Tài liệu này chưa có tệp đính kèm."}
+                </div>
+              )
+            ) : (
+              <>
+                {/* TODO(url-source): re-enable the "Dán đường dẫn URL" tab
+                once that flow is implemented, by restoring this block in
+                place of the plain dropzone below (and un-commenting the
+                Tabs import + sourceMode state above):
 
-              <TabsContent className="mt-4" value="upload">
+                <Tabs
+                  onValueChange={(value) => {
+                    setSourceMode(value as "upload" | "url")
+                    if (value === "upload") {
+                      setValue("sourceUrl", "")
+                    } else {
+                      setValue("file", null, { shouldValidate: true })
+                    }
+                  }}
+                  value={sourceMode}
+                >
+                  <TabsList className="w-full max-w-md">
+                    <TabsTrigger className="flex-1" value="upload">
+                      Tải tệp lên
+                    </TabsTrigger>
+                    <TabsTrigger className="flex-1" value="url">
+                      Dán đường dẫn URL
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent className="mt-4" value="upload">
+                    (... the dropzone JSX below, unchanged ...)
+                  </TabsContent>
+
+                  <TabsContent className="mt-4 space-y-4" value="url">
+                    <div className="space-y-2">
+                      <Label htmlFor="document-source-url">
+                        Đường dẫn tài liệu (URL)
+                      </Label>
+                      <Input
+                        aria-invalid={Boolean(errors.sourceUrl)}
+                        id="document-source-url"
+                        placeholder="https://example.com/document.pdf"
+                        {...register("sourceUrl")}
+                      />
+                      {errors.sourceUrl ? (
+                        <p className="text-xs text-destructive">
+                          {errors.sourceUrl.message}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="max-w-xs space-y-2">
+                      <Label htmlFor="document-file-type">
+                        Loại tệp{" "}
+                        <span className="translate-y-0.5 text-destructive">*</span>
+                      </Label>
+                      <Input
+                        aria-invalid={Boolean(errors.fileType)}
+                        id="document-file-type"
+                        placeholder="PDF, DOCX, TXT..."
+                        {...register("fileType")}
+                      />
+                      {errors.fileType ? (
+                        <p className="text-xs text-destructive">
+                          {errors.fileType.message}
+                        </p>
+                      ) : null}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                */}
                 {selectedFile ? (
                   <div className="flex items-center justify-between gap-2 rounded-xl border bg-muted/20 p-4">
                     <div className="flex min-w-0 items-center gap-3">
@@ -311,45 +379,8 @@ export function DocumentDialog({
                     {errors.file.message}
                   </p>
                 ) : null}
-              </TabsContent>
-
-              <TabsContent className="mt-4 space-y-4" value="url">
-                <div className="space-y-2">
-                  <Label htmlFor="document-source-url">
-                    Đường dẫn tài liệu (URL)
-                  </Label>
-                  <Input
-                    aria-invalid={Boolean(errors.sourceUrl)}
-                    id="document-source-url"
-                    placeholder="https://example.com/document.pdf"
-                    {...register("sourceUrl")}
-                  />
-                  {errors.sourceUrl ? (
-                    <p className="text-xs text-destructive">
-                      {errors.sourceUrl.message}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="max-w-xs space-y-2">
-                  <Label htmlFor="document-file-type">
-                    Loại tệp{" "}
-                    <span className="translate-y-0.5 text-destructive">*</span>
-                  </Label>
-                  <Input
-                    aria-invalid={Boolean(errors.fileType)}
-                    id="document-file-type"
-                    placeholder="PDF, DOCX, TXT..."
-                    {...register("fileType")}
-                  />
-                  {errors.fileType ? (
-                    <p className="text-xs text-destructive">
-                      {errors.fileType.message}
-                    </p>
-                  ) : null}
-                </div>
-              </TabsContent>
-            </Tabs>
+              </>
+            )}
           </CardContent>
         </Card>
 
