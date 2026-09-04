@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form"
 
 import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogClose,
@@ -46,13 +45,11 @@ export function PermissionDialog({
     watch,
   } = useForm<CreatePermissionRequest>({
     defaultValues: {
-      accessLevel: permission?.accessLevel ?? null,
       isActive: permission?.isActive ?? true,
       name: permission?.name ?? "",
     },
     resolver: zodResolver(permissionRequestSchema),
   })
-  const accessLevel = watch("accessLevel")
   const isBusy = isSaving || isSubmitting
 
   const submit = async (values: CreatePermissionRequest) => {
@@ -101,40 +98,6 @@ export function PermissionDialog({
                 Dùng chữ in hoa và dấu gạch dưới.
               </p>
             )}
-          </div>
-
-          <div className="space-y-3 rounded-xl border p-3">
-            <Label htmlFor="permission-access-level">Cấp độ truy cập</Label>
-            <Input
-              disabled={accessLevel === null}
-              id="permission-access-level"
-              min={0}
-              onChange={(event) =>
-                setValue(
-                  "accessLevel",
-                  event.target.value === "" ? 0 : Number(event.target.value),
-                  { shouldDirty: true }
-                )
-              }
-              type="number"
-              value={accessLevel ?? ""}
-            />
-            {errors.accessLevel ? (
-              <p className="text-xs text-destructive">
-                {errors.accessLevel.message}
-              </p>
-            ) : null}
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Checkbox
-                checked={accessLevel === null}
-                onCheckedChange={(checked) =>
-                  setValue("accessLevel", checked === true ? null : 0, {
-                    shouldDirty: true,
-                  })
-                }
-              />
-              Không giới hạn
-            </label>
           </div>
 
           <ToggleOptionCard

@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+package-lock.json
 dist
 dist-ssr
 storybook-static
@@ -32,3 +33,5 @@ test-results
 
 # Environment variables
 .env
+changes
+_to_delete

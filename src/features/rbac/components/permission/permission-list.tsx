@@ -27,7 +27,6 @@ import {
 import { getResourceTypeBadgeClassName } from "@/constants/resource-types"
 import {
   RBAC_PAGE_SIZE,
-  type PermissionLevelFilter,
   type StatusFilter,
 } from "@/features/rbac/hooks/use-rbac-dashboard"
 import {
@@ -101,14 +100,12 @@ type PermissionListProps = {
   currentPage: number
   isBulkUpdating: boolean
   isFiltered: boolean
-  level: PermissionLevelFilter
   onApplyFilters: () => void
   onBulkClear: () => void
   onBulkDeactivate: () => void
   onBulkRecover: () => void
   onDetail: (permission: AccessPermission) => void
   onEditPermission: (permission: AccessPermission) => void
-  onLevelChange: (value: PermissionLevelFilter) => void
   onPageChange: (page: number) => void
   onResetFilters: () => void
   onSearchChange: (value: string) => void
@@ -130,14 +127,12 @@ export function PermissionList({
   currentPage,
   isBulkUpdating,
   isFiltered,
-  level,
   onApplyFilters,
   onBulkClear,
   onBulkDeactivate,
   onBulkRecover,
   onDetail,
   onEditPermission,
-  onLevelChange,
   onPageChange,
   onResetFilters,
   onSearchChange,
@@ -210,16 +205,6 @@ export function PermissionList({
         id: "action",
       },
       {
-        cell: ({ row }) =>
-          row.original.accessLevel === null ? (
-            <Badge variant="outline">Không giới hạn</Badge>
-          ) : (
-            <Badge variant="secondary">Cấp {row.original.accessLevel}</Badge>
-          ),
-        header: "Cấp độ",
-        id: "accessLevel",
-      },
-      {
         cell: ({ row }) => row.original.createdBy || "System",
         header: "Người tạo",
         id: "createdBy",
@@ -278,24 +263,6 @@ export function PermissionList({
         searchAriaLabel="Tìm quyền hạn"
         searchPlaceholder="Tìm tên hoặc nhóm quyền..."
       >
-        <Select
-          onValueChange={(value) =>
-            onLevelChange(value as PermissionLevelFilter)
-          }
-          value={level}
-        >
-          <SelectTrigger
-            aria-label="Lọc cấp độ quyền"
-            className="w-full sm:w-45"
-          >
-            <SelectValue placeholder="Tất cả cấp độ" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả cấp độ</SelectItem>
-            <SelectItem value="unrestricted">Không giới hạn</SelectItem>
-            <SelectItem value="scoped">Có cấp độ</SelectItem>
-          </SelectContent>
-        </Select>
         <Select
           onValueChange={(value) => onStatusChange(value as StatusFilter)}
           value={status}
@@ -376,13 +343,6 @@ export function PermissionList({
                   <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3 text-xs text-muted-foreground">
                     <span>{permission.createdBy || "System"}</span>
                     <span>{formatAuditDate(permission.createdAt)}</span>
-                    {permission.accessLevel === null ? (
-                      <Badge variant="outline">Không giới hạn</Badge>
-                    ) : (
-                      <Badge variant="secondary">
-                        Cấp {permission.accessLevel}
-                      </Badge>
-                    )}
                   </div>
                 </article>
               )

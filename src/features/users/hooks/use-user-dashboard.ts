@@ -2,19 +2,13 @@ import { useDeferredValue, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 
 import {
-  useCreateUserMutation,
   useDeleteUserMutation,
   useDeleteUsersBulkMutation,
   useRecoverUserMutation,
   useRecoverUsersBulkMutation,
-  useUpdateUserMutation,
 } from "@/features/users/queries/use-mutations"
 import { useUsersQuery } from "@/features/users/queries/use-queries"
-import type {
-  AppUser,
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/features/users/schemas/user-schemas"
+import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 
 export type StatusFilter = "ACTIVE" | "all" | "INACTIVE"
@@ -47,8 +41,6 @@ const URL_PARAM_KEYS = {
 
 export function useUserDashboard() {
   const usersQuery = useUsersQuery()
-  const createUser = useCreateUserMutation()
-  const updateUser = useUpdateUserMutation()
   const deleteUser = useDeleteUserMutation()
   const recoverUser = useRecoverUserMutation()
   const deleteUsersBulk = useDeleteUsersBulkMutation()
@@ -96,9 +88,6 @@ export function useUserDashboard() {
 
   const isFiltered = appliedSearch.trim() !== "" || appliedStatus !== "all"
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<AppUser>()
-  const [viewingUser, setViewingUser] = useState<AppUser>()
   const [statusUser, setStatusUser] = useState<AppUser>()
   const [pendingBulkAction, setPendingBulkAction] = useState<
     "deactivate" | "recover" | null
@@ -153,38 +142,6 @@ export function useUserDashboard() {
 
   const setPage = (p: number) => {
     setParams({ page: String(p) })
-  }
-
-  const openDetail = (user: AppUser) => {
-    setViewingUser(user)
-  }
-
-  const closeDetail = () => {
-    setViewingUser(undefined)
-  }
-
-  const openCreate = () => {
-    setEditingUser(undefined)
-    setIsDialogOpen(true)
-  }
-
-  const openEdit = (user: AppUser) => {
-    setViewingUser(undefined)
-    setEditingUser(user)
-    setIsDialogOpen(true)
-  }
-
-  const save = async (input: CreateUserRequest | UpdateUserRequest) => {
-    if (editingUser) {
-      await updateUser.mutateAsync({
-        input: input as UpdateUserRequest,
-        userId: editingUser.id,
-      })
-    } else {
-      await createUser.mutateAsync(input as CreateUserRequest)
-    }
-
-    setIsDialogOpen(false)
   }
 
   const confirmStatusChange = async () => {
@@ -272,22 +229,14 @@ export function useUserDashboard() {
     canUpdate,
     clearSelection,
     closeBulkActionDialog: () => setPendingBulkAction(null),
-    closeDetail,
-    closeDialog: () => setIsDialogOpen(false),
     closeStatusDialog: () => setStatusUser(undefined),
     confirmBulkAction,
     confirmStatusChange,
-    editingUser,
     filteredCount: filteredUsers.length,
     isBulkUpdating: deleteUsersBulk.isPending || recoverUsersBulk.isPending,
-    isDialogOpen,
     isFiltered,
     isPending: usersQuery.isPending,
-    isSaving: createUser.isPending || updateUser.isPending,
     isUpdatingStatus: deleteUser.isPending || recoverUser.isPending,
-    openCreate,
-    openDetail,
-    openEdit,
     page: currentPage,
     pagedUsers: paginate(filteredUsers, currentPage),
     pendingBulkAction,
@@ -295,7 +244,6 @@ export function useUserDashboard() {
     requestBulkAction: setPendingBulkAction,
     requestStatusChange: setStatusUser,
     resetFilters,
-    save,
     search: pendingSearch,
     selectedIds,
     setPage,
@@ -307,6 +255,5 @@ export function useUserDashboard() {
     toggleSelection,
     totalPages,
     users,
-    viewingUser,
   }
 }

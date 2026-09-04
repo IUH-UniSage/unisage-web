@@ -116,6 +116,12 @@ const DocumentPage = lazy(async () => {
   return { default: DocumentPage }
 })
 
+const IngesterProcessingPage = lazy(async () => {
+  const { IngesterProcessingPage } =
+    await import("@/pages/ingester/ingester-processing-page")
+  return { default: IngesterProcessingPage }
+})
+
 const ChatModelPage = lazy(async () => {
   const { ChatModelPage } = await import("@/pages/system-admin/chat-model-page")
   return { default: ChatModelPage }
@@ -238,7 +244,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     workspaces: ["system-admin"],
   },
   {
-    element: <WorkspacePlaceholderPage title="Hàng đợi xử lý" />,
+    element: <IngesterProcessingPage />,
     icon: UploadCloud,
     key: "ingester-processing",
     label: "Đang xử lý",

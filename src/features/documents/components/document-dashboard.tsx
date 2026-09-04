@@ -1,15 +1,41 @@
 import { Plus } from "lucide-react"
+import { useLocation, useNavigate } from "react-router-dom"
 
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { DocumentDetailDialog } from "@/features/documents/components/document-detail-dialog"
-import { DocumentDialog } from "@/features/documents/components/document-dialog"
+import {
+  adminDocumentDetailPath,
+  adminDocumentEditPath,
+  adminDocumentIngestWizardPath,
+  adminDocumentNewPath,
+  ingesterDocumentDetailPath,
+  ingesterDocumentEditPath,
+  ingesterDocumentNewPath,
+  ingesterIngestWizardPath,
+  ROUTES,
+} from "@/constants/paths"
 import { DocumentList } from "@/features/documents/components/document-list"
 import { useDocumentDashboard } from "@/features/documents/hooks/use-document-dashboard"
+import { DocumentStatusSync } from "@/features/ingestion"
 
 export function DocumentDashboard() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const dashboard = useDocumentDashboard()
+
+  // Quản trị tài liệu is registered in both the system-admin and ingester
+  // workspaces (see feature-registry.tsx) - which detail/edit/create paths
+  // to link to depends on which workspace this instance is mounted under.
+  const isAdmin = location.pathname.startsWith(ROUTES.admin)
+  const newPath = isAdmin ? adminDocumentNewPath : ingesterDocumentNewPath
+  const detailPath = isAdmin
+    ? adminDocumentDetailPath
+    : ingesterDocumentDetailPath
+  const editPath = isAdmin ? adminDocumentEditPath : ingesterDocumentEditPath
+  const wizardPath = isAdmin
+    ? adminDocumentIngestWizardPath
+    : ingesterIngestWizardPath
 
   if (dashboard.isPending) {
     return <DocumentSkeleton />
@@ -32,7 +58,7 @@ export function DocumentDashboard() {
         </div>
 
         {dashboard.canCreate ? (
-          <Button className="sm:self-end" onClick={dashboard.openCreate}>
+          <Button className="sm:self-end" onClick={() => navigate(newPath())}>
             <Plus aria-hidden="true" />
             Thêm tài liệu mới
           </Button>
@@ -41,40 +67,20 @@ export function DocumentDashboard() {
 
       <DocumentList
         canDelete={dashboard.canDelete}
+        canProcess={dashboard.canProcess}
         canUpdate={dashboard.canUpdate}
         currentPage={dashboard.page}
         documents={dashboard.documents}
-        onEdit={dashboard.openEdit}
+        onEdit={(document) => navigate(editPath(document.id))}
         onPageChange={dashboard.setPage}
+        onProcess={(document) => navigate(wizardPath(document.id))}
         onRequestDelete={dashboard.requestDelete}
-        onViewDetail={dashboard.openDocumentDetail}
+        onViewDetail={(document) => navigate(detailPath(document.id))}
         totalItems={dashboard.totalItems}
         totalPages={dashboard.totalPages}
       />
 
-      {dashboard.viewingDocumentId ? (
-        <DocumentDetailDialog
-          canUpdate={dashboard.canUpdate}
-          documentId={dashboard.viewingDocumentId}
-          onEdit={dashboard.openEdit}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeDocumentDetail()
-          }}
-          open
-        />
-      ) : null}
-
-      {dashboard.isDialogOpen ? (
-        <DocumentDialog
-          document={dashboard.editingDocument}
-          isSaving={dashboard.isSaving}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeDialog()
-          }}
-          onSubmit={dashboard.save}
-          open
-        />
-      ) : null}
+      <DocumentStatusSync documents={dashboard.documents} />
 
       {dashboard.deletingDocument ? (
         <ConfirmDeleteDialog

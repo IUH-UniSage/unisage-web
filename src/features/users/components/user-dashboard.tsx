@@ -1,20 +1,21 @@
 import { Plus } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 import { BulkStatusDialog } from "@/components/shared/dialog/bulk-status-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { UserDetailDialog } from "@/features/users/components/user-detail-dialog"
-import { UserDialog } from "@/features/users/components/user-dialog"
+import {
+  adminUserDetailPath,
+  adminUserEditPath,
+  adminUserNewPath,
+} from "@/constants/paths"
 import { UserList } from "@/features/users/components/user-list"
 import { UserStatusDialog } from "@/features/users/components/user-status-dialog"
 import { useUserDashboard } from "@/features/users/hooks/use-user-dashboard"
-import { useAccessRolesQuery } from "@/features/rbac/queries/use-queries"
 
 export function UserDashboard() {
   const dashboard = useUserDashboard()
-  const rolesQuery = useAccessRolesQuery()
-
-  const roles = rolesQuery.data?.data ?? []
+  const navigate = useNavigate()
 
   if (dashboard.isPending) {
     return <UserSkeleton />
@@ -38,7 +39,10 @@ export function UserDashboard() {
           </div>
 
           {dashboard.canCreate ? (
-            <Button className="sm:self-end" onClick={dashboard.openCreate}>
+            <Button
+              className="sm:self-end"
+              onClick={() => navigate(adminUserNewPath())}
+            >
               <Plus aria-hidden="true" />
               Thêm người dùng
             </Button>
@@ -55,8 +59,8 @@ export function UserDashboard() {
           onBulkClear={dashboard.clearSelection}
           onBulkDeactivate={() => dashboard.requestBulkAction("deactivate")}
           onBulkRecover={() => dashboard.requestBulkAction("recover")}
-          onDetail={dashboard.openDetail}
-          onEdit={dashboard.openEdit}
+          onDetail={(user) => navigate(adminUserDetailPath(user.id))}
+          onEdit={(user) => navigate(adminUserEditPath(user.id))}
           onPageChange={dashboard.setPage}
           onResetFilters={dashboard.resetFilters}
           onSearchChange={dashboard.setSearch}
@@ -72,31 +76,6 @@ export function UserDashboard() {
           users={dashboard.pagedUsers}
         />
       </div>
-
-      {dashboard.viewingUser ? (
-        <UserDetailDialog
-          canUpdate={dashboard.canUpdate}
-          onEdit={dashboard.openEdit}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeDetail()
-          }}
-          open
-          user={dashboard.viewingUser}
-        />
-      ) : null}
-
-      {dashboard.isDialogOpen ? (
-        <UserDialog
-          isSaving={dashboard.isSaving}
-          onOpenChange={(open) => {
-            if (!open) dashboard.closeDialog()
-          }}
-          onSubmit={dashboard.save}
-          open
-          roles={roles}
-          user={dashboard.editingUser}
-        />
-      ) : null}
 
       {dashboard.statusUser ? (
         <UserStatusDialog

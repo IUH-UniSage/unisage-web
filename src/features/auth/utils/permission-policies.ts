@@ -20,9 +20,12 @@ export const PERMISSION_POLICIES = {
   adminHealth: policy(PERMISSIONS.superAdminAll),
   adminRbac: policy(PERMISSIONS.roleRead, PERMISSIONS.permissionRead),
   adminSettings: policy(PERMISSIONS.superAdminAll),
-  ingesterOverview: policy(PERMISSIONS.ingestAll, PERMISSIONS.documentRead),
-  ingesterProcessing: policy(PERMISSIONS.ingestAll),
+  // DOCUMENT_ALL wildcard-satisfies DOCUMENT_READ/DOCUMENT_CREATE (see
+  // getResourceWildcard in utils/permissions.ts), so INGEST_ADMIN (which only
+  // holds DOCUMENT_ALL) already passes these without listing it explicitly.
+  ingesterOverview: policy(PERMISSIONS.documentRead),
+  ingesterProcessing: policy(PERMISSIONS.documentCreate),
   ingesterQuality: policy(PERMISSIONS.documentRead),
   ingesterSettings: policy(PERMISSIONS.superAdminAll),
-  uploadDocument: policy(PERMISSIONS.ingestAll, PERMISSIONS.documentCreate),
+  uploadDocument: policy(PERMISSIONS.documentCreate),
 } as const

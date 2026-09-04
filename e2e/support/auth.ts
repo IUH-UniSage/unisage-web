@@ -34,13 +34,15 @@ const sessionByRole = {
   },
 } as const
 
+// Matches DataInitializer.assignIngestAdmin (backend-java) exactly - see
+// .claude/rules/rbac-permissions.md.
 const permissionsByRole = {
   INGEST_ADMIN: [
+    "DEPARTMENT_READ",
     "DOCUMENT_ALL",
-    "DOCUMENT_CHUNK_ALL",
-    "DOCUMENT_PROCESS_LOG_READ",
-    "EMBEDDED_MODEL_READ",
-    "INGEST_ALL",
+    "CATEGORY_ALL",
+    "CHAT_MODEL_READ",
+    "LLM_TRACE_LOG_READ",
   ],
   SUPER_ADMIN: ["SUPER_ADMIN_ALL"],
   USER: ["DOCUMENT_READ"],
@@ -61,7 +63,6 @@ export async function authenticateAs(
     fullName: account.fullName,
     isSystemRole: role !== "USER",
     permissions: permissionNames.map((name, index) => ({
-      accessLevel: 5,
       id: `a931f2ee-e2b1-45cf-9299-6f96f8a8db8${index}`,
       name,
     })),

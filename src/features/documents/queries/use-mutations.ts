@@ -2,7 +2,10 @@ import { useMutation } from "@tanstack/react-query"
 
 import { documentApi } from "@/features/documents/api/document-api"
 import { documentKeys } from "@/features/documents/queries/keys"
-import type { DocumentFormValues } from "@/features/documents/schemas/document-schemas"
+import type {
+  DocStatus,
+  DocumentFormValues,
+} from "@/features/documents/schemas/document-schemas"
 
 export function useCreateDocumentMutation() {
   return useMutation({
@@ -28,6 +31,25 @@ export function useUpdateDocumentMutation() {
     },
     mutationFn: ({ documentId, input }: UpdateDocumentVariables) =>
       documentApi.updateDocument(documentId, input),
+  })
+}
+
+type UpdateDocumentStatusVariables = {
+  documentId: string
+  status: DocStatus
+}
+
+export function useUpdateDocumentStatusMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: documentKeys.all,
+      // No toast - this fires automatically at the end of the embed step,
+      // not from a user-initiated form submit; the wizard's own progress UI
+      // already communicates the outcome.
+      suppressGlobalError: true,
+    },
+    mutationFn: ({ documentId, status }: UpdateDocumentStatusVariables) =>
+      documentApi.updateDocumentStatus(documentId, status),
   })
 }
 

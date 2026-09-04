@@ -56,30 +56,45 @@ export const documentPageSchema = z.object({
   totalPages: z.number().int(),
 })
 
-export const documentFormSchema = z
-  .object({
-    categoryId: z.uuid().nullish(),
-    departmentId: z.uuid().nullish(),
-    file: z.instanceof(File).nullish(),
-    fileType: z
-      .string()
-      .trim()
-      .min(1, "Loại tệp không được để trống.")
-      .max(50, "Loại tệp không được vượt quá 50 ký tự."),
-    isPublic: z.boolean(),
-    minAccessLevelId: z.uuid().nullish(),
-    sourceUrl: z
-      .string()
-      .trim()
-      .max(2048, "Đường dẫn không được vượt quá 2048 ký tự.")
-      .nullish(),
-    title: z
-      .string()
-      .trim()
-      .min(1, "Tiêu đề không được để trống.")
-      .max(255, "Tiêu đề không được vượt quá 255 ký tự."),
-  })
-  .superRefine((values, ctx) => {
+const documentFormBaseSchema = z.object({
+  categoryId: z.uuid().nullish(),
+  departmentId: z.uuid().nullish(),
+  file: z.instanceof(File).nullish(),
+  fileType: z
+    .string()
+    .trim()
+    .min(1, "Loại tệp không được để trống.")
+    .max(50, "Loại tệp không được vượt quá 50 ký tự."),
+  isPublic: z.boolean(),
+  minAccessLevelId: z.uuid().nullish(),
+  sourceUrl: z
+    .string()
+    .trim()
+    .max(2048, "Đường dẫn không được vượt quá 2048 ký tự.")
+    .nullish(),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Tiêu đề không được để trống.")
+    .max(255, "Tiêu đề không được vượt quá 255 ký tự."),
+})
+
+function checkFileExtension(
+  values: z.infer<typeof documentFormBaseSchema>,
+  ctx: z.RefinementCtx
+) {
+  if (values.file && !hasAllowedExtension(values.file.name)) {
+    ctx.addIssue({
+      code: "custom",
+      message: `Định dạng file không được hỗ trợ. Chỉ chấp nhận: ${ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(", ")}.`,
+      path: ["file"],
+    })
+  }
+}
+
+// Creating a document requires a file or a source URL.
+export const documentFormSchema = documentFormBaseSchema.superRefine(
+  (values, ctx) => {
     if (!values.file && !values.sourceUrl) {
       ctx.addIssue({
         code: "custom",
@@ -88,14 +103,16 @@ export const documentFormSchema = z
       })
     }
 
-    if (values.file && !hasAllowedExtension(values.file.name)) {
-      ctx.addIssue({
-        code: "custom",
-        message: `Định dạng file không được hỗ trợ. Chỉ chấp nhận: ${ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(", ")}.`,
-        path: ["file"],
-      })
-    }
-  })
+    checkFileExtension(values, ctx)
+  }
+)
+
+// Editing a document currently only changes its metadata (see
+// DocumentDialog's isEdit branch, which shows a file preview instead of an
+// upload control) - unlike create, an existing file/source doesn't need to
+// be re-supplied on every save.
+export const documentEditFormSchema =
+  documentFormBaseSchema.superRefine(checkFileExtension)
 
 export type Document = z.infer<typeof documentSchema>
 export type DocumentPage = z.infer<typeof documentPageSchema>

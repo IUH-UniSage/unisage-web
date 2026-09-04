@@ -47,22 +47,21 @@ export function getResourceLabel(resource: string) {
   return getResourceTypeLabel(resource)
 }
 
-export function groupPermissions(
-  permissions: AccessPermission[],
-  searchQuery: string
-): PermissionGroup[] {
+export function groupPermissions<
+  T extends { id: string; name: string; isActive?: boolean },
+>(permissions: T[], searchQuery: string): PermissionGroup<T>[] {
   const normalizedSearch = searchQuery.trim().toLocaleLowerCase("vi")
-  const groups = new Map<string, AccessPermission[]>()
+  const groups = new Map<string, T[]>()
 
   permissions
     .filter((permission) => {
-      if (!permission.isActive) return false
+      if (permission.isActive === false) return false
       if (!normalizedSearch) return true
 
       const { action, resource } = splitPermissionName(permission.name)
       const searchable = [
         permission.name,
-        getPermissionLabel(permission),
+        getPermissionLabel(permission as unknown as AccessPermission),
         getResourceLabel(resource),
         action,
       ]
@@ -80,11 +79,7 @@ export function groupPermissions(
 
   return [...groups.entries()]
     .map(([resource, items]) => ({
-      items: items.sort((left, right) => {
-        const levelDifference =
-          (left.accessLevel ?? 0) - (right.accessLevel ?? 0)
-        return left.name.localeCompare(right.name) || levelDifference
-      }),
+      items: items.sort((left, right) => left.name.localeCompare(right.name)),
       resource,
     }))
     .sort((left, right) =>

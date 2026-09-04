@@ -8,7 +8,6 @@ import {
 } from "@/features/rbac/utils/rbac-formatters"
 import {
   useCreatePermissionMutation,
-  useCreateRoleMutation,
   useDeletePermissionMutation,
   useDeletePermissionsBulkMutation,
   useDeleteRoleMutation,
@@ -18,7 +17,6 @@ import {
   useRecoverRoleMutation,
   useRecoverRolesBulkMutation,
   useUpdatePermissionMutation,
-  useUpdateRoleMutation,
 } from "@/features/rbac/queries/use-mutations"
 import {
   useAccessPermissionsQuery,
@@ -28,14 +26,12 @@ import type {
   AccessPermission,
   AccessRole,
   CreatePermissionRequest,
-  CreateRoleRequest,
 } from "@/features/rbac/schemas/rbac-schemas"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import { PERMISSIONS } from "@/utils/permissions"
 
 export type RbacTab = "roles" | "permissions"
 export type StatusFilter = "active" | "all" | "inactive"
-export type PermissionLevelFilter = "all" | "scoped" | "unrestricted"
 
 const EMPTY_PERMISSIONS: AccessPermission[] = []
 const EMPTY_ROLES: AccessRole[] = []
@@ -55,7 +51,6 @@ function matchesStatus(isActive: boolean, status: StatusFilter) {
 }
 
 const PARAM_DEFAULTS = {
-  permissionLevel: "all",
   permissionPage: "1",
   permissionSearch: "",
   permissionStatus: "all",
@@ -71,7 +66,6 @@ type Param = keyof typeof PARAM_DEFAULTS
 // Short keys keep the URL readable; only this map needs to change if a param
 // is renamed — the rest of the hook keeps using the descriptive Param names.
 const URL_PARAM_KEYS = {
-  permissionLevel: "plv",
   permissionPage: "pp",
   permissionSearch: "pq",
   permissionStatus: "ps",
@@ -85,8 +79,6 @@ const URL_PARAM_KEYS = {
 export function useRbacDashboard() {
   const rolesQuery = useAccessRolesQuery()
   const permissionsQuery = useAccessPermissionsQuery()
-  const createRole = useCreateRoleMutation()
-  const updateRole = useUpdateRoleMutation()
   const deleteRole = useDeleteRoleMutation()
   const recoverRole = useRecoverRoleMutation()
   const createPermission = useCreatePermissionMutation()
@@ -136,9 +128,6 @@ export function useRbacDashboard() {
   const rolePage = getPage("rolePage")
   const appliedPermissionSearch = getParam("permissionSearch")
   const appliedPermissionStatus = getParam("permissionStatus") as StatusFilter
-  const appliedPermissionLevel = getParam(
-    "permissionLevel"
-  ) as PermissionLevelFilter
   const permissionPage = getPage("permissionPage")
 
   const [pendingRoleSearch, setPendingRoleSearch] = useState(appliedRoleSearch)
@@ -150,8 +139,6 @@ export function useRbacDashboard() {
   const [pendingPermissionSearch, setPendingPermissionSearch] = useState(
     appliedPermissionSearch
   )
-  const [pendingPermissionLevel, setPendingPermissionLevel] =
-    useState<PermissionLevelFilter>(appliedPermissionLevel)
   const [pendingPermissionStatus, setPendingPermissionStatus] =
     useState<StatusFilter>(appliedPermissionStatus)
 
@@ -160,13 +147,8 @@ export function useRbacDashboard() {
     appliedRolePermission !== "all" ||
     appliedRoleStatus !== "all"
   const isPermissionFiltersApplied =
-    appliedPermissionSearch.trim() !== "" ||
-    appliedPermissionLevel !== "all" ||
-    appliedPermissionStatus !== "all"
+    appliedPermissionSearch.trim() !== "" || appliedPermissionStatus !== "all"
 
-  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
-  const [editingRole, setEditingRole] = useState<AccessRole>()
-  const [viewingRole, setViewingRole] = useState<AccessRole>()
   const [statusRole, setStatusRole] = useState<AccessRole>()
   const [pendingRoleBulkAction, setPendingRoleBulkAction] = useState<
     "deactivate" | "recover" | null
@@ -240,24 +222,13 @@ export function useRbacDashboard() {
           .join(" ")
           .toLocaleLowerCase("vi")
           .includes(normalizedSearch)
-      const matchesLevel =
-        appliedPermissionLevel === "all" ||
-        (appliedPermissionLevel === "unrestricted" &&
-          permission.accessLevel === null) ||
-        (appliedPermissionLevel === "scoped" && permission.accessLevel !== null)
 
       return (
         matchesSearch &&
-        matchesLevel &&
         matchesStatus(permission.isActive, appliedPermissionStatus)
       )
     })
-  }, [
-    appliedPermissionLevel,
-    appliedPermissionStatus,
-    deferredPermissionSearch,
-    permissions,
-  ])
+  }, [appliedPermissionStatus, deferredPermissionSearch, permissions])
 
   const roleTotalPages = Math.max(
     1,
@@ -269,35 +240,6 @@ export function useRbacDashboard() {
   )
   const currentRolePage = Math.min(rolePage, roleTotalPages)
   const currentPermissionPage = Math.min(permissionPage, permissionTotalPages)
-
-  const openRoleDetail = (role: AccessRole) => {
-    setViewingRole(role)
-  }
-
-  const closeRoleDetail = () => {
-    setViewingRole(undefined)
-  }
-
-  const openCreateRole = () => {
-    setEditingRole(undefined)
-    setIsRoleDialogOpen(true)
-  }
-
-  const openEditRole = (role: AccessRole) => {
-    setViewingRole(undefined)
-    setEditingRole(role)
-    setIsRoleDialogOpen(true)
-  }
-
-  const saveRole = async (input: CreateRoleRequest) => {
-    if (editingRole) {
-      await updateRole.mutateAsync({ input, roleId: editingRole.id })
-    } else {
-      await createRole.mutateAsync(input)
-    }
-
-    setIsRoleDialogOpen(false)
-  }
 
   const confirmStatusChange = async () => {
     if (!statusRole) return
@@ -493,7 +435,6 @@ export function useRbacDashboard() {
     activeTab,
     applyPermissionFilters: () => {
       setParams({
-        permissionLevel: pendingPermissionLevel,
         permissionPage: PARAM_DEFAULTS.permissionPage,
         permissionSearch: pendingPermissionSearch,
         permissionStatus: pendingPermissionStatus,
@@ -518,8 +459,6 @@ export function useRbacDashboard() {
     closePermissionDetail,
     closePermissionDialog: () => setIsPermissionDialogOpen(false),
     closePermissionStatusDialog: () => setStatusPermission(undefined),
-    closeRoleDetail,
-    closeRoleDialog: () => setIsRoleDialogOpen(false),
     closeRoleBulkActionDialog: () => setPendingRoleBulkAction(null),
     closePermissionBulkActionDialog: () => setPendingPermissionBulkAction(null),
     closeStatusDialog: () => setStatusRole(undefined),
@@ -528,7 +467,6 @@ export function useRbacDashboard() {
     confirmRoleBulkAction,
     confirmStatusChange,
     editingPermission,
-    editingRole,
     filteredPermissionCount: filteredPermissions.length,
     filteredRoleCount: filteredRoles.length,
     isBulkUpdatingPermissions:
@@ -539,22 +477,16 @@ export function useRbacDashboard() {
     isPermissionFiltersApplied,
     isRoleFiltersApplied,
     isPermissionDialogOpen,
-    isRoleDialogOpen,
     isSavingPermission:
       createPermission.isPending || updatePermission.isPending,
-    isSavingRole: createRole.isPending || updateRole.isPending,
     isUpdatingPermissionStatus:
       deletePermission.isPending || recoverPermission.isPending,
     isUpdatingStatus: deleteRole.isPending || recoverRole.isPending,
     openCreatePermission,
-    openCreateRole,
     openEditPermission,
-    openEditRole,
     openPermissionDetail,
-    openRoleDetail,
     pagedPermissions: paginate(filteredPermissions, currentPermissionPage),
     pagedRoles: paginate(filteredRoles, currentRolePage),
-    permissionLevel: pendingPermissionLevel,
     permissionPage: currentPermissionPage,
     permissionSearch: pendingPermissionSearch,
     permissionStatus: pendingPermissionStatus,
@@ -569,11 +501,9 @@ export function useRbacDashboard() {
     requestRoleBulkAction: setPendingRoleBulkAction,
     requestStatusChange: setStatusRole,
     resetPermissionFilters: () => {
-      setPendingPermissionLevel(PARAM_DEFAULTS.permissionLevel)
       setPendingPermissionSearch(PARAM_DEFAULTS.permissionSearch)
       setPendingPermissionStatus(PARAM_DEFAULTS.permissionStatus)
       setParams({
-        permissionLevel: PARAM_DEFAULTS.permissionLevel,
         permissionPage: PARAM_DEFAULTS.permissionPage,
         permissionSearch: PARAM_DEFAULTS.permissionSearch,
         permissionStatus: PARAM_DEFAULTS.permissionStatus,
@@ -598,11 +528,9 @@ export function useRbacDashboard() {
     roleStatus: pendingRoleStatus,
     roleTotalPages,
     savePermission,
-    saveRole,
     selectedPermissionIds,
     selectedRoleIds,
     setActiveTab: (value: RbacTab) => setParams({ tab: value }),
-    setPermissionLevel: setPendingPermissionLevel,
     setPermissionPage: (page: number) =>
       setParams({ permissionPage: String(page) }),
     setPermissionSearch: setPendingPermissionSearch,
@@ -618,6 +546,5 @@ export function useRbacDashboard() {
     togglePermissionSelection,
     toggleRoleSelection,
     viewingPermission,
-    viewingRole,
   }
 }

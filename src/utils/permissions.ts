@@ -53,7 +53,6 @@ export const PERMISSIONS = {
   auditLogRead: "AUDIT_LOG_READ",
   llmTraceLogAll: "LLM_TRACE_LOG_ALL",
   llmTraceLogRead: "LLM_TRACE_LOG_READ",
-  ingestAll: "INGEST_ALL",
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -73,7 +72,6 @@ export type ResourceName =
   | "message"
   | "audit_log"
   | "llm_trace_log"
-  | "ingest"
   | "super_admin"
 
 export type PermissionRequirement =

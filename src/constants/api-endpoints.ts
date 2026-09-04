@@ -1,4 +1,9 @@
 export const API_ENDPOINTS = {
+  // unisage-agent (Python) routes, reached via aiHttpClient - distinct from
+  // `documents` below, which is backend-java's `/documents` via httpClient.
+  agentDocuments: {
+    chunks: (documentId: string) => `/documents/${documentId}/chunks`,
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
@@ -6,6 +11,7 @@ export const API_ENDPOINTS = {
   documents: {
     documents: "/documents",
     document: (documentId: string) => `/documents/${documentId}`,
+    documentStatus: (documentId: string) => `/documents/${documentId}/status`,
   },
   departments: {
     department: (departmentId: string) => `/departments/${departmentId}`,
@@ -54,6 +60,13 @@ export const API_ENDPOINTS = {
       `/rbac/permissions/${permissionId}/recover`,
     permissionsBulkDelete: "/rbac/permissions/bulk",
     permissionsBulkRecover: "/rbac/permissions/bulk/recover",
+  },
+  ingestion: {
+    chunking: "/ingestion/chunking",
+    embedding: "/ingestion/embedding",
+    events: "/ingestion/events",
+    job: (documentId: string) => `/ingestion/jobs/${documentId}`,
+    preview: "/ingestion/preview",
   },
   users: {
     user: (userId: string) => `/users/${userId}`,
