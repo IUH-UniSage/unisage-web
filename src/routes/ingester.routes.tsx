@@ -16,6 +16,17 @@ const IngestWizardPage = lazy(async () => {
   return { default: IngestWizardPage }
 })
 
+const DocumentDetailPage = lazy(async () => {
+  const { DocumentDetailPage } =
+    await import("@/pages/shared/document-detail-page")
+  return { default: DocumentDetailPage }
+})
+
+const DocumentFormPage = lazy(async () => {
+  const { DocumentFormPage } = await import("@/pages/shared/document-form-page")
+  return { default: DocumentFormPage }
+})
+
 export const ingesterRoutes: RouteObject = {
   path: ROUTES.ingester,
   element: (
@@ -34,6 +45,30 @@ export const ingesterRoutes: RouteObject = {
         </PermissionRoute>
       ),
       path: `${ROUTE_SEGMENTS.processing}/:documentId`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/new`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/:documentId/edit`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentDetailPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/:documentId`,
     },
     {
       path: "*",

@@ -1,13 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  ArrowLeft,
-  Loader2,
-  Lock,
-  Mail,
-  Save,
-  Shield,
-  User,
-} from "lucide-react"
+import { Loader2, Lock, Mail, Save, Shield, User } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -140,16 +132,6 @@ export function UserDialog({
       {/* Top Header Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Button
-            className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
-            onClick={handleCancel}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <ArrowLeft className="mr-1.5 size-4" />
-            Quay lại danh sách người dùng
-          </Button>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Người dùng
           </p>

@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Building,
   Calendar,
   Clock3,
@@ -62,16 +61,6 @@ export function UserDetailDialog({
       {/* Top Header Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Button
-            className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
-            onClick={handleBack}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <ArrowLeft className="mr-1.5 size-4" />
-            Quay lại danh sách người dùng
-          </Button>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Người dùng
           </p>

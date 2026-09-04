@@ -57,3 +57,51 @@ export function ingesterIngestWizardPath(documentId: string): string {
 export function adminDocumentIngestWizardPath(documentId: string): string {
   return `${ROUTES.adminDocuments}/${documentId}/ingest`
 }
+
+export function adminUserNewPath(): string {
+  return `${ROUTES.adminUsers}/new`
+}
+
+export function adminUserDetailPath(userId: string): string {
+  return `${ROUTES.adminUsers}/${userId}`
+}
+
+export function adminUserEditPath(userId: string): string {
+  return `${ROUTES.adminUsers}/${userId}/edit`
+}
+
+export function adminRoleNewPath(): string {
+  return `${ROUTES.adminRbac}/new`
+}
+
+export function adminRoleDetailPath(roleId: string): string {
+  return `${ROUTES.adminRbac}/${roleId}`
+}
+
+export function adminRoleEditPath(roleId: string): string {
+  return `${ROUTES.adminRbac}/${roleId}/edit`
+}
+
+export function adminDocumentNewPath(): string {
+  return `${ROUTES.adminDocuments}/new`
+}
+
+export function adminDocumentDetailPath(documentId: string): string {
+  return `${ROUTES.adminDocuments}/${documentId}`
+}
+
+export function adminDocumentEditPath(documentId: string): string {
+  return `${ROUTES.adminDocuments}/${documentId}/edit`
+}
+
+export function ingesterDocumentNewPath(): string {
+  return `${ROUTES.ingesterDocuments}/new`
+}
+
+export function ingesterDocumentDetailPath(documentId: string): string {
+  return `${ROUTES.ingesterDocuments}/${documentId}`
+}
+
+export function ingesterDocumentEditPath(documentId: string): string {
+  return `${ROUTES.ingesterDocuments}/${documentId}/edit`
+}

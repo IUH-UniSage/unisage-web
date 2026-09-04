@@ -16,6 +16,39 @@ const IngestWizardPage = lazy(async () => {
   return { default: IngestWizardPage }
 })
 
+const UserDetailPage = lazy(async () => {
+  const { UserDetailPage } =
+    await import("@/pages/system-admin/user-detail-page")
+  return { default: UserDetailPage }
+})
+
+const UserFormPage = lazy(async () => {
+  const { UserFormPage } = await import("@/pages/system-admin/user-form-page")
+  return { default: UserFormPage }
+})
+
+const RoleDetailPage = lazy(async () => {
+  const { RoleDetailPage } =
+    await import("@/pages/system-admin/role-detail-page")
+  return { default: RoleDetailPage }
+})
+
+const RoleFormPage = lazy(async () => {
+  const { RoleFormPage } = await import("@/pages/system-admin/role-form-page")
+  return { default: RoleFormPage }
+})
+
+const DocumentDetailPage = lazy(async () => {
+  const { DocumentDetailPage } =
+    await import("@/pages/shared/document-detail-page")
+  return { default: DocumentDetailPage }
+})
+
+const DocumentFormPage = lazy(async () => {
+  const { DocumentFormPage } = await import("@/pages/shared/document-form-page")
+  return { default: DocumentFormPage }
+})
+
 export const systemAdminRoutes: RouteObject = {
   path: ROUTES.admin,
   element: (
@@ -34,6 +67,87 @@ export const systemAdminRoutes: RouteObject = {
         </PermissionRoute>
       ),
       path: `${ROUTE_SEGMENTS.documents}/:documentId/ingest`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.adminUsers}>
+          <UserFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.users}/new`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.adminUsers}>
+          <UserFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.users}/:userId/edit`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.adminUsers}>
+          <UserDetailPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.users}/:userId`,
+    },
+    {
+      element: (
+        <PermissionRoute
+          requiredPermissions={PERMISSION_POLICIES.adminRbac}
+          strategy="all"
+        >
+          <RoleFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.rbac}/new`,
+    },
+    {
+      element: (
+        <PermissionRoute
+          requiredPermissions={PERMISSION_POLICIES.adminRbac}
+          strategy="all"
+        >
+          <RoleFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.rbac}/:roleId/edit`,
+    },
+    {
+      element: (
+        <PermissionRoute
+          requiredPermissions={PERMISSION_POLICIES.adminRbac}
+          strategy="all"
+        >
+          <RoleDetailPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.rbac}/:roleId`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/new`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentFormPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/:documentId/edit`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentDetailPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/:documentId`,
     },
     {
       path: "*",

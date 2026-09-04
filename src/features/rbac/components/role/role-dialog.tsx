@@ -1,7 +1,6 @@
 import { useDeferredValue, useMemo, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
-  ArrowLeft,
   CheckSquare,
   Loader2,
   Save,
@@ -176,16 +175,6 @@ export function RoleDialog({
       {/* Header Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Button
-            className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
-            onClick={handleCancel}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <ArrowLeft className="mr-1.5 size-4" />
-            Quay lại danh sách vai trò
-          </Button>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Phân quyền
           </p>

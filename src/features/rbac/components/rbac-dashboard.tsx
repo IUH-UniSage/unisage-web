@@ -1,15 +1,19 @@
 import { KeyRound, Plus, ShieldCheck } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 import { BulkStatusDialog } from "@/components/shared/dialog/bulk-status-dialog"
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  adminRoleDetailPath,
+  adminRoleEditPath,
+  adminRoleNewPath,
+} from "@/constants/paths"
 import { PermissionDetailDialog } from "@/features/rbac/components/permission/permission-detail-dialog"
 import { PermissionDialog } from "@/features/rbac/components/permission/permission-dialog"
 import { PermissionList } from "@/features/rbac/components/permission/permission-list"
 import { PermissionStatusDialog } from "@/features/rbac/components/permission/permission-status-dialog"
-import { RoleDetailDialog } from "@/features/rbac/components/role/role-detail-dialog"
-import { RoleDialog } from "@/features/rbac/components/role/role-dialog"
 import { RoleList } from "@/features/rbac/components/role/role-list"
 import { RoleStatusDialog } from "@/features/rbac/components/role/role-status-dialog"
 import {
@@ -19,36 +23,10 @@ import {
 
 export function RbacDashboard() {
   const dashboard = useRbacDashboard()
+  const navigate = useNavigate()
 
   if (dashboard.isPending) {
     return <RbacSkeleton />
-  }
-
-  if (dashboard.viewingRole) {
-    return (
-      <RoleDetailDialog
-        canUpdate={dashboard.canUpdateRoles}
-        onEdit={dashboard.openEditRole}
-        onOpenChange={(open) => {
-          if (!open) dashboard.closeRoleDetail()
-        }}
-        role={dashboard.viewingRole}
-      />
-    )
-  }
-
-  if (dashboard.isRoleDialogOpen) {
-    return (
-      <RoleDialog
-        isSaving={dashboard.isSavingRole}
-        onOpenChange={(open) => {
-          if (!open) dashboard.closeRoleDialog()
-        }}
-        onSubmit={dashboard.saveRole}
-        permissions={dashboard.permissions}
-        role={dashboard.editingRole}
-      />
-    )
   }
 
   const isRoleTab = dashboard.activeTab === "roles"
@@ -58,7 +36,10 @@ export function RbacDashboard() {
       <TabbedListPage
         actions={
           isRoleTab && dashboard.canCreateRoles ? (
-            <Button className="sm:self-end" onClick={dashboard.openCreateRole}>
+            <Button
+              className="sm:self-end"
+              onClick={() => navigate(adminRoleNewPath())}
+            >
               <Plus aria-hidden="true" />
               Thêm vai trò mới
             </Button>
@@ -94,8 +75,8 @@ export function RbacDashboard() {
                   dashboard.requestRoleBulkAction("deactivate")
                 }
                 onBulkRecover={() => dashboard.requestRoleBulkAction("recover")}
-                onDetail={dashboard.openRoleDetail}
-                onEditRole={dashboard.openEditRole}
+                onDetail={(role) => navigate(adminRoleDetailPath(role.id))}
+                onEditRole={(role) => navigate(adminRoleEditPath(role.id))}
                 onPageChange={dashboard.setRolePage}
                 onPermissionChange={dashboard.setRolePermission}
                 onResetFilters={dashboard.resetRoleFilters}
