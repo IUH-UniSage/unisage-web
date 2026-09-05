@@ -178,7 +178,7 @@ export function UserDialog({
       >
         {/* Personal & Contact Information Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <User className="size-5 text-primary" />
               <CardTitle className="text-base font-semibold">
@@ -189,7 +189,7 @@ export function UserDialog({
               Họ tên, email, số điện thoại và mã danh tính của người dùng.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5 pt-6">
+          <CardContent className="space-y-5">
             {/* Name fields */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -312,7 +312,7 @@ export function UserDialog({
 
         {/* Role Assignment Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <Shield className="size-5 text-primary" />
               <CardTitle className="text-base font-semibold">
@@ -323,7 +323,7 @@ export function UserDialog({
               Gán nhóm quyền truy cập chính cho người dùng trong hệ thống.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="max-w-md space-y-2">
               <Label htmlFor="user-role">
                 Vai trò hệ thống{" "}

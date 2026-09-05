@@ -1,13 +1,6 @@
 import { useDeferredValue, useMemo, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  CheckSquare,
-  Loader2,
-  Save,
-  Search,
-  ShieldCheck,
-  Square,
-} from "lucide-react"
+import { ArrowLeft, Info, Loader2, Save, ShieldCheck } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
@@ -20,21 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { PermissionMatrix } from "@/features/rbac/components/permission/permission-matrix"
+import { buildPermissionMatrix } from "@/features/rbac/utils/permission-matrix"
 import {
-  getPermissionLabel,
-  getResourceLabel,
-  groupPermissions,
+  expandImpliedPermissionIds,
+  isImpliedByAll,
   splitPermissionName,
 } from "@/features/rbac/utils/rbac-formatters"
 import {
@@ -43,7 +29,6 @@ import {
   type AccessRole,
   type CreateRoleRequest,
 } from "@/features/rbac/schemas/rbac-schemas"
-import { cn } from "@/lib/utils"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 type RoleDialogProps = {
@@ -63,29 +48,11 @@ export function RoleDialog({
   role,
 }: RoleDialogProps) {
   const [permissionSearch, setPermissionSearch] = useState("")
-  const [resourceFilter, setResourceFilter] = useState("all")
   const deferredPermissionSearch = useDeferredValue(permissionSearch)
-  const permissionGroups = useMemo(
-    () => groupPermissions(permissions, deferredPermissionSearch),
+  const matrixRows = useMemo(
+    () => buildPermissionMatrix(permissions, deferredPermissionSearch),
     [deferredPermissionSearch, permissions]
   )
-  const resourceOptions = useMemo(
-    () =>
-      [
-        ...new Set(
-          permissions
-            .filter((permission) => permission.isActive)
-            .map((permission) => splitPermissionName(permission.name).resource)
-        ),
-      ].sort((left, right) =>
-        getResourceLabel(left).localeCompare(getResourceLabel(right), "vi")
-      ),
-    [permissions]
-  )
-  const visibleGroups =
-    resourceFilter === "all"
-      ? permissionGroups
-      : permissionGroups.filter((group) => group.resource === resourceFilter)
 
   const {
     formState: { errors, isSubmitting },
@@ -100,7 +67,10 @@ export function RoleDialog({
       isActive: role?.isActive ?? true,
       isSystemRole: role?.isSystemRole ?? false,
       name: role?.name ?? "",
-      permissionIds: role?.permissions.map((permission) => permission.id) ?? [],
+      permissionIds: expandImpliedPermissionIds(
+        role?.permissions.map((permission) => permission.id) ?? [],
+        permissions
+      ),
     },
     resolver: zodResolver(createRoleRequestSchema),
   })
@@ -112,45 +82,65 @@ export function RoleDialog({
     onOpenChange(false)
   }
 
-  const togglePermission = (permission: AccessPermission, checked: boolean) => {
+  // Resources whose "ALL" permission is currently checked — their other
+  // action checkboxes are implied and locked, so users can't leave a
+  // contradictory ALL-plus-partial selection the backend has no way to
+  // represent (its authorization check treats "ALL" as matching every HTTP
+  // method on that resource path).
+  const resourcesWithAllChecked = new Set(
+    permissions
+      .filter((candidate) => selectedPermissionIds.includes(candidate.id))
+      .map((candidate) => splitPermissionName(candidate.name))
+      .filter(({ action }) => action === "ALL")
+      .map(({ resource }) => resource)
+  )
+
+  const isCellDisabled = (permission: AccessPermission) =>
+    isImpliedByAll(permission, resourcesWithAllChecked)
+
+  const onToggleCell = (permission: AccessPermission, checked: boolean) => {
+    const { action, resource } = splitPermissionName(permission.name)
+
     if (!checked) {
+      const idsToRemove = new Set(
+        action === "ALL"
+          ? [
+              permission.id,
+              ...permissions
+                .filter((candidate) => {
+                  const split = splitPermissionName(candidate.name)
+                  return split.resource === resource && split.action !== "ALL"
+                })
+                .map((candidate) => candidate.id),
+            ]
+          : [permission.id]
+      )
       setValue(
         "permissionIds",
-        selectedPermissionIds.filter((id) => id !== permission.id),
+        selectedPermissionIds.filter((id) => !idsToRemove.has(id)),
         { shouldDirty: true }
       )
       return
     }
 
-    const permissionIdsWithSameName = new Set(
+    const nextIds = expandImpliedPermissionIds(
+      [...selectedPermissionIds, permission.id],
       permissions
-        .filter((candidate) => candidate.name === permission.name)
-        .map((candidate) => candidate.id)
     )
-    setValue(
-      "permissionIds",
-      [
-        ...selectedPermissionIds.filter(
-          (id) => !permissionIdsWithSameName.has(id)
-        ),
-        permission.id,
-      ],
-      { shouldDirty: true }
-    )
+    setValue("permissionIds", nextIds, { shouldDirty: true })
   }
 
-  const toggleGroupPermissions = (
-    groupItems: AccessPermission[],
-    selectAll: boolean
-  ) => {
-    const groupIds = groupItems.map((item) => item.id)
+  const onToggleRow = (ids: string[], selectAll: boolean) => {
     if (selectAll) {
-      const nextIds = new Set([...selectedPermissionIds, ...groupIds])
-      setValue("permissionIds", Array.from(nextIds), { shouldDirty: true })
+      const nextIds = expandImpliedPermissionIds(
+        Array.from(new Set([...selectedPermissionIds, ...ids])),
+        permissions
+      )
+      setValue("permissionIds", nextIds, { shouldDirty: true })
     } else {
       setValue(
         "permissionIds",
-        selectedPermissionIds.filter((id) => !groupIds.includes(id)),
+        selectedPermissionIds.filter((id) => !ids.includes(id)),
         { shouldDirty: true }
       )
     }
@@ -173,21 +163,34 @@ export function RoleDialog({
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
-            Quản trị · Phân quyền
-          </p>
-          <h1 className="mt-1 text-2xl font-bold md:text-3xl">
-            {role ? `Chỉnh sửa vai trò — ${role.name}` : "Thêm vai trò mới"}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Cấu hình thông tin vai trò và các quyền hạn được phép sử dụng trong
-            hệ thống UniSage.
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <Button
+            aria-label="Quay lại"
+            className="mt-0.5 shrink-0"
+            disabled={isBusy}
+            onClick={handleCancel}
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            <ArrowLeft className="size-5" />
+          </Button>
+          <div>
+            <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
+              Quản trị · Phân quyền
+            </p>
+            <h1 className="mt-1 text-2xl font-bold md:text-3xl">
+              {role ? `Chỉnh sửa vai trò — ${role.name}` : "Thêm vai trò mới"}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Cấu hình thông tin vai trò và các quyền hạn được phép sử dụng
+              trong hệ thống UniSage.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-center">
+        <div className="flex items-center gap-3 self-end sm:self-start">
           <Button
             disabled={isBusy}
             onClick={handleCancel}
@@ -219,15 +222,18 @@ export function RoleDialog({
       >
         {/* Basic Information Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
-            <CardTitle className="text-base font-semibold">
-              Thông tin cơ bản
-            </CardTitle>
+          <CardHeader className="border-b">
+            <div className="flex items-center gap-2">
+              <Info className="size-5 text-primary" />
+              <CardTitle className="text-base font-semibold">
+                Thông tin cơ bản
+              </CardTitle>
+            </div>
             <CardDescription>
               Thiết lập tên gọi, mô tả và phân loại cơ bản cho vai trò.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="role-name">
@@ -286,155 +292,35 @@ export function RoleDialog({
 
         {/* Permissions Assignment Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-base font-semibold">
-                    Gán quyền hạn
-                  </CardTitle>
-                  <Badge className="font-mono" variant="secondary">
-                    {selectedPermissionIds.length} đã chọn
-                  </Badge>
-                </div>
-                <CardDescription className="mt-1">
-                  Chọn các quyền truy cập và thao tác được phép cấp cho vai trò
-                  này.
-                </CardDescription>
+          <CardHeader className="border-b">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="size-5 text-primary" />
+                <CardTitle className="text-base font-semibold">
+                  Gán quyền hạn
+                </CardTitle>
+                <Badge className="font-mono" variant="secondary">
+                  {selectedPermissionIds.length} đã chọn
+                </Badge>
               </div>
-              <ShieldCheck
-                aria-hidden="true"
-                className="size-6 shrink-0 text-primary"
-              />
-            </div>
-
-            {/* Filter & Search Bar */}
-            <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_240px]">
-              <div className="relative">
-                <Search
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  aria-label="Tìm quyền để gán"
-                  className="pl-9"
-                  onChange={(event) => setPermissionSearch(event.target.value)}
-                  placeholder="Tìm kiếm quyền hạn (theo tên, mã hoặc mô tả)..."
-                  value={permissionSearch}
-                />
-              </div>
-              <Select onValueChange={setResourceFilter} value={resourceFilter}>
-                <SelectTrigger
-                  aria-label="Lọc theo nhóm chức năng"
-                  className="w-full min-w-0"
-                >
-                  <SelectValue
-                    className="truncate"
-                    placeholder="Tất cả nhóm chức năng"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    Tất cả nhóm ({permissionGroups.length})
-                  </SelectItem>
-                  {resourceOptions.map((resource) => (
-                    <SelectItem key={resource} value={resource}>
-                      {getResourceLabel(resource)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CardDescription className="mt-1">
+                Chọn các quyền truy cập và thao tác được phép cấp cho vai trò
+                này.
+              </CardDescription>
             </div>
           </CardHeader>
 
-          <CardContent className="pt-6">
-            {visibleGroups.length === 0 ? (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                Không tìm thấy quyền hạn nào phù hợp với điều kiện tìm kiếm.
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {visibleGroups.map(({ items, resource }) => {
-                  const allInGroupSelected =
-                    items.length > 0 &&
-                    items.every((item) =>
-                      selectedPermissionIds.includes(item.id)
-                    )
-
-                  return (
-                    <section
-                      className="flex flex-col rounded-xl border bg-card p-4 transition-colors hover:border-slate-300 dark:hover:border-slate-700"
-                      key={resource}
-                    >
-                      <div className="mb-3 flex items-center justify-between border-b pb-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xs font-bold tracking-wider text-foreground uppercase">
-                            {getResourceLabel(resource)}
-                          </h3>
-                          <Badge variant="outline">{items.length}</Badge>
-                        </div>
-                        <Button
-                          className="h-7 px-2 text-[11px]"
-                          onClick={() =>
-                            toggleGroupPermissions(items, !allInGroupSelected)
-                          }
-                          size="sm"
-                          type="button"
-                          variant="ghost"
-                        >
-                          {allInGroupSelected ? (
-                            <>
-                              <Square className="mr-1 size-3 text-muted-foreground" />
-                              Bỏ chọn
-                            </>
-                          ) : (
-                            <>
-                              <CheckSquare className="mr-1 size-3 text-primary" />
-                              Chọn tất cả
-                            </>
-                          )}
-                        </Button>
-                      </div>
-
-                      <div className="flex-1 space-y-1.5">
-                        {items.map((permission) => {
-                          const checked = selectedPermissionIds.includes(
-                            permission.id
-                          )
-
-                          return (
-                            <label
-                              className={cn(
-                                "flex min-h-10 cursor-pointer items-start gap-2.5 rounded-lg p-2 transition-colors hover:bg-muted/70",
-                                checked && "bg-primary/5 dark:bg-primary/10"
-                              )}
-                              key={permission.id}
-                            >
-                              <Checkbox
-                                aria-label={`Cho phép ${permission.name}`}
-                                checked={checked}
-                                className="mt-0.5"
-                                onCheckedChange={(value) =>
-                                  togglePermission(permission, value === true)
-                                }
-                              />
-                              <span className="min-w-0 flex-1">
-                                <span className="block text-xs leading-tight font-semibold text-foreground">
-                                  {getPermissionLabel(permission)}
-                                </span>
-                                <span className="mt-0.5 block truncate font-mono text-[10px] text-muted-foreground">
-                                  {permission.name}
-                                </span>
-                              </span>
-                            </label>
-                          )
-                        })}
-                      </div>
-                    </section>
-                  )
-                })}
-              </div>
-            )}
+          <CardContent>
+            <PermissionMatrix
+              isChecked={(id) => selectedPermissionIds.includes(id)}
+              isDisabled={isCellDisabled}
+              onSearchQueryChange={setPermissionSearch}
+              onToggleCell={onToggleCell}
+              onToggleRow={onToggleRow}
+              rows={matrixRows}
+              searchPlaceholder="Tìm kiếm quyền hạn (theo tên, mã hoặc mô tả)..."
+              searchQuery={permissionSearch}
+            />
           </CardContent>
         </Card>
 

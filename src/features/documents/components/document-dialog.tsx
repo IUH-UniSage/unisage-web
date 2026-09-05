@@ -166,7 +166,7 @@ export function DocumentDialog({
       >
         {/* Basic Info Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <FileText className="size-5 text-primary" />
               <CardTitle className="text-base font-semibold">
@@ -177,7 +177,7 @@ export function DocumentDialog({
               Tên tiêu đề hiển thị chính của tài liệu trong hệ thống.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="space-y-2">
               <Label htmlFor="document-title">
                 Tiêu đề tài liệu{" "}
@@ -201,7 +201,7 @@ export function DocumentDialog({
 
         {/* Source & File Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <UploadCloud className="size-5 text-primary" />
               <CardTitle className="text-base font-semibold">
@@ -214,7 +214,7 @@ export function DocumentDialog({
                 : "Tải lên tệp tài liệu trực tiếp từ máy tính."}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             {isEdit ? (
               document?.fileUrl ? (
                 <DocumentFilePreview
@@ -386,7 +386,7 @@ export function DocumentDialog({
 
         {/* Classification & Access Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <Folder className="size-5 text-primary" />
               <CardTitle className="text-base font-semibold">
@@ -397,7 +397,7 @@ export function DocumentDialog({
               Thiết lập danh mục, phòng ban sở hữu và hạn chế cấp độ truy cập.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="grid gap-6 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="document-category">Danh mục</Label>
@@ -482,7 +482,7 @@ export function DocumentDialog({
 
         {/* Scope Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b pb-4">
+          <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <Globe className="size-5 text-primary" />
               <CardTitle className="text-base font-semibold">
@@ -493,7 +493,7 @@ export function DocumentDialog({
               Cấu hình tính công khai của tài liệu trong hệ thống.
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent>
             <ToggleOptionCard
               checked={isPublic}
               description="Tài liệu công khai có thể được truy cập bởi tất cả người dùng mà không cần đăng nhập."
