@@ -1,15 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Lock, Mail, Save, Shield, User } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { Eye, EyeOff, Loader2, Lock, Mail, Save } from "lucide-react"
+import { useMemo, useState } from "react"
+import { useController, useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -19,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
+import { DepartmentAccessSection } from "@/features/users/components/department-access-section"
 import {
   type AppUser,
   type CreateUserRequest,
@@ -28,6 +25,7 @@ import {
 } from "@/features/users/schemas/user-schemas"
 import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
+import { cn } from "@/lib/utils"
 
 type UserDialogProps = {
   isSaving: boolean
@@ -46,7 +44,10 @@ export function UserDialog({
   user,
 }: UserDialogProps) {
   const isEdit = Boolean(user)
+  const [showPassword, setShowPassword] = useState(false)
+  const departmentsQuery = useDepartmentsQuery()
   const {
+    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
@@ -57,7 +58,11 @@ export function UserDialog({
     defaultValues: {
       accessLevelId: user?.accessLevelId ?? undefined,
       code: user?.code ?? undefined,
-      departmentAccesses: [],
+      departmentAccesses:
+        user?.departmentAccesses?.map((access) => ({
+          accessLevel: access.accessLevel ?? 0,
+          departmentId: access.departmentId,
+        })) ?? [],
       email: user?.email ?? "",
       firstName: user?.firstName ?? "",
       gender: user?.gender ?? undefined,
@@ -70,17 +75,42 @@ export function UserDialog({
   })
   const isBusy = isSaving || isSubmitting
 
+  const departmentAccessesField = useController({
+    control,
+    name: "departmentAccesses",
+  })
+  const departmentAccesses = useMemo(
+    () => departmentAccessesField.field.value ?? [],
+    [departmentAccessesField.field.value]
+  )
+  const departmentTree = useMemo(
+    () => departmentsQuery.data ?? [],
+    [departmentsQuery.data]
+  )
+
   const handleCancel = () => {
     onOpenChange(false)
   }
 
   const submit = async (values: UserFormValues) => {
+    const departmentAccesses = values.departmentAccesses ?? []
+    const departmentIds = departmentAccesses.map(
+      (access) => access.departmentId
+    )
+    if (new Set(departmentIds).size !== departmentIds.length) {
+      setError("root", {
+        message:
+          "Mỗi phòng ban chỉ được gán một lần. Vui lòng kiểm tra lại danh sách phòng ban.",
+      })
+      return
+    }
+
     try {
       if (isEdit) {
         const updatePayload: UpdateUserRequest = {
           accessLevelId: values.accessLevelId,
           code: values.code,
-          departmentAccesses: values.departmentAccesses ?? [],
+          departmentAccesses,
           email: values.email,
           firstName: values.firstName,
           gender: values.gender,
@@ -105,7 +135,7 @@ export function UserDialog({
         const createPayload: CreateUserRequest = {
           accessLevelId: values.accessLevelId,
           code: values.code,
-          departmentAccesses: values.departmentAccesses ?? [],
+          departmentAccesses,
           email: values.email,
           firstName: values.firstName,
           gender: values.gender,
@@ -176,20 +206,11 @@ export function UserDialog({
         id="user-form"
         onSubmit={(event) => void handleSubmit(submit)(event)}
       >
-        {/* Personal & Contact Information Card */}
         <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b">
-            <div className="flex items-center gap-2">
-              <User className="size-5 text-primary" />
-              <CardTitle className="text-base font-semibold">
-                Thông tin cá nhân & liên hệ
-              </CardTitle>
-            </div>
-            <CardDescription>
-              Họ tên, email, số điện thoại và mã danh tính của người dùng.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-6 pt-6">
+            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Thông tin cá nhân & liên hệ
+            </p>
             {/* Name fields */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -265,99 +286,106 @@ export function UserDialog({
               </div>
             </div>
 
-            {/* Code */}
-            <div className="max-w-md space-y-2">
-              <Label htmlFor="user-code">Mã GV/SV (Mã định danh)</Label>
-              <Input
-                id="user-code"
-                placeholder="Ví dụ: 20012345, GV001..."
-                {...register("code")}
-              />
-              <p className="text-xs text-muted-foreground">
-                Mã giảng viên, sinh viên hoặc mã nhân viên trong tổ chức.
-              </p>
+            {/* Code & Password */}
+            <div className={cn("grid gap-4", !isEdit && "sm:grid-cols-2")}>
+              <div className="space-y-2">
+                <Label htmlFor="user-code">Mã GV/SV (Mã định danh)</Label>
+                <Input
+                  id="user-code"
+                  placeholder="Ví dụ: 20012345, GV001..."
+                  {...register("code")}
+                />
+              </div>
+
+              {!isEdit ? (
+                <div className="space-y-2">
+                  <Label htmlFor="user-password">
+                    Mật khẩu khởi tạo{" "}
+                    <span className="translate-y-0.5 text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      aria-invalid={Boolean(errors.password)}
+                      className="pr-10 pl-9"
+                      id="user-password"
+                      placeholder="Tối thiểu 8 ký tự"
+                      type={showPassword ? "text" : "password"}
+                      {...register("password")}
+                    />
+                    <Button
+                      aria-label={
+                        showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                      }
+                      className="absolute top-0.5 right-0.5 size-8 text-muted-foreground"
+                      onClick={() => setShowPassword((current) => !current)}
+                      size="icon"
+                      type="button"
+                      variant="ghost"
+                    >
+                      {showPassword ? (
+                        <EyeOff aria-hidden="true" className="size-4" />
+                      ) : (
+                        <Eye aria-hidden="true" className="size-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {errors.password ? (
+                    <p className="text-xs text-destructive">
+                      {errors.password.message}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
-            {/* Password (Only when creating) */}
-            {!isEdit ? (
-              <div className="max-w-md space-y-2 border-t pt-4">
-                <Label htmlFor="user-password">
-                  Mật khẩu khởi tạo{" "}
+            {/* Role & Department Access */}
+            <div className="space-y-4 border-t pt-6">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Phân quyền & phòng ban
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="user-role">
+                  Vai trò hệ thống{" "}
                   <span className="translate-y-0.5 text-destructive">*</span>
                 </Label>
-                <div className="relative">
-                  <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    aria-invalid={Boolean(errors.password)}
-                    className="pl-9"
-                    id="user-password"
-                    placeholder="Tối thiểu 8 ký tự"
-                    type="password"
-                    {...register("password")}
-                  />
-                </div>
-                {errors.password ? (
+                <Select
+                  onValueChange={(value) =>
+                    setValue("roleId", value, { shouldDirty: true })
+                  }
+                  value={watch("roleId") ?? ""}
+                >
+                  <SelectTrigger className="w-full" id="user-role">
+                    <SelectValue placeholder="Chọn vai trò cho tài khoản" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles
+                      .filter((role) => role.isActive)
+                      .map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.name}
+                          {role.description ? ` — ${role.description}` : ""}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {errors.roleId ? (
                   <p className="text-xs text-destructive">
-                    {errors.password.message}
+                    {errors.roleId.message}
                   </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Mật khẩu cần ít nhất 8 ký tự. Người dùng có thể đổi lại sau.
-                  </p>
-                )}
+                ) : null}
               </div>
-            ) : null}
-          </CardContent>
-        </Card>
 
-        {/* Role Assignment Card */}
-        <Card className="border bg-card shadow-none">
-          <CardHeader className="border-b">
-            <div className="flex items-center gap-2">
-              <Shield className="size-5 text-primary" />
-              <CardTitle className="text-base font-semibold">
-                Phân quyền & Vai trò
-              </CardTitle>
-            </div>
-            <CardDescription>
-              Gán nhóm quyền truy cập chính cho người dùng trong hệ thống.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="max-w-md space-y-2">
-              <Label htmlFor="user-role">
-                Vai trò hệ thống{" "}
-                <span className="translate-y-0.5 text-destructive">*</span>
-              </Label>
-              <Select
-                onValueChange={(value) =>
-                  setValue("roleId", value, { shouldDirty: true })
-                }
-                value={watch("roleId") ?? ""}
-              >
-                <SelectTrigger className="w-full" id="user-role">
-                  <SelectValue placeholder="Chọn vai trò cho tài khoản" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles
-                    .filter((role) => role.isActive)
-                    .map((role) => (
-                      <SelectItem key={role.id} value={role.id}>
-                        {role.name}
-                        {role.description ? ` — ${role.description}` : ""}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              {errors.roleId ? (
-                <p className="text-xs text-destructive">
-                  {errors.roleId.message}
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Vai trò quyết định toàn bộ quyền thao tác chính trên UniSage.
-                </p>
-              )}
+              <div className="space-y-2">
+                <Label>Quyền truy cập phòng ban</Label>
+                <DepartmentAccessSection
+                  onChange={(next) =>
+                    departmentAccessesField.field.onChange(next)
+                  }
+                  tree={departmentTree}
+                  value={departmentAccesses}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -370,31 +398,6 @@ export function UserDialog({
             {errors.root.message}
           </p>
         ) : null}
-
-        {/* Bottom Actions */}
-        <div className="flex items-center justify-end gap-3 border-t pt-4">
-          <Button
-            disabled={isBusy}
-            onClick={handleCancel}
-            type="button"
-            variant="outline"
-          >
-            Hủy
-          </Button>
-          <Button disabled={isBusy} type="submit">
-            {isBusy ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                {isEdit ? "Lưu thay đổi" : "Tạo người dùng"}
-              </>
-            )}
-          </Button>
-        </div>
       </form>
     </div>
   )

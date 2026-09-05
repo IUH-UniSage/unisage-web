@@ -3,13 +3,16 @@ import {
   Calendar,
   Clock3,
   CreditCard,
+  LayoutList,
   Mail,
+  Network,
   Pencil,
   Phone,
   Shield,
   ShieldAlert,
   User,
 } from "lucide-react"
+import { useMemo, useState } from "react"
 
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +24,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
+import {
+  flattenDepartmentTreeWithDepth,
+  getDepthLevelStyle,
+} from "@/features/departments/utils/tree"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
+import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
 
 function userDisplayName(user: AppUser) {
@@ -42,10 +51,27 @@ export function UserDetailDialog({
   onOpenChange,
   user,
 }: UserDetailDialogProps) {
+  const [viewMode, setViewMode] = useState<"list" | "tree">("tree")
+  const departmentTreeData = useDepartmentsQuery().data
+  const nodeIndex = useMemo(() => {
+    const departmentTree = departmentTreeData ?? []
+    return new Map(
+      flattenDepartmentTreeWithDepth(departmentTree).map((node) => [
+        node.id,
+        node.depth,
+      ])
+    )
+  }, [departmentTreeData])
+
   if (!user) return null
 
   const isActive = user.status === "ACTIVE"
   const departmentAccesses = user.departmentAccesses ?? []
+  const departmentAccessesByDepth = [...departmentAccesses].sort(
+    (a, b) =>
+      (nodeIndex.get(a.departmentId) ?? 0) -
+      (nodeIndex.get(b.departmentId) ?? 0)
+  )
 
   const handleBack = () => {
     onOpenChange(false)
@@ -210,7 +236,34 @@ export function UserDetailDialog({
                 liệu.
               </CardDescription>
             </div>
-            <Building className="size-6 shrink-0 text-primary" />
+            {departmentAccesses.length > 0 ? (
+              <div className="flex shrink-0 items-center gap-0.5 rounded-lg border bg-muted/30 p-0.5">
+                <Button
+                  aria-pressed={viewMode === "tree"}
+                  className="h-7 px-2"
+                  onClick={() => setViewMode("tree")}
+                  size="sm"
+                  type="button"
+                  variant={viewMode === "tree" ? "secondary" : "ghost"}
+                >
+                  <Network className="mr-1.5 size-3.5" />
+                  Cây
+                </Button>
+                <Button
+                  aria-pressed={viewMode === "list"}
+                  className="h-7 px-2"
+                  onClick={() => setViewMode("list")}
+                  size="sm"
+                  type="button"
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                >
+                  <LayoutList className="mr-1.5 size-3.5" />
+                  Danh sách
+                </Button>
+              </div>
+            ) : (
+              <Building className="size-6 shrink-0 text-primary" />
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -218,6 +271,50 @@ export function UserDetailDialog({
             <p className="py-8 text-center text-sm text-muted-foreground italic">
               Người dùng này chưa được cấp quyền riêng cho phòng ban nào.
             </p>
+          ) : viewMode === "tree" ? (
+            <div className="space-y-1">
+              {departmentAccessesByDepth.map((access) => {
+                const depth = nodeIndex.get(access.departmentId) ?? 0
+                const palette = getDepthLevelStyle(depth)
+                return (
+                  <div
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent/50"
+                    key={access.departmentId}
+                    style={{ paddingLeft: `${depth * 20 + 8}px` }}
+                  >
+                    {depth > 0 ? (
+                      <span
+                        aria-hidden="true"
+                        className="text-xs text-muted-foreground/50 select-none"
+                      >
+                        └─
+                      </span>
+                    ) : null}
+                    <span
+                      className={cn(
+                        "grid size-7 shrink-0 place-items-center rounded-md",
+                        palette.icon
+                      )}
+                    >
+                      <Building className="size-3.5" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                      {access.departmentName}
+                    </span>
+                    {access.accessLevel !== null &&
+                    access.accessLevel !== undefined ? (
+                      <Badge variant="secondary" className="shrink-0">
+                        Cấp {access.accessLevel}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="shrink-0">
+                        Tất cả
+                      </Badge>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {departmentAccesses.map((access) => (
