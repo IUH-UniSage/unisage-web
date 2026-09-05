@@ -25,6 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   USER_PAGE_SIZE,
   type StatusFilter,
 } from "@/features/users/hooks/use-user-dashboard"
@@ -230,9 +235,22 @@ export function UserList({
                 </Badge>
               ))}
               {departmentAccesses.length > 2 ? (
-                <Badge variant="secondary" className="text-xs">
-                  +{departmentAccesses.length - 2}
-                </Badge>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="secondary"
+                      className="cursor-default text-xs"
+                    >
+                      +{departmentAccesses.length - 2}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {departmentAccesses
+                      .slice(2)
+                      .map((da) => da.departmentName)
+                      .join(", ")}
+                  </TooltipContent>
+                </Tooltip>
               ) : null}
             </div>
           )

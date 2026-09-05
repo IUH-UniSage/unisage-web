@@ -52,8 +52,8 @@ export function UserFormPage() {
       })
       navigate(adminUserDetailPath(updated.id))
     } else {
-      const created = await createUser.mutateAsync(input as CreateUserRequest)
-      navigate(adminUserDetailPath(created.id))
+      await createUser.mutateAsync(input as CreateUserRequest)
+      navigate(ROUTES.adminUsers)
     }
   }
 
