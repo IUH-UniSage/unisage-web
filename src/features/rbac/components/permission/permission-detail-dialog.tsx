@@ -1,5 +1,6 @@
 import { Pencil } from "lucide-react"
 
+import { AuditInfo } from "@/components/shared/audit-info"
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,7 +20,6 @@ import {
   getResourceLabel,
   splitPermissionName,
 } from "@/features/rbac/utils/rbac-formatters"
-import { formatAuditDate } from "@/utils/date-format"
 
 type PermissionDetailDialogProps = {
   canUpdate: boolean
@@ -61,36 +61,12 @@ export function PermissionDetailDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <div className="grid grid-cols-2 gap-3 border-t pt-3 text-xs text-muted-foreground">
-            <div>
-              <span className="block text-[11px]">Người tạo</span>
-              <span className="font-medium text-foreground">
-                {permission.createdBy || "Hệ thống"}
-              </span>
-            </div>
-            <div>
-              <span className="block text-[11px]">Ngày tạo</span>
-              <span className="font-medium text-foreground">
-                {formatAuditDate(permission.createdAt)}
-              </span>
-            </div>
-            {permission.updatedAt ? (
-              <>
-                <div>
-                  <span className="block text-[11px]">Người cập nhật</span>
-                  <span className="font-medium text-foreground">
-                    {permission.updatedBy || "Hệ thống"}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[11px]">Cập nhật lần cuối</span>
-                  <span className="font-medium text-foreground">
-                    {formatAuditDate(permission.updatedAt)}
-                  </span>
-                </div>
-              </>
-            ) : null}
-          </div>
+          <AuditInfo
+            createdAt={permission.createdAt}
+            createdByName={permission.createdByName}
+            updatedAt={permission.updatedAt}
+            updatedByName={permission.updatedByName}
+          />
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">

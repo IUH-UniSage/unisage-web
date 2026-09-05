@@ -205,7 +205,7 @@ export function PermissionList({
         id: "action",
       },
       {
-        cell: ({ row }) => row.original.createdBy || "System",
+        cell: ({ row }) => row.original.createdByName || "System",
         header: "Người tạo",
         id: "createdBy",
       },
@@ -341,7 +341,7 @@ export function PermissionList({
                     <EntityStatusBadge isActive={permission.isActive} />
                   </div>
                   <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3 text-xs text-muted-foreground">
-                    <span>{permission.createdBy || "System"}</span>
+                    <span>{permission.createdByName || "System"}</span>
                     <span>{formatAuditDate(permission.createdAt)}</span>
                   </div>
                 </article>

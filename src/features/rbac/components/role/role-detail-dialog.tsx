@@ -1,13 +1,7 @@
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Pencil,
-  ShieldCheck,
-  User,
-} from "lucide-react"
+import { ArrowLeft, Pencil, ShieldCheck } from "lucide-react"
 import { useMemo, useState } from "react"
 
+import { AuditInfo } from "@/components/shared/audit-info"
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,7 +19,6 @@ import type {
 } from "@/features/rbac/schemas/rbac-schemas"
 import { buildPermissionMatrix } from "@/features/rbac/utils/permission-matrix"
 import { expandImpliedPermissionIds } from "@/features/rbac/utils/rbac-formatters"
-import { formatAuditDate } from "@/utils/date-format"
 
 type RoleDetailDialogProps = {
   canUpdate: boolean
@@ -123,9 +116,7 @@ export function RoleDetailDialog({
           <CardTitle className="text-base font-semibold">
             Thông tin tổng quan
           </CardTitle>
-          <CardDescription>
-            Các thông số chính và thông tin kiểm toán của vai trò.
-          </CardDescription>
+          <CardDescription>Các thông số chính của vai trò.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Description */}
@@ -136,69 +127,6 @@ export function RoleDetailDialog({
             <p className="mt-1.5 rounded-xl border bg-muted/40 p-3.5 text-sm leading-relaxed text-foreground">
               {role.description || "Chưa có mô tả cho vai trò này."}
             </p>
-          </div>
-
-          {/* Audit Metadata Grid */}
-          <div className="grid gap-4 rounded-xl border bg-muted/20 p-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-start gap-3">
-              <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                <User className="size-4" />
-              </div>
-              <div>
-                <span className="block text-[11px] font-medium text-muted-foreground">
-                  Người tạo
-                </span>
-                <span className="text-sm font-semibold text-foreground">
-                  {role.createdBy || "Hệ thống"}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                <Calendar className="size-4" />
-              </div>
-              <div>
-                <span className="block text-[11px] font-medium text-muted-foreground">
-                  Ngày tạo
-                </span>
-                <span className="text-sm font-semibold text-foreground">
-                  {formatAuditDate(role.createdAt)}
-                </span>
-              </div>
-            </div>
-
-            {role.updatedAt ? (
-              <>
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                    <User className="size-4" />
-                  </div>
-                  <div>
-                    <span className="block text-[11px] font-medium text-muted-foreground">
-                      Người cập nhật
-                    </span>
-                    <span className="text-sm font-semibold text-foreground">
-                      {role.updatedBy || "Hệ thống"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                    <Clock className="size-4" />
-                  </div>
-                  <div>
-                    <span className="block text-[11px] font-medium text-muted-foreground">
-                      Cập nhật lần cuối
-                    </span>
-                    <span className="text-sm font-semibold text-foreground">
-                      {formatAuditDate(role.updatedAt)}
-                    </span>
-                  </div>
-                </div>
-              </>
-            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -239,6 +167,13 @@ export function RoleDetailDialog({
           )}
         </CardContent>
       </Card>
+
+      <AuditInfo
+        createdAt={role.createdAt}
+        createdByName={role.createdByName}
+        updatedAt={role.updatedAt}
+        updatedByName={role.updatedByName}
+      />
     </div>
   )
 }

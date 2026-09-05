@@ -3,6 +3,7 @@ import { z } from "zod"
 export const categorySchema = z.object({
   createdAt: z.string().nullish(),
   createdBy: z.string().nullish(),
+  createdByName: z.string().nullish(),
   description: z.string().nullish(),
   id: z.uuid(),
   isActive: z.boolean(),
@@ -10,6 +11,7 @@ export const categorySchema = z.object({
   status: z.string().nullish(),
   updatedAt: z.string().nullish(),
   updatedBy: z.string().nullish(),
+  updatedByName: z.string().nullish(),
 })
 
 export const categoryListSchema = z.array(categorySchema)

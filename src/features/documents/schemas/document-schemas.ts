@@ -29,6 +29,7 @@ export const documentSchema = z.object({
   categoryName: z.string().nullish(),
   createdAt: z.string().nullish(),
   createdBy: z.string().nullish(),
+  createdByName: z.string().nullish(),
   deletedAt: z.string().nullish(),
   departmentId: z.uuid().nullish(),
   departmentName: z.string().nullish(),
@@ -45,6 +46,7 @@ export const documentSchema = z.object({
   title: z.string(),
   updatedAt: z.string().nullish(),
   updatedBy: z.string().nullish(),
+  updatedByName: z.string().nullish(),
   version: z.number().int().nullish(),
 })
 

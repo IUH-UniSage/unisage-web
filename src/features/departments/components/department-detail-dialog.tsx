@@ -1,6 +1,7 @@
 import { Edit2, Plus } from "lucide-react"
 import { useMemo } from "react"
 
+import { AuditInfo } from "@/components/shared/audit-info"
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,7 +22,6 @@ import {
   findDepartmentNode,
   getDepthLevelStyle,
 } from "@/features/departments/utils/tree"
-import { formatAuditDate } from "@/utils/date-format"
 
 function findDepth(nodes: DepartmentNode[], id: string, depth = 0): number {
   for (const node of nodes) {
@@ -138,36 +138,12 @@ export function DepartmentDetailDialog({
           </div>
 
           {/* Audit metadata */}
-          <div className="grid grid-cols-2 gap-3 border-t pt-3 text-xs text-muted-foreground">
-            <div>
-              <span className="block text-[11px]">Người tạo</span>
-              <span className="font-medium text-foreground">
-                {department.createdBy || "Hệ thống"}
-              </span>
-            </div>
-            <div>
-              <span className="block text-[11px]">Ngày tạo</span>
-              <span className="font-medium text-foreground">
-                {formatAuditDate(department.createdAt)}
-              </span>
-            </div>
-            {department.updatedAt ? (
-              <>
-                <div>
-                  <span className="block text-[11px]">Người cập nhật</span>
-                  <span className="font-medium text-foreground">
-                    {department.updatedBy || "Hệ thống"}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[11px]">Cập nhật lần cuối</span>
-                  <span className="font-medium text-foreground">
-                    {formatAuditDate(department.updatedAt)}
-                  </span>
-                </div>
-              </>
-            ) : null}
-          </div>
+          <AuditInfo
+            createdAt={department.createdAt}
+            createdByName={department.createdByName}
+            updatedAt={department.updatedAt}
+            updatedByName={department.updatedByName}
+          />
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">

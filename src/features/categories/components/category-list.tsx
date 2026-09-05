@@ -80,7 +80,7 @@ export function CategoryList({
         id: "description",
       },
       {
-        cell: ({ row }) => row.original.createdBy || "System",
+        cell: ({ row }) => row.original.createdByName || "System",
         header: "Người tạo",
         id: "createdBy",
         meta: { className: "text-sm" },
@@ -183,7 +183,7 @@ export function CategoryList({
               </div>
               <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3">
                 <div className="text-xs text-muted-foreground">
-                  <p>{category.createdBy || "System"}</p>
+                  <p>{category.createdByName || "System"}</p>
                   <p className="mt-1">{formatAuditDate(category.createdAt)}</p>
                 </div>
                 <EntityStatusBadge isActive={category.isActive} />

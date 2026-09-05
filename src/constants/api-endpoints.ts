@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
     documentStatus: (documentId: string) => `/documents/${documentId}/status`,
   },
   departments: {
+    accessSuggestion: (parentId: string) =>
+      `/departments/${parentId}/access-suggestion`,
     department: (departmentId: string) => `/departments/${departmentId}`,
     departmentRecover: (departmentId: string) =>
       `/departments/${departmentId}/recover`,
