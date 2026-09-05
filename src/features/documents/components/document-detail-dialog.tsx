@@ -125,7 +125,7 @@ export function DocumentDetailDialog({
 
       {/* General Information Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
+        <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Thông tin tài liệu & Phân loại
           </CardTitle>
@@ -134,7 +134,7 @@ export function DocumentDetailDialog({
             quyền.
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex items-start gap-3 rounded-xl border bg-muted/20 p-4">
               <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
@@ -228,7 +228,7 @@ export function DocumentDetailDialog({
 
       {/* File & Preview Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
+        <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Tệp tin & Xem trước
           </CardTitle>
@@ -236,7 +236,7 @@ export function DocumentDetailDialog({
             Xem trực tiếp nội dung tài liệu hoặc tải tệp tin về máy tính.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 pt-6">
+        <CardContent className="space-y-4">
           {document.fileUrl ? (
             <div className="space-y-4">
               <DocumentFilePreview
@@ -281,7 +281,7 @@ export function DocumentDetailDialog({
 
       {/* Audit Info Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
+        <CardHeader className="border-b">
           <div className="flex items-center gap-2">
             <Clock className="size-4 text-muted-foreground" />
             <CardTitle className="text-base font-semibold">
@@ -289,7 +289,7 @@ export function DocumentDetailDialog({
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <span className="block text-xs text-muted-foreground">

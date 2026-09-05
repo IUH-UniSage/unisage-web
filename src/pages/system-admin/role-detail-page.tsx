@@ -5,6 +5,7 @@ import { adminRoleEditPath, ROUTES } from "@/constants/paths"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import { RoleDetailDialog } from "@/features/rbac/components/role/role-detail-dialog"
 import { useRoleDetail } from "@/features/rbac/hooks/use-role-detail"
+import { useAccessPermissionsQuery } from "@/features/rbac/queries/use-queries"
 import { PERMISSIONS } from "@/utils/permissions"
 
 export function RoleDetailPage() {
@@ -12,6 +13,7 @@ export function RoleDetailPage() {
   const navigate = useNavigate()
   const { can } = usePermissions()
   const { data: role, isPending } = useRoleDetail(roleId)
+  const permissionsQuery = useAccessPermissionsQuery()
 
   if (isPending) {
     return (
@@ -37,6 +39,7 @@ export function RoleDetailPage() {
       onOpenChange={(open) => {
         if (!open) navigate(ROUTES.adminRbac)
       }}
+      permissions={permissionsQuery.data?.data ?? []}
       role={role}
     />
   )

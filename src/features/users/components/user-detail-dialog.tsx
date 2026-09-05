@@ -93,7 +93,7 @@ export function UserDetailDialog({
 
       {/* Main Profile & Contact Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
+        <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Thông tin tài khoản & danh tính
           </CardTitle>
@@ -101,7 +101,7 @@ export function UserDetailDialog({
             Chi tiết hồ sơ cá nhân và các phương thức liên lạc chính.
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex items-start gap-3 rounded-xl border bg-muted/20 p-4">
               <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
@@ -194,7 +194,7 @@ export function UserDetailDialog({
 
       {/* Department Accesses Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
+        <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -213,7 +213,7 @@ export function UserDetailDialog({
             <Building className="size-6 shrink-0 text-primary" />
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           {departmentAccesses.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground italic">
               Người dùng này chưa được cấp quyền riêng cho phòng ban nào.
@@ -250,12 +250,12 @@ export function UserDetailDialog({
 
       {/* Audit History Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
+        <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Lịch sử & Hoạt động
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           <div className="grid max-w-xl gap-4 sm:grid-cols-2">
             <div className="flex items-center gap-3 rounded-xl border p-3.5">
               <Clock3 className="size-4 text-muted-foreground" />

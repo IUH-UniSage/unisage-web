@@ -1,8 +1,8 @@
 import {
+  ArrowLeft,
   Calendar,
   Clock,
   Pencil,
-  Search,
   ShieldCheck,
   User,
 } from "lucide-react"
@@ -18,13 +18,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
-import {
-  getPermissionLabel,
-  getResourceLabel,
-  groupPermissions,
-} from "@/features/rbac/utils/rbac-formatters"
+import { PermissionMatrix } from "@/features/rbac/components/permission/permission-matrix"
+import type {
+  AccessPermission,
+  AccessRole,
+} from "@/features/rbac/schemas/rbac-schemas"
+import { buildPermissionMatrix } from "@/features/rbac/utils/permission-matrix"
+import { expandImpliedPermissionIds } from "@/features/rbac/utils/rbac-formatters"
 import { formatAuditDate } from "@/utils/date-format"
 
 type RoleDetailDialogProps = {
@@ -32,6 +32,7 @@ type RoleDetailDialogProps = {
   onEdit: (role: AccessRole) => void
   onOpenChange: (open: boolean) => void
   open?: boolean
+  permissions: AccessPermission[]
   role?: AccessRole
 }
 
@@ -39,14 +40,26 @@ export function RoleDetailDialog({
   canUpdate,
   onEdit,
   onOpenChange,
+  permissions,
   role,
 }: RoleDetailDialogProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
-  const groupedPermissions = useMemo(() => {
-    if (!role) return []
-    return groupPermissions(role.permissions, searchQuery)
-  }, [role, searchQuery])
+  const ownedPermissionIds = useMemo(
+    () =>
+      new Set(
+        expandImpliedPermissionIds(
+          role?.permissions.map((permission) => permission.id) ?? [],
+          permissions
+        )
+      ),
+    [permissions, role]
+  )
+
+  const matrixRows = useMemo(
+    () => buildPermissionMatrix(permissions, searchQuery),
+    [permissions, searchQuery]
+  )
 
   if (!role) return null
 
@@ -62,40 +75,51 @@ export function RoleDetailDialog({
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
-            Quản trị · Phân quyền
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold md:text-3xl">{role.name}</h1>
-            <EntityStatusBadge isActive={role.isActive} />
-            <Badge variant={role.isSystemRole ? "default" : "outline"}>
-              {role.isSystemRole ? "Vai trò hệ thống" : "Vai trò tùy chỉnh"}
-            </Badge>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <Button
+            aria-label="Quay lại danh sách vai trò"
+            className="mt-0.5 shrink-0"
+            onClick={handleBack}
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            <ArrowLeft className="size-5" />
+          </Button>
+          <div>
+            <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
+              Quản trị · Phân quyền
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold md:text-3xl">{role.name}</h1>
+              <EntityStatusBadge isActive={role.isActive} />
+              <Badge variant={role.isSystemRole ? "default" : "outline"}>
+                {role.isSystemRole ? "Vai trò hệ thống" : "Vai trò tùy chỉnh"}
+              </Badge>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Xem chi tiết thông tin cấu hình và các quyền hạn được gán cho vai
+              trò này.
+            </p>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Xem chi tiết thông tin cấu hình và các quyền hạn được gán cho vai
-            trò này.
-          </p>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-center">
-          <Button onClick={handleBack} type="button" variant="outline">
-            Quay lại
+        {canUpdate ? (
+          <Button
+            className="self-end sm:self-start"
+            onClick={handleEdit}
+            type="button"
+          >
+            <Pencil className="mr-2 size-4" />
+            Chỉnh sửa vai trò
           </Button>
-          {canUpdate ? (
-            <Button onClick={handleEdit} type="button">
-              <Pencil className="mr-2 size-4" />
-              Chỉnh sửa vai trò
-            </Button>
-          ) : null}
-        </div>
+        ) : null}
       </div>
 
       {/* Basic Role Metadata Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
+        <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Thông tin tổng quan
           </CardTitle>
@@ -103,7 +127,7 @@ export function RoleDetailDialog({
             Các thông số chính và thông tin kiểm toán của vai trò.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 pt-6">
+        <CardContent className="space-y-6">
           {/* Description */}
           <div>
             <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
@@ -181,78 +205,37 @@ export function RoleDetailDialog({
 
       {/* Permissions List Card */}
       <Card className="border bg-card shadow-none">
-        <CardHeader className="border-b pb-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base font-semibold">
-                  Quyền hạn được cấp
-                </CardTitle>
-                <Badge className="font-mono" variant="secondary">
-                  {role.permissions.length} quyền
-                </Badge>
-              </div>
-              <CardDescription className="mt-1">
-                Danh sách các quyền chức năng mà vai trò này đang sở hữu.
-              </CardDescription>
+        <CardHeader className="border-b">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-5 text-primary" />
+              <CardTitle className="text-base font-semibold">
+                Quyền hạn được cấp
+              </CardTitle>
+              <Badge className="font-mono" variant="secondary">
+                {ownedPermissionIds.size} / {permissions.length} quyền
+              </Badge>
             </div>
-            <ShieldCheck className="size-6 shrink-0 text-primary" />
+            <CardDescription className="mt-1">
+              Toàn bộ danh mục quyền trong hệ thống — quyền đã được cấp cho vai
+              trò này hiển thị ở trạng thái đã chọn.
+            </CardDescription>
           </div>
-
-          {role.permissions.length > 0 ? (
-            <div className="relative mt-4 max-w-md">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-9"
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm nhanh quyền trong vai trò..."
-                value={searchQuery}
-              />
-            </div>
-          ) : null}
         </CardHeader>
 
-        <CardContent className="pt-6">
-          {role.permissions.length === 0 ? (
+        <CardContent>
+          {permissions.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground italic">
-              Vai trò này hiện chưa được cấp quyền hạn nào.
-            </p>
-          ) : groupedPermissions.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Không tìm thấy quyền hạn phù hợp với từ khóa tìm kiếm.
+              Hệ thống hiện chưa có quyền hạn nào.
             </p>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {groupedPermissions.map(({ items, resource }) => (
-                <section
-                  className="space-y-3 rounded-xl border bg-card p-4"
-                  key={resource}
-                >
-                  <div className="flex items-center justify-between border-b pb-2">
-                    <h3 className="text-xs font-bold tracking-wider text-foreground uppercase">
-                      {getResourceLabel(resource)}
-                    </h3>
-                    <Badge variant="outline">{items.length}</Badge>
-                  </div>
-
-                  <div className="space-y-2">
-                    {items.map((permission) => (
-                      <div
-                        className="rounded-lg border bg-muted/40 p-2.5 transition-colors hover:bg-muted/70"
-                        key={permission.id}
-                      >
-                        <p className="text-xs leading-tight font-semibold text-foreground">
-                          {getPermissionLabel(permission)}
-                        </p>
-                        <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
-                          {permission.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
+            <PermissionMatrix
+              isChecked={(id) => ownedPermissionIds.has(id)}
+              onSearchQueryChange={setSearchQuery}
+              rows={matrixRows}
+              searchPlaceholder="Tìm nhanh quyền hạn..."
+              searchQuery={searchQuery}
+            />
           )}
         </CardContent>
       </Card>

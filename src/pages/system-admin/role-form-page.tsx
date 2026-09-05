@@ -46,8 +46,8 @@ export function RoleFormPage() {
       const updated = await updateRole.mutateAsync({ input, roleId })
       navigate(adminRoleDetailPath(updated.id))
     } else {
-      const created = await createRole.mutateAsync(input)
-      navigate(adminRoleDetailPath(created.id))
+      await createRole.mutateAsync(input)
+      navigate(ROUTES.adminRbac)
     }
   }
 

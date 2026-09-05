@@ -34,7 +34,7 @@ export function DocumentChunksSection({
 
   return (
     <Card className="border bg-card shadow-none">
-      <CardHeader className="border-b pb-4">
+      <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-muted-foreground" />
           <CardTitle className="text-base font-semibold">
@@ -51,7 +51,7 @@ export function DocumentChunksSection({
           liệu.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 pt-6">
+      <CardContent className="space-y-4">
         {chunksQuery.isPending ? (
           <div className="space-y-2" aria-label="Đang tải danh sách chunks">
             <Skeleton className="h-20 rounded-xl" />
