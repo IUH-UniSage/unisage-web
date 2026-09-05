@@ -11,6 +11,7 @@ import {
   User,
 } from "lucide-react"
 
+import { AuditInfo } from "@/components/shared/audit-info"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,7 +31,6 @@ import { DocumentChunksSection } from "@/features/documents/components/document-
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
-import { formatAuditDate } from "@/utils/date-format"
 
 type DocumentDetailDialogProps = {
   canUpdate: boolean
@@ -218,7 +218,7 @@ export function DocumentDetailDialog({
                   Người tải lên
                 </span>
                 <span className="block text-sm font-semibold text-foreground">
-                  {document.createdBy || "Hệ thống"}
+                  {document.createdByName || "Hệ thống"}
                 </span>
               </div>
             </div>
@@ -290,44 +290,13 @@ export function DocumentDetailDialog({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <span className="block text-xs text-muted-foreground">
-                Người khởi tạo
-              </span>
-              <span className="mt-1 block text-sm font-semibold text-foreground">
-                {document.createdBy || "Hệ thống"}
-              </span>
-            </div>
-            <div>
-              <span className="block text-xs text-muted-foreground">
-                Thời gian khởi tạo
-              </span>
-              <span className="mt-1 block text-sm font-semibold text-foreground">
-                {formatAuditDate(document.createdAt)}
-              </span>
-            </div>
-            {document.updatedAt ? (
-              <>
-                <div>
-                  <span className="block text-xs text-muted-foreground">
-                    Người cập nhật gần nhất
-                  </span>
-                  <span className="mt-1 block text-sm font-semibold text-foreground">
-                    {document.updatedBy || "Hệ thống"}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-xs text-muted-foreground">
-                    Thời gian cập nhật
-                  </span>
-                  <span className="mt-1 block text-sm font-semibold text-foreground">
-                    {formatAuditDate(document.updatedAt)}
-                  </span>
-                </div>
-              </>
-            ) : null}
-          </div>
+          <AuditInfo
+            className="border-none bg-transparent p-0"
+            createdAt={document.createdAt}
+            createdByName={document.createdByName}
+            updatedAt={document.updatedAt}
+            updatedByName={document.updatedByName}
+          />
         </CardContent>
       </Card>
     </div>

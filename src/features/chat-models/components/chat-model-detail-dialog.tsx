@@ -1,5 +1,6 @@
 import { CheckCircle2, XCircle } from "lucide-react"
 
+import { AuditInfo } from "@/components/shared/audit-info"
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -119,36 +120,12 @@ export function ChatModelDetailDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 border-t pt-3 text-xs text-muted-foreground">
-            <div>
-              <span className="block text-[11px]">Người tạo</span>
-              <span className="font-medium text-foreground">
-                {chatModel.createdBy || "Hệ thống"}
-              </span>
-            </div>
-            <div>
-              <span className="block text-[11px]">Ngày tạo</span>
-              <span className="font-medium text-foreground">
-                {formatAuditDate(chatModel.createdAt)}
-              </span>
-            </div>
-            {chatModel.updatedAt ? (
-              <>
-                <div>
-                  <span className="block text-[11px]">Người cập nhật</span>
-                  <span className="font-medium text-foreground">
-                    {chatModel.updatedBy || "Hệ thống"}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[11px]">Cập nhật lần cuối</span>
-                  <span className="font-medium text-foreground">
-                    {formatAuditDate(chatModel.updatedAt)}
-                  </span>
-                </div>
-              </>
-            ) : null}
-          </div>
+          <AuditInfo
+            createdAt={chatModel.createdAt}
+            createdByName={chatModel.createdByName}
+            updatedAt={chatModel.updatedAt}
+            updatedByName={chatModel.updatedByName}
+          />
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">

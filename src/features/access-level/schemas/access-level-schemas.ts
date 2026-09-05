@@ -3,12 +3,14 @@ import { z } from "zod"
 export const accessLevelSchema = z.object({
   createdAt: z.string().nullish(),
   createdBy: z.string().nullish(),
+  createdByName: z.string().nullish(),
   description: z.string().nullish(),
   id: z.uuid(),
   isActive: z.boolean(),
   level: z.number().int(),
   updatedAt: z.string().nullish(),
   updatedBy: z.string().nullish(),
+  updatedByName: z.string().nullish(),
 })
 
 export const accessLevelListSchema = z.array(accessLevelSchema)

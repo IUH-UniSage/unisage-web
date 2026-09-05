@@ -241,7 +241,7 @@ export function RoleList({
         id: "permissions",
       },
       {
-        cell: ({ row }) => row.original.createdBy || "System",
+        cell: ({ row }) => row.original.createdByName || "System",
         header: "Người tạo",
         id: "createdBy",
         meta: { className: "text-sm" },
@@ -383,7 +383,7 @@ export function RoleList({
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3">
                   <div className="text-xs text-muted-foreground">
-                    <p>{role.createdBy || "System"}</p>
+                    <p>{role.createdByName || "System"}</p>
                     <p className="mt-1">{formatAuditDate(role.createdAt)}</p>
                   </div>
                   <EntityStatusBadge isActive={role.isActive} />

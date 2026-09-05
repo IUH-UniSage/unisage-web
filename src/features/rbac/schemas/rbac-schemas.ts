@@ -3,8 +3,10 @@ import { z } from "zod"
 const auditFieldsSchema = z.object({
   createdAt: z.string().nullish(),
   createdBy: z.string().nullish(),
+  createdByName: z.string().nullish(),
   updatedAt: z.string().nullish(),
   updatedBy: z.string().nullish(),
+  updatedByName: z.string().nullish(),
 })
 
 export const accessPermissionSchema = auditFieldsSchema.extend({

@@ -5,13 +5,28 @@ import { httpClient } from "@/lib/axios-client"
 import { readApiResponse, readSuccessData } from "@/utils/api-response"
 import type { ApiResponse } from "@/utils/api-response"
 import {
+  departmentAccessSuggestionSchema,
   departmentRequestSchema,
   departmentSchema,
   type CreateDepartmentRequest,
   type Department,
+  type DepartmentAccessSuggestion,
 } from "@/features/departments/schemas/department-schemas"
 
 export const departmentApi = {
+  async getAccessSuggestion(
+    parentId: string,
+    userId: string
+  ): Promise<DepartmentAccessSuggestion> {
+    const response = await httpClient.get<
+      ApiResponse<DepartmentAccessSuggestion>
+    >(API_ENDPOINTS.departments.accessSuggestion(parentId), {
+      params: { userId },
+    })
+
+    return readSuccessData(response.data, departmentAccessSuggestionSchema)
+  },
+
   async getDepartments(): Promise<Department[]> {
     const response = await httpClient.get<ApiResponse<Department[]>>(
       API_ENDPOINTS.departments.departmentsRoots

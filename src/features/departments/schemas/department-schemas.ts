@@ -8,8 +8,10 @@ export interface DepartmentNode {
   isActive?: boolean | null
   deletedAt?: string | null
   createdBy?: string | null
+  createdByName?: string | null
   createdAt?: string | null
   updatedBy?: string | null
+  updatedByName?: string | null
   updatedAt?: string | null
   children?: DepartmentNode[]
 }
@@ -19,6 +21,7 @@ export const departmentNodeSchema: z.ZodType<DepartmentNode> = z.lazy(() =>
     children: z.array(departmentNodeSchema).optional().default([]),
     createdAt: z.string().nullish(),
     createdBy: z.string().nullish(),
+    createdByName: z.string().nullish(),
     deletedAt: z.string().nullish(),
     description: z.string().nullish(),
     id: z.uuid(),
@@ -27,6 +30,7 @@ export const departmentNodeSchema: z.ZodType<DepartmentNode> = z.lazy(() =>
     parentId: z.uuid().nullish(),
     updatedAt: z.string().nullish(),
     updatedBy: z.string().nullish(),
+    updatedByName: z.string().nullish(),
   })
 )
 
@@ -34,6 +38,7 @@ export const departmentSchema = z.object({
   children: z.array(departmentNodeSchema).optional().default([]),
   createdAt: z.string().nullish(),
   createdBy: z.string().nullish(),
+  createdByName: z.string().nullish(),
   deletedAt: z.string().nullish(),
   description: z.string().nullish(),
   id: z.uuid(),
@@ -42,6 +47,7 @@ export const departmentSchema = z.object({
   parentId: z.uuid().nullish(),
   updatedAt: z.string().nullish(),
   updatedBy: z.string().nullish(),
+  updatedByName: z.string().nullish(),
 })
 
 export const departmentRequestSchema = z.object({
@@ -54,8 +60,36 @@ export const departmentRequestSchema = z.object({
   parentId: z.uuid().nullish(),
 })
 
+export const departmentAccessSuggestionSourceSchema = z.enum([
+  "NONE",
+  "SINGLE_CHILD",
+  "SAME_LEVEL",
+  "CONFLICT",
+])
+
+export const departmentAccessSuggestionChildSchema = z.object({
+  accessLevel: z.number().int().nonnegative().nullish(),
+  departmentId: z.uuid(),
+  departmentName: z.string(),
+})
+
+export const departmentAccessSuggestionSchema = z.object({
+  children: z
+    .array(departmentAccessSuggestionChildSchema)
+    .optional()
+    .default([]),
+  source: departmentAccessSuggestionSourceSchema,
+  suggestedLevel: z.number().int().nonnegative().nullish(),
+})
+
 export type Department = z.infer<typeof departmentSchema>
 export type DepartmentRequest = z.infer<typeof departmentRequestSchema>
 // Alias for backward-compat with existing imports
 export type CreateDepartmentRequest = DepartmentRequest
 export type UpdateDepartmentRequest = DepartmentRequest
+export type DepartmentAccessSuggestion = z.infer<
+  typeof departmentAccessSuggestionSchema
+>
+export type DepartmentAccessSuggestionChild = z.infer<
+  typeof departmentAccessSuggestionChildSchema
+>
