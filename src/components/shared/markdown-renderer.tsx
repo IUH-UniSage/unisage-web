@@ -104,6 +104,13 @@ function MarkdownText({ block }: { block: string }) {
           return <div className="h-1.5" key={index} />
         }
 
+        // Horizontal rule (---, ***, ___) - checked before the bullet-list
+        // regex below, which would otherwise read "---" as a "-" bullet
+        // with leftover dashes as its content.
+        if (/^(-{3,}|\*{3,}|_{3,})$/.test(line)) {
+          return <hr className="my-3 border-t border-border" key={index} />
+        }
+
         // Heading 1 (# ...)
         if (line.startsWith("# ")) {
           return (
@@ -193,14 +200,25 @@ function MarkdownText({ block }: { block: string }) {
         // Bullet point or numbered list item
         const listMatch = rawLine.match(/^(\s*)([-*•●○◦▪▫–—]|\d+[.)])\s*(.*)$/)
         if (listMatch) {
+          const indent = listMatch[1]
           const bullet = listMatch[2]
           const isNumber = /^\d+[.)]/.test(bullet)
           const content = listMatch[3]
+          // Nested sub-bullets (indented in the source) sit one level deeper
+          // than top-level numbered steps, so they read as belonging under
+          // the step instead of lining up flush with it.
+          const isNested = indent.length > 0 && !isNumber
 
           return (
-            <div className="my-1 flex items-start gap-2.5 pl-2" key={index}>
+            <div
+              className={cn(
+                "my-1 flex items-start gap-2.5",
+                isNested ? "pl-6" : "pl-2"
+              )}
+              key={index}
+            >
               {isNumber ? (
-                <span className="shrink-0 font-medium text-neutral-500 select-none">
+                <span className="shrink-0 leading-[1.7] font-medium text-foreground select-none">
                   {bullet}
                 </span>
               ) : (
