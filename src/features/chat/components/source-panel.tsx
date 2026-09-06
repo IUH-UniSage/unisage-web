@@ -26,6 +26,12 @@ export function SourcePanel({ onClose, width = 260 }: SourcePanelProps) {
           <Badge className="ml-0.5 size-4.5 justify-center rounded-full bg-muted p-0 text-[10px] leading-none text-muted-foreground">
             {CHAT_SOURCES.length}
           </Badge>
+          <Badge
+            className="border-dashed text-[10px] font-normal text-muted-foreground"
+            variant="outline"
+          >
+            Mẫu minh hoạ
+          </Badge>
         </div>
         {onClose ? (
           <Button
