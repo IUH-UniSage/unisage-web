@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import type { Message } from "@/features/chat/schemas/chat-schemas"
-import { cn } from "@/lib/utils"
 
 const PENDING_STATUSES = new Set(["PENDING", "STREAMING"])
 
@@ -104,10 +103,7 @@ function CopyMessageButton({ content }: { content: string }) {
   return (
     <Button
       aria-label={copied ? "Đã chép" : "Sao chép"}
-      className={cn(
-        "size-7 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground",
-        copied && "opacity-100"
-      )}
+      className="size-7 text-muted-foreground hover:text-foreground"
       onClick={() => void handleCopy()}
       size="icon"
       title={copied ? "Đã chép" : "Sao chép"}
