@@ -16,6 +16,14 @@ const askUserFormSchema = z.object({
   type: z.literal("ask_user_form"),
 })
 
+// Matches only the envelope ({ type: "ask_user_form", ... }) regardless of
+// whether `fields` is present/non-empty - the model sometimes emits an empty
+// `fields: []` (nothing left to ask), which is a valid signal to just not
+// show a form, not an invalid block that should leak through as raw JSON.
+const askUserFormEnvelopeSchema = z.object({
+  type: z.literal("ask_user_form"),
+})
+
 export type AskUserFormOption = z.infer<typeof askUserFormOptionSchema>
 export type AskUserFormField = z.infer<typeof askUserFormFieldSchema>
 export type AskUserForm = z.infer<typeof askUserFormSchema>
@@ -64,19 +72,17 @@ export function extractAskUserForm(content: string): {
   for (const match of content.matchAll(JSON_FENCE_REGEX)) {
     try {
       const parsed = tryParseJson(match[1])
-      const result = askUserFormSchema.safeParse(parsed)
-      if (result.success) {
-        form = result.data
-        text = text.replace(match[0], "")
-      }
-    } catch {
-      // Not valid JSON even after stripping comments (or not this shape) -
-      // not an ask_user_form block.
-    }
-  }
+      if (!askUserFormEnvelopeSchema.safeParse(parsed).success) continue
 
-  if (!form) {
-    return { form: null, text: content }
+      // It's an ask_user_form block either way - strip it from the visible
+      // text, and only render actual controls if it has fields to ask about.
+      text = text.replace(match[0], "")
+      const result = askUserFormSchema.safeParse(parsed)
+      if (result.success) form = result.data
+    } catch {
+      // Not valid JSON even after stripping comments - not an
+      // ask_user_form block.
+    }
   }
 
   return { form, text: text.trim() }
