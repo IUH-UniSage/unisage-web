@@ -5,8 +5,10 @@ import { BrandMark } from "@/components/shared/brand/brand-mark"
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { AskUserFormCard } from "@/features/chat/components/ask-user-form"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import type { Message } from "@/features/chat/schemas/chat-schemas"
+import { extractAskUserForm } from "@/features/chat/utils/ask-user-form"
 
 const PENDING_STATUSES = new Set(["PENDING", "STREAMING"])
 
@@ -62,12 +64,11 @@ export function ActiveConversation({
                     Đã dừng tạo câu trả lời.
                   </p>
                 ) : (
-                  <>
-                    <div className="w-full">
-                      <MarkdownRenderer content={message.content} />
-                    </div>
-                    <CopyMessageButton content={message.content} />
-                  </>
+                  <AssistantReply
+                    content={message.content}
+                    disabled={isWaitingForReply}
+                    onSendMessage={onSendMessage}
+                  />
                 )}
               </div>
             )
@@ -83,6 +84,36 @@ export function ActiveConversation({
         onStop={onStopGenerating}
         onSubmit={onSendMessage}
       />
+    </>
+  )
+}
+
+type AssistantReplyProps = {
+  content: string
+  disabled: boolean
+  onSendMessage: (content: string) => void
+}
+
+function AssistantReply({
+  content,
+  disabled,
+  onSendMessage,
+}: AssistantReplyProps) {
+  const { form, text } = extractAskUserForm(content)
+
+  return (
+    <>
+      <div className="w-full">
+        <MarkdownRenderer content={text} />
+      </div>
+      {form ? (
+        <AskUserFormCard
+          disabled={disabled}
+          form={form}
+          onSubmit={onSendMessage}
+        />
+      ) : null}
+      <CopyMessageButton content={text} />
     </>
   )
 }
