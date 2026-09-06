@@ -166,8 +166,12 @@ export function ChatComposer({
           isExpanded && "rounded-3xl p-3.5 shadow-xl"
         )}
         onSubmit={(event) => {
+          // submit() runs from handleKeyDown (Enter) or the send button's
+          // onClick below - never here. A textarea's Enter shouldn't submit
+          // its form natively, but some environments dispatch a real
+          // `submit` event for it anyway; calling submit() again from both
+          // places sent every message twice.
           event.preventDefault()
-          submit()
         }}
       >
         {/* Top-Right Expand/Collapse Button (Shows when multiline or expanded) */}
@@ -242,8 +246,9 @@ export function ChatComposer({
                 "cursor-not-allowed bg-muted-foreground/40 text-muted-foreground opacity-40 dark:bg-neutral-700 dark:text-neutral-400"
             )}
             disabled={disabled || !hasValue}
+            onClick={submit}
             size="icon"
-            type="submit"
+            type="button"
           >
             <ArrowUp aria-hidden="true" className="size-4.5" />
           </Button>
