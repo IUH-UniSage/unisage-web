@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react"
+import { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
@@ -23,6 +24,13 @@ export function DocumentDashboard() {
   const navigate = useNavigate()
   const location = useLocation()
   const dashboard = useDocumentDashboard()
+  // Live embed-progress percent per document, from <DocumentStatusSync>'s WS
+  // "progress" frames - purely a UI overlay on top of the PENDING badge,
+  // never persisted (Document.status itself only ever becomes COMPLETED/
+  // FAILED on a terminal frame).
+  const [progressByDocumentId, setProgressByDocumentId] = useState<
+    Record<string, number>
+  >({})
 
   // Quản trị tài liệu is registered in both the system-admin and ingester
   // workspaces (see feature-registry.tsx) - which detail/edit/create paths
@@ -76,11 +84,20 @@ export function DocumentDashboard() {
         onProcess={(document) => navigate(wizardPath(document.id))}
         onRequestDelete={dashboard.requestDelete}
         onViewDetail={(document) => navigate(detailPath(document.id))}
+        progressByDocumentId={progressByDocumentId}
         totalItems={dashboard.totalItems}
         totalPages={dashboard.totalPages}
       />
 
-      <DocumentStatusSync documents={dashboard.documents} />
+      <DocumentStatusSync
+        documents={dashboard.documents}
+        onProgress={(documentId, percent) =>
+          setProgressByDocumentId((prev) => ({
+            ...prev,
+            [documentId]: percent,
+          }))
+        }
+      />
 
       {dashboard.deletingDocument ? (
         <ConfirmDeleteDialog

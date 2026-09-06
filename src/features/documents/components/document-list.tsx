@@ -120,8 +120,37 @@ type DocumentListProps = {
   onProcess: (document: Document) => void
   onRequestDelete: (document: Document) => void
   onViewDetail: (document: Document) => void
+  /** Live embed-progress percent per document id - see DocumentDashboard. */
+  progressByDocumentId?: Record<string, number>
   totalItems: number
   totalPages: number
+}
+
+function StatusBadge({
+  document,
+  progressByDocumentId,
+}: {
+  document: Document
+  progressByDocumentId: Record<string, number> | undefined
+}) {
+  const percent = progressByDocumentId?.[document.id]
+  const isProcessing = document.status === "PENDING" && percent != null
+
+  return (
+    <Badge
+      className={cn(
+        "gap-1.5 px-2.5",
+        isProcessing
+          ? getDocStatusBadgeClassName("PROCESSING")
+          : getDocStatusBadgeClassName(document.status)
+      )}
+      variant="ghost"
+    >
+      {isProcessing
+        ? `Đang xử lý - ${Math.round(percent)}%`
+        : getDocStatusLabel(document.status)}
+    </Badge>
+  )
 }
 
 export function DocumentList({
@@ -135,6 +164,7 @@ export function DocumentList({
   onProcess,
   onRequestDelete,
   onViewDetail,
+  progressByDocumentId,
   totalItems,
   totalPages,
 }: DocumentListProps) {
@@ -184,15 +214,10 @@ export function DocumentList({
       },
       {
         cell: ({ row }) => (
-          <Badge
-            className={cn(
-              "gap-1.5 px-2.5",
-              getDocStatusBadgeClassName(row.original.status)
-            )}
-            variant="ghost"
-          >
-            {getDocStatusLabel(row.original.status)}
-          </Badge>
+          <StatusBadge
+            document={row.original}
+            progressByDocumentId={progressByDocumentId}
+          />
         ),
         header: "Trạng thái",
         id: "status",
@@ -224,6 +249,7 @@ export function DocumentList({
       onProcess,
       onRequestDelete,
       onViewDetail,
+      progressByDocumentId,
     ]
   )
 
@@ -294,15 +320,10 @@ export function DocumentList({
                 <p className="text-xs text-muted-foreground">
                   {formatAuditDate(document.createdAt)}
                 </p>
-                <Badge
-                  className={cn(
-                    "gap-1.5 px-2.5",
-                    getDocStatusBadgeClassName(document.status)
-                  )}
-                  variant="ghost"
-                >
-                  {getDocStatusLabel(document.status)}
-                </Badge>
+                <StatusBadge
+                  document={document}
+                  progressByDocumentId={progressByDocumentId}
+                />
               </div>
             </article>
           ))}

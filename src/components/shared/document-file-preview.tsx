@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils"
 
 type PreviewKind = "docx" | "iframe" | "txt" | "unsupported" | "xlsx"
 
-// Browsers render PDF natively via <iframe> - no viewer needed. TXT is
+// Browsers render PDF/HTML natively via <iframe> - no viewer needed (HTML is
+// sandboxed below, see the iframe render - an uploaded document is untrusted
+// content and must never execute script in this page's origin). TXT is
 // fetched and decoded as UTF-8 ourselves (see TxtPreview) instead of relying
 // on the iframe, because the server doesn't always send a charset in its
 // Content-Type header and the browser then guesses one, garbling Vietnamese
@@ -15,6 +17,7 @@ type PreviewKind = "docx" | "iframe" | "txt" | "unsupported" | "xlsx"
 function getPreviewKind(fileType: string | null | undefined): PreviewKind {
   switch (fileType?.toUpperCase()) {
     case "PDF":
+    case "HTML":
       return "iframe"
     case "TXT":
       return "txt"
@@ -44,6 +47,7 @@ export function DocumentFilePreview({
     return (
       <iframe
         className="h-125 w-full rounded-xl border bg-background shadow-xs"
+        sandbox="allow-same-origin"
         src={fileUrl}
         title={`Xem trước ${title}`}
       />

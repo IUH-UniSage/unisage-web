@@ -7,6 +7,7 @@ export const ALLOWED_DOCUMENT_FILE_EXTENSIONS = [
   ".pdf",
   ".docx",
   ".doc",
+  ".html",
 ]
 
 function hasAllowedExtension(filename: string): boolean {

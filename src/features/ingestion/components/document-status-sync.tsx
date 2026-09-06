@@ -11,6 +11,8 @@ import { useIngestionEvents } from "@/features/ingestion/hooks/use-ingestion-eve
 
 type DocumentStatusSyncProps = {
   documents: Document[]
+  /** Called on each live "progress" frame for a document shown as PENDING. */
+  onProgress?: (documentId: string, percent: number) => void
 }
 
 /**
@@ -18,7 +20,9 @@ type DocumentStatusSyncProps = {
  * `/ingestion/events` channel and, when a document currently shown as
  * PENDING has its embed task finish, persists the resulting
  * `Document.status` (COMPLETED / FAILED) via the normal mutation - whose
- * `meta.invalidatesQuery` refreshes every document list.
+ * `meta.invalidatesQuery` refreshes every document list. Live "progress"
+ * frames are forwarded to `onProgress` (if given) so a caller can render an
+ * in-progress percentage without waiting for a terminal state.
  *
  * Because pub/sub is at-most-once, it also runs a one-shot reconciliation
  * sweep on mount and on every reconnect: it reads each PENDING document's
@@ -27,7 +31,10 @@ type DocumentStatusSyncProps = {
  * authoritative path; a missed frame only delays the update to the next
  * mount/reconnect.
  */
-export function DocumentStatusSync({ documents }: DocumentStatusSyncProps) {
+export function DocumentStatusSync({
+  documents,
+  onProgress,
+}: DocumentStatusSyncProps) {
   const updateStatus = useUpdateDocumentStatusMutation()
   const reportedRef = useRef<Set<string>>(new Set())
 
@@ -49,8 +56,11 @@ export function DocumentStatusSync({ documents }: DocumentStatusSyncProps) {
   }
 
   const { reconnectNonce } = useIngestionEvents((event) => {
-    if (event.type !== "completed") return
     if (!pendingIds.includes(event.document_id)) return
+    if (event.type === "progress") {
+      onProgress?.(event.document_id, event.percent)
+      return
+    }
     report(event.document_id, event.state)
   })
 
