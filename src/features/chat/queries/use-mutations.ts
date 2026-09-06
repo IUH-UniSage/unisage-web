@@ -1,11 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 
 import { chatApi } from "@/features/chat/api/chat-api"
 import { chatKeys } from "@/features/chat/queries/keys"
-import type {
-  CreateConversationRequest,
-  SendMessageRequest,
-} from "@/features/chat/schemas/chat-schemas"
+import type { CreateConversationRequest } from "@/features/chat/schemas/chat-schemas"
 
 export function useCreateConversationMutation(userId: string) {
   return useMutation({
@@ -14,30 +11,6 @@ export function useCreateConversationMutation(userId: string) {
     },
     mutationFn: (input: CreateConversationRequest) =>
       chatApi.createConversation(input),
-  })
-}
-
-export function useSendMessageMutation() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (input: SendMessageRequest) => chatApi.sendMessage(input),
-    onSuccess: (newMessage, variables) => {
-      queryClient.setQueryData(
-        chatKeys.messages(variables.conversationId),
-        (
-          current:
-            | Awaited<ReturnType<typeof chatApi.getMessagesByConversation>>
-            | undefined
-        ) => (current ? [...current, newMessage] : [newMessage])
-      )
-      // Refetch right away so a backend-generated assistant reply (still
-      // PENDING/STREAMING) is picked up and the poll in chatOptions.messages
-      // takes over from there.
-      void queryClient.invalidateQueries({
-        queryKey: chatKeys.messages(variables.conversationId),
-      })
-    },
   })
 }
 

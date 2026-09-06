@@ -8,8 +8,6 @@ import {
   createConversationRequestSchema,
   type Message,
   messageSchema,
-  type SendMessageRequest,
-  sendMessageRequestSchema,
 } from "@/features/chat/schemas/chat-schemas"
 import { httpClient } from "@/lib/axios-client"
 import { readApiResponse, readSuccessData } from "@/utils/api-response"
@@ -59,16 +57,6 @@ export const chatApi = {
     )
 
     return readSuccessData(response.data, z.array(messageSchema))
-  },
-
-  async sendMessage(input: SendMessageRequest): Promise<Message> {
-    const request = sendMessageRequestSchema.parse(input)
-    const response = await httpClient.post<ApiResponse<Message>>(
-      API_ENDPOINTS.messages.messages,
-      request
-    )
-
-    return readSuccessData(response.data, messageSchema)
   },
 
   async softDeleteConversation(conversationId: string): Promise<void> {

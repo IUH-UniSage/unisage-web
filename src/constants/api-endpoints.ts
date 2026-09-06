@@ -4,6 +4,9 @@ export const API_ENDPOINTS = {
   agentDocuments: {
     chunks: (documentId: string) => `/documents/${documentId}/chunks`,
   },
+  aiChat: {
+    stream: "/chat/stream",
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,

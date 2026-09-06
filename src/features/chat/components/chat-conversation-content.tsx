@@ -8,14 +8,18 @@ const PENDING_STATUSES = new Set(["PENDING", "STREAMING"])
 
 type ActiveConversationProps = {
   isSending: boolean
+  isStreaming: boolean
   messages: Message[]
   onSendMessage: (content: string) => void
+  onStopGenerating: () => void
 }
 
 export function ActiveConversation({
   isSending,
+  isStreaming,
   messages,
   onSendMessage,
+  onStopGenerating,
 }: ActiveConversationProps) {
   const lastMessage = messages.at(-1)
   const isWaitingForReply =
@@ -60,7 +64,12 @@ export function ActiveConversation({
           ) : null}
         </div>
       </ScrollArea>
-      <ChatComposer disabled={isWaitingForReply} onSubmit={onSendMessage} />
+      <ChatComposer
+        disabled={isWaitingForReply}
+        isStreaming={isStreaming}
+        onStop={onStopGenerating}
+        onSubmit={onSendMessage}
+      />
     </>
   )
 }

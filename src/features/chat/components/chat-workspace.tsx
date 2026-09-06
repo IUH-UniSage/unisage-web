@@ -142,8 +142,10 @@ export function ChatPage() {
             {workspace.activeConversation ? (
               <ActiveConversation
                 isSending={workspace.isSendingMessage}
+                isStreaming={workspace.isStreaming}
                 messages={workspace.messages}
                 onSendMessage={workspace.sendMessage}
+                onStopGenerating={workspace.stopGenerating}
               />
             ) : (
               <NewConversation

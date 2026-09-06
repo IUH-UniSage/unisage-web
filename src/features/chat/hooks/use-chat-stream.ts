@@ -1,0 +1,154 @@
+import { useRef } from "react"
+
+import { API_ENDPOINTS } from "@/constants/api-endpoints"
+import { aiHttpClient } from "@/lib/ai-client"
+import { ApiResponseError } from "@/utils/api-response"
+import { STORAGE_KEYS, storage } from "@/utils/local-storage"
+
+type ChatStreamCallbacks = {
+  onChunk?: (token: string, fullText: string) => void
+  onDone?: (fullText: string) => void
+  onError?: (error: Error) => void
+}
+
+type ChatStreamInput = {
+  conversationId: string
+  message: string
+}
+
+type ParsedSseEvent = {
+  data?: string
+  event?: string
+}
+
+function parseSseEvent(rawEvent: string): ParsedSseEvent {
+  let event: string | undefined
+  const dataLines: string[] = []
+
+  for (const line of rawEvent.split("\n")) {
+    if (line.startsWith("event:")) {
+      event = line.slice("event:".length).trim()
+    } else if (line.startsWith("data:")) {
+      dataLines.push(line.slice("data:".length).trim())
+    }
+  }
+
+  return { data: dataLines.length ? dataLines.join("\n") : undefined, event }
+}
+
+async function readStreamErrorMessage(response: Response): Promise<Error> {
+  try {
+    const body: unknown = await response.json()
+    if (
+      body &&
+      typeof body === "object" &&
+      "code" in body &&
+      "message" in body
+    ) {
+      return new ApiResponseError(body as { code: number; message: string })
+    }
+  } catch {
+    // Response body wasn't the usual {code, message} envelope - fall through.
+  }
+  return new Error(`Yêu cầu thất bại (mã trạng thái ${response.status}).`)
+}
+
+/**
+ * Consumes `POST /chat/stream` (unisage-agent, via the gateway's
+ * `python-ai-agent-route`): an SSE response emitting `event: token` per
+ * generated token and a terminal `event: done`. Uses a raw `fetch` (not
+ * axios/EventSource) because the response body needs to be read
+ * incrementally as a stream - see `useChatStream` in lisa-visa-web for the
+ * same rationale.
+ *
+ * Auth is the browser's httpOnly session cookie (`credentials: "include"`),
+ * same as every other request in this app - no manual bearer token.
+ */
+export function useChatStream() {
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const stream = async (
+    input: ChatStreamInput,
+    callbacks: ChatStreamCallbacks
+  ): Promise<void> => {
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    const locale = storage.get<string>(STORAGE_KEYS.locale, "vi")
+    const baseURL =
+      aiHttpClient.defaults.baseURL ?? "http://localhost:8400/api/v1/ai"
+
+    let response: Response
+    try {
+      response = await fetch(`${baseURL}${API_ENDPOINTS.aiChat.stream}`, {
+        body: JSON.stringify({
+          conversation_id: input.conversationId,
+          message: input.message,
+        }),
+        credentials: "include",
+        headers: {
+          "Accept-Language": locale ?? "vi",
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        signal: controller.signal,
+      })
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      callbacks.onError?.(
+        error instanceof Error ? error : new Error("Không thể kết nối máy chủ.")
+      )
+      return
+    }
+
+    if (!response.ok || !response.body) {
+      callbacks.onError?.(await readStreamErrorMessage(response))
+      return
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ""
+    let fullText = ""
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+
+        let boundary = buffer.indexOf("\n\n")
+        while (boundary !== -1) {
+          const rawEvent = buffer.slice(0, boundary)
+          buffer = buffer.slice(boundary + 2)
+
+          const { data, event } = parseSseEvent(rawEvent)
+          if (event === "token" && data !== undefined) {
+            const token = JSON.parse(data) as string
+            fullText += token
+            callbacks.onChunk?.(token, fullText)
+          } else if (event === "done") {
+            callbacks.onDone?.(fullText)
+          }
+
+          boundary = buffer.indexOf("\n\n")
+        }
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return
+      callbacks.onError?.(
+        error instanceof Error
+          ? error
+          : new Error("Mất kết nối khi đang nhận phản hồi.")
+      )
+    }
+  }
+
+  const abort = () => {
+    abortControllerRef.current?.abort()
+  }
+
+  return { abort, stream }
+}
