@@ -10,7 +10,8 @@ import {
   Send,
   Sparkles,
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,6 +55,15 @@ const suggestions = [
 ]
 
 export function UserHomePage() {
+  const navigate = useNavigate()
+  const [question, setQuestion] = useState("")
+
+  const askAndGoToChat = (message: string) => {
+    const trimmed = message.trim()
+    if (!trimmed) return
+    navigate(ROUTES.chat, { state: { initialMessage: trimmed } })
+  }
+
   return (
     <div className="home-content overflow-hidden">
       <section className="home-hero relative border-b border-primary/20 bg-home-hero text-white dark:border-white/[0.06]">
@@ -76,7 +86,10 @@ export function UserHomePage() {
 
           <form
             className="mx-auto mt-6 flex w-full max-w-3xl items-center gap-2.5 rounded-full border border-white/20 bg-card px-3 py-2 shadow-[0_18px_55px_rgb(0_20_70_/_0.22)] dark:border-white/[0.06] dark:bg-card dark:shadow-[0_22px_65px_rgb(0_0_0_/_0.24)]"
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={(event) => {
+              event.preventDefault()
+              askAndGoToChat(question)
+            }}
           >
             <div className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary">
               <MessageSquareText
@@ -86,17 +99,18 @@ export function UserHomePage() {
             </div>
             <Input
               aria-label="Hỏi UniSage"
-              className="h-11 border-0 bg-transparent! px-2 text-base shadow-none focus-visible:ring-0 dark:border-0 dark:bg-transparent! dark:text-white"
+              className="h-11 border-0 bg-transparent! px-2 text-base text-foreground shadow-none focus-visible:ring-0 dark:border-0 dark:bg-transparent! dark:text-white"
+              onChange={(event) => setQuestion(event.target.value)}
               placeholder="Đặt câu hỏi về học vụ..."
+              value={question}
             />
             <Button
-              asChild
               className="size-10 shrink-0 rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90"
+              disabled={!question.trim()}
               size="icon"
+              type="submit"
             >
-              <Link aria-label="Mở không gian trò chuyện" to={ROUTES.chat}>
-                <Send aria-hidden="true" className="size-4.5" />
-              </Link>
+              <Send aria-hidden="true" className="size-4.5" />
             </Button>
           </form>
 
@@ -105,13 +119,14 @@ export function UserHomePage() {
               Gợi ý:
             </span>
             {suggestions.map((suggestion) => (
-              <Link
+              <button
                 className="rounded-full border border-white/16 bg-white/8 px-3 py-1.5 text-xs text-white/78 transition-colors hover:border-white/30 hover:bg-white/14 hover:text-white dark:border-white/[0.09] dark:bg-white/[0.045] dark:text-white/72 dark:hover:border-primary/35 dark:hover:bg-primary/10"
                 key={suggestion}
-                to={ROUTES.chat}
+                onClick={() => askAndGoToChat(suggestion)}
+                type="button"
               >
                 {suggestion}
-              </Link>
+              </button>
             ))}
           </div>
         </div>
