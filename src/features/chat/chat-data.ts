@@ -3,6 +3,10 @@ export type ChatSource = {
   title: string
 }
 
+// Placeholder content for SourcePanel's UI - not wired to a real message's
+// `citations` field yet. Keep this file (and the panel) around as the
+// intended slot for that; don't let it read as live data in the meantime -
+// see the "Mẫu minh hoạ" badge in source-panel.tsx.
 export const CHAT_SOURCES: ChatSource[] = [
   {
     meta: "Quyết định 1540/QĐ-ĐHCN · 2025",

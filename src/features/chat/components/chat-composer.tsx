@@ -1,4 +1,4 @@
-import { ArrowUp, Maximize2, Minimize2, Plus } from "lucide-react"
+import { ArrowUp, Maximize2, Minimize2, Plus, Square } from "lucide-react"
 import { useLayoutEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils"
 type ChatComposerProps = {
   centered?: boolean
   disabled?: boolean
+  isStreaming?: boolean
+  onStop?: () => void
   onSubmit: (content: string) => void
 }
 
@@ -75,6 +77,8 @@ function cleanPastedText(html: string): string {
 export function ChatComposer({
   centered = false,
   disabled = false,
+  isStreaming = false,
+  onStop,
   onSubmit,
 }: ChatComposerProps) {
   const [value, setValue] = useState("")
@@ -162,8 +166,12 @@ export function ChatComposer({
           isExpanded && "rounded-3xl p-3.5 shadow-xl"
         )}
         onSubmit={(event) => {
+          // submit() runs from handleKeyDown (Enter) or the send button's
+          // onClick below - never here. A textarea's Enter shouldn't submit
+          // its form natively, but some environments dispatch a real
+          // `submit` event for it anyway; calling submit() again from both
+          // places sent every message twice.
           event.preventDefault()
-          submit()
         }}
       >
         {/* Top-Right Expand/Collapse Button (Shows when multiline or expanded) */}
@@ -218,20 +226,33 @@ export function ChatComposer({
           value={value}
         />
 
-        {/* Send Button pinned to bottom right */}
-        <Button
-          aria-label="Gửi tin nhắn"
-          className={cn(
-            "mb-0.5 flex size-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition-all",
-            !hasValue &&
-              "cursor-not-allowed bg-muted-foreground/40 text-muted-foreground opacity-40 dark:bg-neutral-700 dark:text-neutral-400"
-          )}
-          disabled={disabled || !hasValue}
-          size="icon"
-          type="submit"
-        >
-          <ArrowUp aria-hidden="true" className="size-4.5" />
-        </Button>
+        {/* Send Button, swapped for Stop while a reply is streaming */}
+        {isStreaming && onStop ? (
+          <Button
+            aria-label="Dừng tạo câu trả lời"
+            className="mb-0.5 flex size-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition-all"
+            onClick={onStop}
+            size="icon"
+            type="button"
+          >
+            <Square aria-hidden="true" className="size-3.5 fill-current" />
+          </Button>
+        ) : (
+          <Button
+            aria-label="Gửi tin nhắn"
+            className={cn(
+              "mb-0.5 flex size-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition-all",
+              !hasValue &&
+                "cursor-not-allowed bg-muted-foreground/40 text-muted-foreground opacity-40 dark:bg-neutral-700 dark:text-neutral-400"
+            )}
+            disabled={disabled || !hasValue}
+            onClick={submit}
+            size="icon"
+            type="button"
+          >
+            <ArrowUp aria-hidden="true" className="size-4.5" />
+          </Button>
+        )}
       </form>
 
       <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground">

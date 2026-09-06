@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 
 import {
   ActiveConversation,
@@ -23,6 +24,27 @@ export function ChatPage() {
   const [sidebarWidth, setSidebarWidth] = useState(260)
   const [isResizing, setIsResizing] = useState(false)
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const hasSentInitialMessage = useRef(false)
+
+  // The home page's search box and "Gợi ý" suggestions navigate here with
+  // the typed question in router state (they can't send it themselves -
+  // sending requires an active conversation, which only this page's
+  // useChatWorkspace instance creates). Fire it once, then clear the state
+  // so a back-navigation or refresh doesn't resend it.
+  useEffect(() => {
+    const state = location.state as { initialMessage?: string } | null
+    const initialMessage = state?.initialMessage
+    if (!initialMessage || hasSentInitialMessage.current) return
+
+    hasSentInitialMessage.current = true
+    navigate(location.pathname, { replace: true, state: null })
+    void workspace.sendMessage(initialMessage)
+    // Only ever reacts to the initial location.state; workspace/navigate
+    // identity churn shouldn't retrigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   // Keyboard shortcuts: Ctrl+K (Search) and Ctrl+Shift+O (New Chat)
   useEffect(() => {
@@ -139,11 +161,13 @@ export function ChatPage() {
           />
 
           <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
-            {workspace.activeConversation ? (
+            {workspace.activeConversationId ? (
               <ActiveConversation
                 isSending={workspace.isSendingMessage}
+                isStreaming={workspace.isStreaming}
                 messages={workspace.messages}
                 onSendMessage={workspace.sendMessage}
+                onStopGenerating={workspace.stopGenerating}
               />
             ) : (
               <NewConversation

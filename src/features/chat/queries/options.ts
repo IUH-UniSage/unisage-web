@@ -4,9 +4,6 @@ import { QUERY_POLICIES } from "@/constants/query-policies"
 import { chatApi } from "@/features/chat/api/chat-api"
 import { chatKeys } from "@/features/chat/queries/keys"
 
-const PENDING_MESSAGE_STATUSES = new Set(["PENDING", "STREAMING"])
-const MESSAGE_POLL_INTERVAL_MS = 1500
-
 export const chatOptions = {
   conversations: (userId: string) =>
     queryOptions({
@@ -15,18 +12,24 @@ export const chatOptions = {
       queryFn: () => chatApi.getConversationsByUser(userId),
       queryKey: chatKeys.conversations(userId),
     }),
+  // The assistant reply's text is driven live by `useChatStream` (SSE) via
+  // direct cache writes, not by polling - refetching here only happens once
+  // on `onDone`/`stopGenerating` to reconcile with backend-java's persisted
+  // state (real ids/timestamps). Overrides the shared `realtime` policy's
+  // `staleTime: 0`: that setting refetches on every mount regardless of how
+  // fresh the cache already is, which would otherwise race an in-progress
+  // stream's optimistic cache writes with a server response still showing
+  // the assistant row as empty/STREAMING (or not created yet) and clobber
+  // it. `invalidateQueries` (called explicitly on done/stop/error) always
+  // forces a refetch regardless of `staleTime`, so reconciliation still
+  // happens at the right moments.
   messages: (conversationId: string) =>
     queryOptions({
       ...QUERY_POLICIES.realtime,
       enabled: Boolean(conversationId),
       queryFn: () => chatApi.getMessagesByConversation(conversationId),
       queryKey: chatKeys.messages(conversationId),
-      refetchInterval: (query) => {
-        const lastMessage = query.state.data?.at(-1)
-
-        return lastMessage && PENDING_MESSAGE_STATUSES.has(lastMessage.status)
-          ? MESSAGE_POLL_INTERVAL_MS
-          : false
-      },
+      refetchOnWindowFocus: false,
+      staleTime: Infinity,
     }),
 }
