@@ -243,8 +243,11 @@ function MarkdownText({ block }: { block: string }) {
 }
 
 function renderInline(text: string): React.ReactNode[] {
-  // Regex to match bold **text**, italic *text*, inline code `code`, and links [text](url)
-  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\))/g
+  // Regex to match bold **text**, italic *text*, inline code `code`, links
+  // [text](url), and bare citation markers [1] (the agent's citation_rules
+  // prompt has the model emit these inline, e.g. "...khóa tuyển sinh [1][2]",
+  // referencing the numbered source list at the end of the reply).
+  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+\])/g
   const parts = text.split(regex)
 
   return parts.map((part, index) => {
@@ -275,6 +278,19 @@ function renderInline(text: string): React.ReactNode[] {
         >
           {part.slice(1, -1)}
         </code>
+      )
+    }
+
+    // Citation marker, e.g. "[1]" referencing the numbered source list
+    const citationMatch = part.match(/^\[(\d+)\]$/)
+    if (citationMatch) {
+      return (
+        <sup
+          className="mx-0.5 rounded bg-primary/10 px-1 text-[11px] font-semibold text-primary"
+          key={index}
+        >
+          {citationMatch[1]}
+        </sup>
       )
     }
 
