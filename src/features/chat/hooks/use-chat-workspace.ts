@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import { useChatStream } from "@/features/chat/hooks/use-chat-stream"
@@ -33,6 +33,16 @@ export function useChatWorkspace() {
     string | null
   >(null)
   const [isStreaming, setIsStreaming] = useState(false)
+  // Tracks the in-flight assistant bubble so `stopGenerating` can freeze it
+  // in place: the agent has no real cancel-generation endpoint, so aborting
+  // the fetch only stops *reading* the stream - the reply keeps generating
+  // server-side. Without this, the bubble is stuck showing "Đang suy
+  // nghĩ..." forever (its status/content never changes again).
+  const inFlightRef = useRef<{
+    assistantMessageId: string
+    conversationId: string
+    fullText: string
+  } | null>(null)
 
   const conversationsQuery = useConversationsQuery(userId)
   const messagesQuery = useMessagesQuery(activeConversationId ?? "")
@@ -116,10 +126,18 @@ export function useChatWorkspace() {
 
     setIsStreaming(true)
     const conversationIdForStream = conversationId
+    inFlightRef.current = {
+      assistantMessageId,
+      conversationId: conversationIdForStream,
+      fullText: "",
+    }
     await chatStream.stream(
       { conversationId: conversationIdForStream, message: content },
       {
         onChunk: (_token, fullText) => {
+          if (inFlightRef.current?.assistantMessageId === assistantMessageId) {
+            inFlightRef.current.fullText = fullText
+          }
           setMessages(conversationIdForStream, (current) =>
             current.map((message) =>
               message.id === assistantMessageId
@@ -130,6 +148,7 @@ export function useChatWorkspace() {
         },
         onDone: () => {
           setIsStreaming(false)
+          inFlightRef.current = null
           void queryClient.invalidateQueries({
             queryKey: chatKeys.messages(conversationIdForStream),
           })
@@ -143,6 +162,7 @@ export function useChatWorkspace() {
           // (reopening the conversation) reconciles with the server as
           // usual.
           setIsStreaming(false)
+          inFlightRef.current = null
           setMessages(conversationIdForStream, (current) =>
             current.map((message) =>
               message.id === assistantMessageId
@@ -158,11 +178,25 @@ export function useChatWorkspace() {
   const stopGenerating = () => {
     chatStream.abort()
     setIsStreaming(false)
-    if (activeConversationId) {
-      void queryClient.invalidateQueries({
-        queryKey: chatKeys.messages(activeConversationId),
-      })
-    }
+
+    const inFlight = inFlightRef.current
+    inFlightRef.current = null
+    if (!inFlight) return
+
+    // Freeze the bubble at whatever text arrived before the user stopped
+    // watching - the agent keeps generating server-side regardless, so
+    // there's nothing further to reconcile against right now. Deliberately
+    // not invalidating: the server-side row is likely still STREAMING with
+    // less text than what we already have, and a refetch would replace this
+    // frozen bubble with that stale one. The next natural refetch (opening
+    // this conversation again) reconciles with the server as usual.
+    setMessages(inFlight.conversationId, (current) =>
+      current.map((message) =>
+        message.id === inFlight.assistantMessageId
+          ? { ...message, content: inFlight.fullText, status: "COMPLETED" }
+          : message
+      )
+    )
   }
 
   const deleteConversation = (id: string) => {

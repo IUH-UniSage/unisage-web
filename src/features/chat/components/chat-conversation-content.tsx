@@ -1,8 +1,13 @@
+import { Check, Copy } from "lucide-react"
+import { useState } from "react"
+
 import { BrandMark } from "@/components/shared/brand/brand-mark"
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
+import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import type { Message } from "@/features/chat/schemas/chat-schemas"
+import { cn } from "@/lib/utils"
 
 const PENDING_STATUSES = new Set(["PENDING", "STREAMING"])
 
@@ -33,7 +38,7 @@ export function ActiveConversation({
           {messages.map((message) =>
             message.role === "USER" ? (
               <div
-                className="group flex flex-col items-end gap-1.5"
+                className="group flex animate-in flex-col items-end gap-1.5 duration-300 fade-in slide-in-from-bottom-2"
                 key={message.id}
               >
                 <div className="max-w-[85%] rounded-3xl bg-secondary px-5 py-3 text-[15px] leading-6 font-normal text-secondary-foreground shadow-2xs md:max-w-[75%]">
@@ -41,20 +46,29 @@ export function ActiveConversation({
                 </div>
               </div>
             ) : (
-              <div className="w-full space-y-2 py-1" key={message.id}>
+              <div
+                className="group w-full animate-in space-y-2 py-1 duration-300 fade-in slide-in-from-bottom-2"
+                key={message.id}
+              >
                 {PENDING_STATUSES.has(message.status) && !message.content ? (
-                  <div className="flex animate-pulse items-center gap-2 py-1 text-sm text-muted-foreground">
-                    <span className="size-2 rounded-full bg-primary/60" />
-                    <span>Đang suy nghĩ...</span>
+                  <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground">
+                    <span className="animate-pulse">Đang suy nghĩ...</span>
                   </div>
                 ) : message.status === "ERROR" ? (
                   <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                     Không thể tạo câu trả lời. Vui lòng thử lại.
                   </div>
+                ) : !message.content ? (
+                  <p className="text-sm text-muted-foreground italic">
+                    Đã dừng tạo câu trả lời.
+                  </p>
                 ) : (
-                  <div className="w-full">
-                    <MarkdownRenderer content={message.content} />
-                  </div>
+                  <>
+                    <div className="w-full">
+                      <MarkdownRenderer content={message.content} />
+                    </div>
+                    <CopyMessageButton content={message.content} />
+                  </>
                 )}
               </div>
             )
@@ -71,6 +85,40 @@ export function ActiveConversation({
         onSubmit={onSendMessage}
       />
     </>
+  )
+}
+
+function CopyMessageButton({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // ignore
+    }
+  }
+
+  return (
+    <Button
+      aria-label={copied ? "Đã chép" : "Sao chép"}
+      className={cn(
+        "size-7 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground",
+        copied && "opacity-100"
+      )}
+      onClick={() => void handleCopy()}
+      size="icon"
+      title={copied ? "Đã chép" : "Sao chép"}
+      variant="ghost"
+    >
+      {copied ? (
+        <Check className="size-4 text-emerald-500" />
+      ) : (
+        <Copy className="size-4" />
+      )}
+    </Button>
   )
 }
 
