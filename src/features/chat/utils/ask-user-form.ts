@@ -23,6 +23,26 @@ export type AskUserForm = z.infer<typeof askUserFormSchema>
 const JSON_FENCE_REGEX = /```json\s*([\s\S]*?)```/g
 
 /**
+ * The model sometimes annotates a generated option with a trailing JS-style
+ * `// comment` (e.g. explaining a placeholder like "Ngành 1" isn't a real
+ * major) despite the prompt asking for plain JSON - invalid JSON, so
+ * JSON.parse throws on it. Only ever applied as a fallback after a strict
+ * parse already failed, so there's no risk to a label that legitimately
+ * contains "//".
+ */
+function stripJsonLineComments(raw: string): string {
+  return raw.replace(/\/\/.*$/gm, "")
+}
+
+function tryParseJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return JSON.parse(stripJsonLineComments(raw))
+  }
+}
+
+/**
  * The agent's ask_user_form_guide prompt has the model end its reply with a
  * fenced ```json {"type":"ask_user_form", ...}``` block when it needs the
  * student to pick a missing value (department, training type, cohort...).
@@ -35,26 +55,31 @@ export function extractAskUserForm(content: string): {
   text: string
 } {
   let form: AskUserForm | null = null
-  let matchToStrip: string | null = null
+  let text = content
 
+  // The model occasionally repeats the form as two fenced blocks in the same
+  // reply (a malformed draft plus a clean retry) - every ask_user_form fence
+  // found gets stripped from the displayed text, not just the one used to
+  // render the form, so a leftover duplicate never shows up as raw JSON.
   for (const match of content.matchAll(JSON_FENCE_REGEX)) {
     try {
-      const parsed: unknown = JSON.parse(match[1])
+      const parsed = tryParseJson(match[1])
       const result = askUserFormSchema.safeParse(parsed)
       if (result.success) {
         form = result.data
-        matchToStrip = match[0]
+        text = text.replace(match[0], "")
       }
     } catch {
-      // Not valid JSON (or not this shape) - not an ask_user_form block.
+      // Not valid JSON even after stripping comments (or not this shape) -
+      // not an ask_user_form block.
     }
   }
 
-  if (!form || !matchToStrip) {
+  if (!form) {
     return { form: null, text: content }
   }
 
-  return { form, text: content.replace(matchToStrip, "").trim() }
+  return { form, text: text.trim() }
 }
 
 /**
