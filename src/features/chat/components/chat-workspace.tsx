@@ -139,7 +139,7 @@ export function ChatPage() {
           />
 
           <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
-            {workspace.activeConversation ? (
+            {workspace.activeConversationId ? (
               <ActiveConversation
                 isSending={workspace.isSendingMessage}
                 isStreaming={workspace.isStreaming}
