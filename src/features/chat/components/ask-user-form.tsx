@@ -1,13 +1,7 @@
 import { useState } from "react"
 
+import { SearchableSelect } from "@/components/shared/searchable-select"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   formatAskUserFormAnswer,
   type AskUserForm,
@@ -15,8 +9,10 @@ import {
 import { cn } from "@/lib/utils"
 
 // Chips read faster than a dropdown for a handful of options; beyond that a
-// select keeps the form compact. Matches the "≤3 nên dùng chip" guidance
-// from the design reference this was built against.
+// searchable dropdown keeps the form usable as an option list grows (e.g.
+// "Ngành học" - a handful of placeholder majors today, dozens of real ones
+// later). Matches the "≤3 nên dùng chip" guidance from the design reference
+// this was built against.
 const CHIP_THRESHOLD = 3
 
 type AskUserFormCardProps = {
@@ -49,6 +45,9 @@ export function AskUserFormCard({
         const selectedId = selections[field.field]
         const useChips = field.options.length <= CHIP_THRESHOLD
 
+        const setSelected = (id: string) =>
+          setSelections((current) => ({ ...current, [field.field]: id }))
+
         return (
           <div className="space-y-2" key={field.field}>
             <p className="text-sm font-medium text-foreground">{field.label}</p>
@@ -65,12 +64,7 @@ export function AskUserFormCard({
                     )}
                     disabled={isLocked}
                     key={option.id}
-                    onClick={() =>
-                      setSelections((current) => ({
-                        ...current,
-                        [field.field]: option.id,
-                      }))
-                    }
+                    onClick={() => setSelected(option.id)}
                     type="button"
                   >
                     {option.label}
@@ -78,27 +72,13 @@ export function AskUserFormCard({
                 ))}
               </div>
             ) : (
-              <Select
+              <SearchableSelect
+                ariaLabel={field.label}
                 disabled={isLocked}
-                onValueChange={(value) =>
-                  setSelections((current) => ({
-                    ...current,
-                    [field.field]: value,
-                  }))
-                }
+                onValueChange={setSelected}
+                options={field.options}
                 value={selectedId}
-              >
-                <SelectTrigger aria-label={field.label} className="w-full">
-                  <SelectValue placeholder="— Chọn —" />
-                </SelectTrigger>
-                <SelectContent>
-                  {field.options.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             )}
           </div>
         )
