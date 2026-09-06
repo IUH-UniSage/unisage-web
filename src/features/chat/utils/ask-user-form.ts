@@ -8,7 +8,16 @@ const askUserFormOptionSchema = z.object({
 const askUserFormFieldSchema = z.object({
   field: z.string(),
   label: z.string(),
-  options: z.array(askUserFormOptionSchema),
+  // The agent's contract allows `options: null` for a field it expects free
+  // text for (e.g. a credit count) - the product decision is to never render
+  // a free-text input, only select/buttons, so such a field has nothing to
+  // render controls for. Normalized to [] here so the rest of the code (and
+  // AskUserFormCard) only ever deals with an array, never null/undefined.
+  options: z
+    .array(askUserFormOptionSchema)
+    .nullable()
+    .optional()
+    .transform((value) => value ?? []),
 })
 
 const askUserFormSchema = z.object({
@@ -91,18 +100,21 @@ export function extractAskUserForm(content: string): {
 /**
  * Composes the plain-language reply the Clarification Guard's deterministic
  * matcher expects (it matches normalized option id/label text, not JSON) -
- * one "<field label>: <chosen option label>" line per field, in the same
- * order the form asked for them.
+ * one "<field label>: <chosen option label>" line per answered field, in the
+ * same order the form asked for them. A multi-field form can be submitted
+ * partially (resolve_form keeps what's answered and re-asks the rest next
+ * turn), so a field with no selection is left out entirely rather than sent
+ * as an empty answer.
  */
 export function formatAskUserFormAnswer(
   form: AskUserForm,
   selections: Record<string, string>
 ): string {
   return form.fields
-    .map((field) => {
+    .flatMap((field) => {
       const selectedId = selections[field.field]
       const option = field.options.find((item) => item.id === selectedId)
-      return `${field.label}: ${option?.label ?? ""}`
+      return option ? [`${field.label}: ${option.label}`] : []
     })
     .join(". ")
 }
