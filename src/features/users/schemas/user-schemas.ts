@@ -50,7 +50,7 @@ export const createUserRequestSchema = z.object({
   departmentAccesses: z
     .array(
       z.object({
-        accessLevel: z.number().int().nonnegative(),
+        accessLevelId: z.uuid(),
         departmentId: z.uuid(),
       })
     )
@@ -86,7 +86,7 @@ export const updateUserRequestSchema = z.object({
   departmentAccesses: z
     .array(
       z.object({
-        accessLevel: z.number().int().nonnegative(),
+        accessLevelId: z.uuid(),
         departmentId: z.uuid(),
       })
     )

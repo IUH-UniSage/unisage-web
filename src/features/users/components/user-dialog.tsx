@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
+import { useAccessLevelsQuery } from "@/features/access-level/queries/use-queries"
 import { DepartmentAccessSection } from "@/features/users/components/department-access-section"
 import {
   type AppUser,
@@ -46,6 +47,7 @@ export function UserDialog({
   const isEdit = Boolean(user)
   const [showPassword, setShowPassword] = useState(false)
   const departmentsQuery = useDepartmentsQuery()
+  const accessLevelsQuery = useAccessLevelsQuery()
   const {
     control,
     formState: { errors, isSubmitting },
@@ -93,8 +95,8 @@ export function UserDialog({
   }
 
   const submit = async (values: UserFormValues) => {
-    const departmentAccesses = values.departmentAccesses ?? []
-    const departmentIds = departmentAccesses.map(
+    const formDepartmentAccesses = values.departmentAccesses ?? []
+    const departmentIds = formDepartmentAccesses.map(
       (access) => access.departmentId
     )
     if (new Set(departmentIds).size !== departmentIds.length) {
@@ -103,6 +105,31 @@ export function UserDialog({
           "Mỗi phòng ban chỉ được gán một lần. Vui lòng kiểm tra lại danh sách phòng ban.",
       })
       return
+    }
+
+    const accessLevelIdByLevel = new Map(
+      (accessLevelsQuery.data ?? []).map((accessLevel) => [
+        accessLevel.level,
+        accessLevel.id,
+      ])
+    )
+    const departmentAccesses: {
+      accessLevelId: string
+      departmentId: string
+    }[] = []
+    for (const access of formDepartmentAccesses) {
+      const accessLevelId = accessLevelIdByLevel.get(access.accessLevel)
+      if (!accessLevelId) {
+        setError("root", {
+          message:
+            "Một hoặc nhiều phòng ban chưa được chọn cấp độ hợp lệ. Vui lòng kiểm tra lại.",
+        })
+        return
+      }
+      departmentAccesses.push({
+        accessLevelId,
+        departmentId: access.departmentId,
+      })
     }
 
     try {
