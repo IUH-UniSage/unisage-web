@@ -1,6 +1,7 @@
 import {
   Home,
   LayoutDashboard,
+  LogIn,
   LogOut,
   MoreHorizontal,
   PanelLeftClose,
@@ -60,7 +61,9 @@ export function CollapsedHistoryRail({
   onNewConversation,
   onOpenSearch,
 }: CollapsedHistoryRailProps) {
-  const { session } = useAuth()
+  const { session, status } = useAuth()
+  const navigate = useNavigate()
+  const isGuest = status === "unauthenticated"
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -153,17 +156,26 @@ export function CollapsedHistoryRail({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              aria-label="Tài khoản người dùng"
-              className="size-9 cursor-pointer rounded-full p-0"
-              onClick={onExpand}
+              aria-label={isGuest ? "Đăng nhập" : "Tài khoản người dùng"}
+              className={cn(
+                "size-9 cursor-pointer p-0",
+                isGuest
+                  ? "rounded-xl text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                  : "rounded-full"
+              )}
+              onClick={isGuest ? () => void navigate(ROUTES.signIn) : onExpand}
               size="icon"
               variant="ghost"
             >
-              <UserAvatar
-                avatarUrl={session?.avatarUrl}
-                className="size-7"
-                fullName={session?.fullName}
-              />
+              {isGuest ? (
+                <LogIn aria-hidden="true" className="size-5" />
+              ) : (
+                <UserAvatar
+                  avatarUrl={session?.avatarUrl}
+                  className="size-7"
+                  fullName={session?.fullName}
+                />
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent
@@ -171,7 +183,9 @@ export function CollapsedHistoryRail({
             side="right"
             sideOffset={8}
           >
-            <span>{session?.fullName ?? "Tài khoản"}</span>
+            <span>
+              {isGuest ? "Đăng nhập" : (session?.fullName ?? "Tài khoản")}
+            </span>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -188,9 +202,10 @@ export function ConversationHistory({
   onOpenSearch,
   onSelectConversation,
 }: ConversationHistoryProps) {
-  const { logout, session } = useAuth()
+  const { logout, session, status } = useAuth()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const isGuest = status === "unauthenticated"
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -343,66 +358,85 @@ export function ConversationHistory({
 
       {/* Bottom User Account Menu (Exact same 10px container, 8px inner padding) */}
       <div className="shrink-0 border-t border-border/40 p-2.5">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-background/80 focus-visible:outline-2 focus-visible:outline-primary dark:hover:bg-muted/50"
-              type="button"
+        {isGuest ? (
+          <div className="rounded-xl bg-background/60 p-3 dark:bg-muted/40">
+            <p className="text-sm font-semibold text-foreground">
+              Đăng nhập để có trải nghiệm đầy đủ
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Đăng nhập để lưu lịch sử trò chuyện và xem nguồn tài liệu tham
+              khảo chi tiết cho từng câu trả lời.
+            </p>
+            <Button
+              className="mt-3 w-full cursor-pointer rounded-full"
+              onClick={() => void navigate(ROUTES.signIn)}
+              size="sm"
             >
-              <UserAvatar
-                avatarUrl={session?.avatarUrl}
-                className="size-7 shrink-0"
-                fullName={session?.fullName}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground dark:text-neutral-100">
+              Đăng nhập
+            </Button>
+          </div>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-background/80 focus-visible:outline-2 focus-visible:outline-primary dark:hover:bg-muted/50"
+                type="button"
+              >
+                <UserAvatar
+                  avatarUrl={session?.avatarUrl}
+                  className="size-7 shrink-0"
+                  fullName={session?.fullName}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground dark:text-neutral-100">
+                    {session?.fullName ?? "Người dùng"}
+                  </p>
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-60" side="top">
+              <DropdownMenuLabel className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">
                   {session?.fullName ?? "Người dùng"}
                 </p>
-              </div>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-60" side="top">
-            <DropdownMenuLabel className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {session?.fullName ?? "Người dùng"}
-              </p>
-              <p className="truncate text-xs font-normal text-muted-foreground">
-                {session?.email}
-              </p>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => navigate(ROUTES.profile)}>
-              <UserRound aria-hidden="true" />
-              Thông tin cá nhân
-            </DropdownMenuItem>
+                <p className="truncate text-xs font-normal text-muted-foreground">
+                  {session?.email}
+                </p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate(ROUTES.profile)}>
+                <UserRound aria-hidden="true" />
+                Thông tin cá nhân
+              </DropdownMenuItem>
 
-            {session?.role === "SUPER_ADMIN" ? (
-              <DropdownMenuItem onSelect={() => navigate(ROUTES.admin)}>
-                <LayoutDashboard aria-hidden="true" />
-                Quay lại trang quản trị
+              {session?.role === "SUPER_ADMIN" ? (
+                <DropdownMenuItem onSelect={() => navigate(ROUTES.admin)}>
+                  <LayoutDashboard aria-hidden="true" />
+                  Quay lại trang quản trị
+                </DropdownMenuItem>
+              ) : session?.role === "INGEST_ADMIN" ? (
+                <DropdownMenuItem onSelect={() => navigate(ROUTES.ingester)}>
+                  <LayoutDashboard aria-hidden="true" />
+                  Quay lại trang quản trị
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onSelect={() => navigate(ROUTES.home)}>
+                  <Home aria-hidden="true" />
+                  Trang chủ
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={isLoggingOut}
+                onSelect={() => void handleLogout()}
+                variant="destructive"
+              >
+                <LogOut aria-hidden="true" />
+                {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
               </DropdownMenuItem>
-            ) : session?.role === "INGEST_ADMIN" ? (
-              <DropdownMenuItem onSelect={() => navigate(ROUTES.ingester)}>
-                <LayoutDashboard aria-hidden="true" />
-                Quay lại trang quản trị
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onSelect={() => navigate(ROUTES.home)}>
-                <Home aria-hidden="true" />
-                Trang chủ
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={isLoggingOut}
-              onSelect={() => void handleLogout()}
-              variant="destructive"
-            >
-              <LogOut aria-hidden="true" />
-              {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   )
