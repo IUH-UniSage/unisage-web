@@ -4,6 +4,7 @@ import { SearchableSelect } from "@/components/shared/searchable-select"
 import { Button } from "@/components/ui/button"
 import {
   formatAskUserFormAnswer,
+  resolveAnsweredSelections,
   type AskUserForm,
 } from "@/features/chat/utils/ask-user-form"
 import { cn } from "@/lib/utils"
@@ -18,17 +19,27 @@ import { cn } from "@/lib/utils"
 const CHIP_THRESHOLD = 3
 
 type AskUserFormCardProps = {
+  /**
+   * The student's reply that followed this form, or null while it's still the
+   * open question. A selection only ever lives in this component's state, so
+   * without this a form would come back fully blank and clickable after a
+   * reload - re-answering a question the agent already has an answer for.
+   */
+  answerText: string | null
   disabled?: boolean
   form: AskUserForm
   onSubmit: (message: string) => void
 }
 
 export function AskUserFormCard({
+  answerText,
   disabled,
   form,
   onSubmit,
 }: AskUserFormCardProps) {
-  const [selections, setSelections] = useState<Record<string, string>>({})
+  const [selections, setSelections] = useState<Record<string, string>>(() =>
+    answerText ? resolveAnsweredSelections(form, answerText) : {}
+  )
   const [submitted, setSubmitted] = useState(false)
 
   // A field with no options came from the agent's `options: null` (it wanted
@@ -45,7 +56,12 @@ export function AskUserFormCard({
   // answer is being committed at once.
   const isSingleField = renderableFields.length === 1
   const hasAnyAnswer = renderableFields.some((field) => selections[field.field])
-  const isLocked = disabled || submitted
+  // A form the student has already replied to is settled for good, whether or
+  // not the reply was parseable back into selections - if they answered in
+  // their own words instead of using the controls, the agent has moved on and
+  // re-submitting this form would only re-answer a stale question.
+  const isAnswered = answerText !== null
+  const isLocked = disabled || submitted || isAnswered
 
   const submitSelections = (current: Record<string, string>) => {
     setSubmitted(true)
@@ -77,7 +93,15 @@ export function AskUserFormCard({
                       selectedId === option.id
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border/60 bg-background text-foreground hover:border-primary/50",
-                      isLocked && "cursor-not-allowed opacity-60"
+                      // An answered form keeps its chosen chip at full
+                      // strength and fades only the roads not taken, so it
+                      // reads as a recorded answer rather than as the
+                      // uniformly greyed-out "still sending" state.
+                      isAnswered
+                        ? selectedId === option.id
+                          ? "cursor-default"
+                          : "cursor-default opacity-40"
+                        : isLocked && "cursor-not-allowed opacity-60"
                     )}
                     disabled={isLocked}
                     key={option.id}
@@ -101,7 +125,12 @@ export function AskUserFormCard({
         )
       })}
 
-      {isSingleField ? null : (
+      {isAnswered ? (
+        // Without this an answered form the student replied to in their own
+        // words would render as nothing but faded chips with no selection -
+        // indistinguishable from a broken card.
+        <p className="text-xs text-muted-foreground">Đã trả lời</p>
+      ) : isSingleField ? null : (
         <Button
           disabled={!hasAnyAnswer || isLocked}
           onClick={() => submitSelections(selections)}
