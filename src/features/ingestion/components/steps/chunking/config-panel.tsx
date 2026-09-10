@@ -9,7 +9,6 @@ import {
   STRATEGY_DESCRIPTIONS,
 } from "@/features/ingestion/components/steps/chunking/strategy-config"
 import { StrategyFields } from "@/features/ingestion/components/steps/chunking/strategy-fields"
-import { TokenLimitInspector } from "@/features/ingestion/components/steps/chunking/token-limit-inspector"
 import { ErrorAlert } from "@/features/ingestion/components/steps/step-primitives"
 import { type StepProps } from "@/features/ingestion/components/steps/shared"
 import {
@@ -77,8 +76,6 @@ export function ChunkingConfigPanel({ wizard }: StepProps) {
       <div className="space-y-4 pt-1">
         <StrategyFields register={register} strategy={strategy} watch={watch} />
       </div>
-
-      <TokenLimitInspector wizard={wizard} />
 
       {errors.strategy ? (
         <p className="text-xs text-destructive">{errors.strategy.message}</p>
