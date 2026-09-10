@@ -43,6 +43,14 @@ export const chatApi = {
     return readSuccessData(response.data, z.array(conversationSchema))
   },
 
+  async getGuestConversations(): Promise<Conversation[]> {
+    const response = await httpClient.get<ApiResponse<Conversation[]>>(
+      API_ENDPOINTS.conversations.conversationsGuest
+    )
+
+    return readSuccessData(response.data, z.array(conversationSchema))
+  },
+
   async getMessageDetail(messageId: string): Promise<Message> {
     const response = await httpClient.get<ApiResponse<Message>>(
       API_ENDPOINTS.messages.message(messageId)

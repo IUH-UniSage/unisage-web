@@ -5,11 +5,16 @@ import { chatApi } from "@/features/chat/api/chat-api"
 import { chatKeys } from "@/features/chat/queries/keys"
 
 export const chatOptions = {
+  // Guests (userId === "") have no user to scope by - their history is resolved
+  // server-side from the guest_session_id httpOnly cookie instead (see
+  // GET /conversations/guest), so the query is never disabled here.
   conversations: (userId: string) =>
     queryOptions({
       ...QUERY_POLICIES.list,
-      enabled: Boolean(userId),
-      queryFn: () => chatApi.getConversationsByUser(userId),
+      queryFn: () =>
+        userId
+          ? chatApi.getConversationsByUser(userId)
+          : chatApi.getGuestConversations(),
       queryKey: chatKeys.conversations(userId),
     }),
   // The assistant reply's text is driven live by `useChatStream` (SSE) via
