@@ -118,3 +118,37 @@ export function formatAskUserFormAnswer(
     })
     .join(". ")
 }
+
+/**
+ * The inverse of formatAskUserFormAnswer: recovers which option was picked for
+ * each field from the student's reply, so a form the student already answered
+ * can show its value again after a reload (the selection itself only ever
+ * lived in component state, but the reply it produced is a persisted message).
+ *
+ * Matching is a substring test rather than splitting on the ". " join, because
+ * an option label may legitimately contain ". " itself. When several options
+ * of the same field match - one label being a prefix of another, e.g. "K20"
+ * and "K20 (2020)" - the longest one wins, which is the only one that can be
+ * the real answer. A field the reply doesn't name (a partial multi-field
+ * submit) or a reply that isn't a form answer at all (the student typed their
+ * own message instead) simply yields no entry, never an error.
+ */
+export function resolveAnsweredSelections(
+  form: AskUserForm,
+  answerText: string
+): Record<string, string> {
+  const selections: Record<string, string> = {}
+
+  for (const field of form.fields) {
+    let matched: AskUserFormOption | null = null
+    for (const option of field.options) {
+      if (!answerText.includes(`${field.label}: ${option.label}`)) continue
+      if (!matched || option.label.length > matched.label.length) {
+        matched = option
+      }
+    }
+    if (matched) selections[field.field] = matched.id
+  }
+
+  return selections
+}

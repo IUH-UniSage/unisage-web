@@ -36,7 +36,7 @@ export function ActiveConversation({
     <>
       <ScrollArea className="min-h-0 flex-1">
         <div className="mx-auto max-w-3xl space-y-7 px-4 py-6 md:px-8 md:py-10">
-          {messages.map((message) =>
+          {messages.map((message, index) =>
             message.role === "USER" ? (
               <div
                 className="group flex animate-in flex-col items-end gap-1.5 duration-300 fade-in slide-in-from-bottom-2"
@@ -65,6 +65,13 @@ export function ActiveConversation({
                   </p>
                 ) : (
                   <AssistantReply
+                    // The reply that followed this message - non-null only
+                    // once the student has answered, which is what marks any
+                    // ask_user_form in it as belonging to the past.
+                    answerText={
+                      messages.slice(index + 1).find((it) => it.role === "USER")
+                        ?.content ?? null
+                    }
                     content={message.content}
                     disabled={isWaitingForReply}
                     onSendMessage={onSendMessage}
@@ -89,12 +96,14 @@ export function ActiveConversation({
 }
 
 type AssistantReplyProps = {
+  answerText: string | null
   content: string
   disabled: boolean
   onSendMessage: (content: string) => void
 }
 
 function AssistantReply({
+  answerText,
   content,
   disabled,
   onSendMessage,
@@ -108,6 +117,7 @@ function AssistantReply({
       </div>
       {form ? (
         <AskUserFormCard
+          answerText={answerText}
           disabled={disabled}
           form={form}
           onSubmit={onSendMessage}
