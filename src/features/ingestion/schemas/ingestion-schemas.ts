@@ -15,10 +15,44 @@ export const chunkingStrategyNameSchema = z.enum([
 
 export const regionTypeSchema = z.enum(["text", "table", "excel_row"])
 
+// Mirrors app/schemas/ingestion.py's HeaderSource/SourceType (Data Model v5).
+export const headerSourceSchema = z.enum(["explicit", "inferred", "missing"])
+export const sourceTypeSchema = z.enum(["pdf", "docx", "html", "txt", "xlsx"])
+
+// Mirrors app/schemas/ingestion.py's SourceLocator 1-1 (all 9 fields) - every
+// field is nullable because most only make sense for a subset of
+// region_type/source_type combinations (see that model's own docstring).
+export const sourceLocatorSchema = z.object({
+  section: z.string().nullable(),
+  sheet_name: z.string().nullable(),
+  row_start: z.number().int().nullable(),
+  row_end: z.number().int().nullable(),
+  row_count: z.number().int().nullable(),
+  table_id: z.string().nullable(),
+  row_part: z.number().int().nullable(),
+  row_part_count: z.number().int().nullable(),
+  is_partial_row: z.boolean(),
+})
+
 export const chunkSchema = z.object({
   chunk_index: z.number().int().nonnegative(),
   content: z.string(),
   region_type: regionTypeSchema,
+  // Structural metadata (Phase 0-3, backend). Every field below matches its
+  // backend `Chunk` counterpart's own optionality exactly, so a legacy/old
+  // response (only chunk_index/content/region_type) still parses, and a
+  // fully-populated one is never silently stripped by `.parse()`.
+  source_type: sourceTypeSchema.nullable().optional(),
+  block_index: z.number().int().nullable().optional(),
+  heading_path: z.array(z.string()).default([]),
+  page_start: z.number().int().nullable().optional(),
+  page_end: z.number().int().nullable().optional(),
+  source_locator: sourceLocatorSchema.nullable().optional(),
+  column_names: z.array(z.string()).nullable().optional(),
+  has_header: z.boolean().default(false),
+  header_source: headerSourceSchema.optional(),
+  header_confidence: z.number().min(0).max(1).optional(),
+  chunking_version: z.string().optional(),
 })
 
 export const previewRequestSchema = z.object({
@@ -106,6 +140,9 @@ export type ChunkingFormValues = z.infer<typeof chunkingFormSchema>
 
 export type ChunkingStrategyName = z.infer<typeof chunkingStrategyNameSchema>
 export type RegionType = z.infer<typeof regionTypeSchema>
+export type HeaderSource = z.infer<typeof headerSourceSchema>
+export type SourceType = z.infer<typeof sourceTypeSchema>
+export type SourceLocator = z.infer<typeof sourceLocatorSchema>
 export type Chunk = z.infer<typeof chunkSchema>
 export type PreviewRequest = z.infer<typeof previewRequestSchema>
 export type PreviewResponse = z.infer<typeof previewResponseSchema>
