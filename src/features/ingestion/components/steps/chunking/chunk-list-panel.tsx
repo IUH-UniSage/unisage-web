@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react"
+import { FileText, Trash2 } from "lucide-react"
 
 import { RegionBadge } from "@/features/ingestion/components/steps/region-badge"
 import {
@@ -41,21 +41,27 @@ export function ChunkListPanel({
       </div>
 
       <div className="max-h-128 space-y-2 overflow-y-auto pr-1">
-        {wizard.chunks.map((chunk: Chunk) => {
+        {wizard.chunks.map((chunk: Chunk, position: number) => {
           const idx = chunk.chunk_index
           const isActive = idx === activeChunkIndex
 
           return (
-            <button
+            <div
               className={cn(
-                "w-full cursor-pointer rounded-xl border p-3 text-left transition-all",
+                "group relative flex w-full cursor-pointer flex-col rounded-xl border p-3 text-left transition-all",
                 isActive
                   ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/30"
                   : "border-border bg-muted/40 hover:border-muted-foreground/40"
               )}
               key={idx}
               onClick={() => onSelect(idx)}
-              type="button"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  onSelect(idx)
+                }
+              }}
             >
               <div className="mb-1.5 flex items-center justify-between">
                 <span
@@ -64,13 +70,24 @@ export function ChunkListPanel({
                     isActive ? "text-primary" : "text-muted-foreground"
                   )}
                 >
-                  #{idx + 1}
+                  #{position + 1}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <RegionBadge type={chunk.region_type} />
                   <span className="text-[8px] font-bold text-muted-foreground">
                     ~{estimateTokens(chunk.content)}tk
                   </span>
+                  <button
+                    aria-label={`Xóa đoạn #${position + 1}`}
+                    className="ml-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      wizard.deleteChunk(idx)
+                    }}
+                    type="button"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
                 </div>
               </div>
               <p
@@ -81,7 +98,7 @@ export function ChunkListPanel({
               >
                 {chunk.content}
               </p>
-            </button>
+            </div>
           )
         })}
       </div>

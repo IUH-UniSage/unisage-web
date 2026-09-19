@@ -32,7 +32,7 @@ function StepIndicator({ activeStep }: { activeStep: VisualStep }) {
   const steps: VisualStep[] = [1, 2, 3]
 
   return (
-    <ol className="flex items-center gap-3 overflow-x-auto">
+    <ol className="flex w-full items-center justify-center gap-3 overflow-x-auto">
       {steps.map((step, index) => {
         const isDone = step < activeStep
         const isActive = step === activeStep
@@ -133,13 +133,13 @@ export function IngestWizardPageContent({
               ) : null}
               {wizard.step === "chunking" || wizard.step === "review" ? (
                 <div className="space-y-6">
-                  <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)_240px]">
-                    <div className="h-fit rounded-lg border bg-muted/20 p-4">
+                  <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)_240px]">
+                    <div className="flex h-full flex-col rounded-3xl border border-border bg-card p-5 shadow-sm">
                       <ChunkingConfigPanel wizard={wizard} />
                     </div>
                     <ChunkEditorPanel
                       chunk={activeChunk}
-                      key={activeChunk?.chunk_index}
+                      key={`${activeChunk?.chunk_index}-${activeChunk?.content?.slice(0, 30)}`}
                       wizard={wizard}
                     />
                     <ChunkListPanel

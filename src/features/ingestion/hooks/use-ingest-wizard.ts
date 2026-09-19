@@ -218,6 +218,16 @@ export function useIngestWizard(document: Document) {
     )
   }
 
+  // Only drop the chunk. chunk_index is the chunk's identity in the saved
+  // draft (the agent reads each chunk's structural metadata by it), so it must
+  // NOT be renumbered: renumbering would attach another chunk's metadata to
+  // this content. The "#n" labels are positions, computed where they show.
+  const deleteChunk = (chunkIndex: number) => {
+    setChunks((current) =>
+      current.filter((chunk) => chunk.chunk_index !== chunkIndex)
+    )
+  }
+
   const runEmbed = () => {
     if (!processCtx) return
 
@@ -244,6 +254,7 @@ export function useIngestWizard(document: Document) {
     chunkMutation,
     chunks,
     embeddingProgress,
+    deleteChunk,
     embedMutation,
     goToChunking,
     // Not jobQuery.isPending/isFetching directly: once hydration has run
