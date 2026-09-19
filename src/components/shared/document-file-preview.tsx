@@ -5,9 +5,12 @@ import { cn } from "@/lib/utils"
 
 type PreviewKind = "docx" | "iframe" | "txt" | "unsupported" | "xlsx"
 
-// Browsers render PDF/HTML natively via <iframe> - no viewer needed (HTML is
-// sandboxed below, see the iframe render - an uploaded document is untrusted
-// content and must never execute script in this page's origin). TXT is
+// Browsers render PDF/HTML natively via <iframe> - no viewer needed. HTML is
+// sandboxed below (see the iframe render) - an uploaded document is untrusted
+// content and must never execute script in this page's origin. PDF must NOT
+// be sandboxed: Chrome refuses to open its PDF viewer inside a sandboxed
+// frame and shows "This page has been blocked by Chrome". A PDF is served from
+// the storage origin, not this page's, so it cannot reach this page anyway. TXT is
 // fetched and decoded as UTF-8 ourselves (see TxtPreview) instead of relying
 // on the iframe, because the server doesn't always send a charset in its
 // Content-Type header and the browser then guesses one, garbling Vietnamese
@@ -47,7 +50,9 @@ export function DocumentFilePreview({
     return (
       <iframe
         className="h-125 w-full rounded-xl border bg-background shadow-xs"
-        sandbox="allow-same-origin"
+        sandbox={
+          fileType?.toUpperCase() === "PDF" ? undefined : "allow-same-origin"
+        }
         src={fileUrl}
         title={`Xem trước ${title}`}
       />

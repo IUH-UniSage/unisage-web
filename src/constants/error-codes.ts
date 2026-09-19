@@ -75,6 +75,7 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   4041: "Không tìm thấy file gốc của tài liệu này.",
   4042: "Tài liệu này chưa được chia đoạn.",
   4043: "Không tìm thấy bản nháp nạp liệu cho tài liệu này.",
+  4221: "Không trích xuất được văn bản từ tài liệu này (có thể là bản scan). Hãy dùng bản có thể chọn chữ hoặc chạy OCR trước khi nạp.",
   5000: "Có lỗi xảy ra, bạn thử lại sau nhé.",
   5001: "Hệ thống AI phản hồi quá lâu, thử lại sau nhé.",
   5002: "Hệ thống AI đang gặp sự cố, thử lại sau nhé.",

@@ -18,6 +18,9 @@ type PreviewStepProps = StepProps & { document: Document }
 export function PreviewStep({ document, wizard }: PreviewStepProps) {
   const isLoading = wizard.previewMutation.isPending
   const error = wizard.previewMutation.error
+  // A scanned PDF extracts to whitespace only, which is still a "non-empty" string.
+  const hasText = Boolean(wizard.previewText?.trim())
+  const hasNoText = wizard.previewText !== undefined && !hasText
 
   return (
     <div className="space-y-5">
@@ -30,7 +33,7 @@ export function PreviewStep({ document, wizard }: PreviewStepProps) {
             Nội dung xem trước
           </h3>
         </div>
-        {wizard.previewText ? (
+        {hasText && wizard.previewText ? (
           <span className="text-[10px] font-bold text-muted-foreground">
             {wizard.previewText.length} ký tự (~
             {estimateTokens(wizard.previewText)} tokens)
@@ -57,10 +60,14 @@ export function PreviewStep({ document, wizard }: PreviewStepProps) {
         </div>
       )}
 
+      {!isLoading && !error && hasNoText ? (
+        <ErrorAlert message="Không trích xuất được văn bản từ tài liệu này. Có thể đây là bản scan (chỉ có ảnh), hệ thống chưa hỗ trợ OCR. Hãy tải lên bản có thể chọn chữ." />
+      ) : null}
+
       <StepActions>
         <Button
           className="flex h-11 items-center gap-2 rounded-xl bg-primary text-xs font-black tracking-widest text-primary-foreground uppercase shadow-md shadow-primary/20 hover:bg-primary/90"
-          disabled={isLoading || !wizard.previewText}
+          disabled={isLoading || !hasText}
           onClick={wizard.goToChunking}
         >
           <span>Tiếp tục</span>
