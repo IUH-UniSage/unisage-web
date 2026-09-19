@@ -9,6 +9,8 @@ import { AskUserFormCard } from "@/features/chat/components/ask-user-form"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import type { Message } from "@/features/chat/schemas/chat-schemas"
 import { extractAskUserForm } from "@/features/chat/utils/ask-user-form"
+import { findQuestionBefore } from "@/features/chat/utils/question-before"
+import { ReportMessageButton } from "@/features/support-tickets/components/report-message-button"
 
 const PENDING_STATUSES = new Set(["PENDING", "STREAMING"])
 
@@ -74,7 +76,14 @@ export function ActiveConversation({
                     }
                     content={message.content}
                     disabled={isWaitingForReply}
+                    message={message}
                     onSendMessage={onSendMessage}
+                    questionText={findQuestionBefore(messages, index)}
+                    // Ids are only the server's once the stream is done and
+                    // the messages are refetched.
+                    reportDisabled={
+                      isSending || isStreaming || message.status !== "COMPLETED"
+                    }
                   />
                 )}
               </div>
@@ -99,14 +108,20 @@ type AssistantReplyProps = {
   answerText: string | null
   content: string
   disabled: boolean
+  message: Message
   onSendMessage: (content: string) => void
+  questionText: string | null
+  reportDisabled: boolean
 }
 
 function AssistantReply({
   answerText,
   content,
   disabled,
+  message,
   onSendMessage,
+  questionText,
+  reportDisabled,
 }: AssistantReplyProps) {
   const { form, text } = extractAskUserForm(content)
 
@@ -123,7 +138,14 @@ function AssistantReply({
           onSubmit={onSendMessage}
         />
       ) : null}
-      <CopyMessageButton content={text} />
+      <div className="flex items-center gap-1">
+        <CopyMessageButton content={text} />
+        <ReportMessageButton
+          disabled={reportDisabled}
+          message={message}
+          questionText={questionText}
+        />
+      </div>
     </>
   )
 }

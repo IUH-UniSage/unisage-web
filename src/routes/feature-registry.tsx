@@ -7,6 +7,7 @@ import {
   Gauge,
   HeartPulse,
   Layers,
+  LifeBuoy,
   Settings,
   ShieldCheck,
   ShieldPlus,
@@ -101,6 +102,11 @@ const UserPage = lazy(async () => {
   return { default: UserPage }
 })
 
+const TicketPage = lazy(async () => {
+  const { TicketPage } = await import("@/pages/system-admin/ticket-page")
+  return { default: TicketPage }
+})
+
 const DepartmentPage = lazy(async () => {
   const { DepartmentPage } = await import("@/pages/shared/department-page")
   return { default: DepartmentPage }
@@ -187,6 +193,15 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Cấp độ truy cập",
     requiredPermissions: PERMISSION_POLICIES.adminAccessLevels,
     segment: ROUTE_SEGMENTS.accessLevels,
+    workspaces: ["system-admin"],
+  },
+  {
+    element: <TicketPage />,
+    icon: LifeBuoy,
+    key: "admin-tickets",
+    label: "Yêu cầu hỗ trợ",
+    requiredPermissions: PERMISSION_POLICIES.adminTickets,
+    segment: ROUTE_SEGMENTS.tickets,
     workspaces: ["system-admin"],
   },
   {

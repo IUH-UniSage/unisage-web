@@ -46,6 +46,11 @@ export const PERMISSIONS = {
   conversationRead: "CONVERSATION_READ",
   conversationCreate: "CONVERSATION_CREATE",
   conversationDelete: "CONVERSATION_DELETE",
+  ticketAll: "TICKET_ALL",
+  ticketRead: "TICKET_READ",
+  ticketCreate: "TICKET_CREATE",
+  ticketUpdate: "TICKET_UPDATE",
+  ticketDelete: "TICKET_DELETE",
   messageAll: "MESSAGE_ALL",
   messageRead: "MESSAGE_READ",
   messageSend: "MESSAGE_SEND",
@@ -70,6 +75,7 @@ export type ResourceName =
   | "chat_model"
   | "conversation"
   | "message"
+  | "ticket"
   | "audit_log"
   | "llm_trace_log"
   | "super_admin"

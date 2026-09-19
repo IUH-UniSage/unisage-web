@@ -26,6 +26,8 @@ export const messageSchema = z.object({
   retrievalScore: z.number().nullable(),
   role: msgRoleSchema,
   status: msgStatusSchema,
+  // Set once the user has reported this answer as a support ticket.
+  ticketId: z.uuid().nullish(),
 })
 
 export const createConversationRequestSchema = z.object({

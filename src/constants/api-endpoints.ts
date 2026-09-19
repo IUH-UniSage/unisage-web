@@ -74,6 +74,12 @@ export const API_ENDPOINTS = {
     job: (documentId: string) => `/ingestion/jobs/${documentId}`,
     preview: "/ingestion/preview",
   },
+  tickets: {
+    myTicket: (ticketId: string) => `/tickets/my/${ticketId}`,
+    myTickets: "/tickets/my",
+    ticket: (ticketId: string) => `/tickets/${ticketId}`,
+    tickets: "/tickets",
+  },
   users: {
     me: "/users/me",
     myPassword: "/users/me/password",
