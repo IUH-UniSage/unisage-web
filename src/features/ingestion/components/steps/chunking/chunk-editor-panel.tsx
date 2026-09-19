@@ -1,6 +1,7 @@
 import { FileText } from "lucide-react"
 import { useState } from "react"
 
+import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { RegionBadge } from "@/features/ingestion/components/steps/region-badge"
@@ -17,6 +18,13 @@ type ChunkEditorPanelProps = {
 
 export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
   const [draft, setDraft] = useState(chunk?.content ?? "")
+  // A table chunk is markdown text, unreadable as raw pipes: open it as a
+  // rendered table and let the user switch to the raw text to edit. This panel
+  // is keyed by chunk, so the mode resets whenever another chunk is selected.
+  const isTable = chunk?.region_type === "table"
+  const [mode, setMode] = useState<"edit" | "preview">(
+    isTable ? "preview" : "edit"
+  )
   const isDirty = chunk != null && draft !== chunk.content
 
   if (!chunk) {
@@ -54,11 +62,49 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
         </div>
       </div>
 
-      <Textarea
-        className="min-h-80 flex-1 resize-none rounded-2xl border border-border bg-muted/50 p-4 font-mono text-xs leading-relaxed text-foreground focus:bg-card focus:ring-2 focus:ring-primary focus:outline-none"
-        onChange={(event) => setDraft(event.target.value)}
-        value={draft}
-      />
+      {isTable ? (
+        <div
+          aria-label="Chế độ hiển thị đoạn"
+          className="flex w-fit items-center gap-0.5 rounded-lg border bg-muted/30 p-0.5"
+          role="group"
+        >
+          <Button
+            aria-pressed={mode === "preview"}
+            className="h-7 px-3 text-xs"
+            onClick={() => setMode("preview")}
+            size="sm"
+            type="button"
+            variant={mode === "preview" ? "secondary" : "ghost"}
+          >
+            Xem trước
+          </Button>
+          <Button
+            aria-pressed={mode === "edit"}
+            className="h-7 px-3 text-xs"
+            onClick={() => setMode("edit")}
+            size="sm"
+            type="button"
+            variant={mode === "edit" ? "secondary" : "ghost"}
+          >
+            Chỉnh sửa
+          </Button>
+        </div>
+      ) : null}
+
+      {isTable && mode === "preview" ? (
+        <div className="max-h-112 min-h-80 flex-1 overflow-auto rounded-2xl border border-border bg-muted/50 p-4">
+          <MarkdownRenderer
+            className="text-sm leading-relaxed"
+            content={draft}
+          />
+        </div>
+      ) : (
+        <Textarea
+          className="min-h-80 flex-1 resize-none rounded-2xl border border-border bg-muted/50 p-4 font-mono text-xs leading-relaxed text-foreground focus:bg-card focus:ring-2 focus:ring-primary focus:outline-none"
+          onChange={(event) => setDraft(event.target.value)}
+          value={draft}
+        />
+      )}
 
       <div className="flex items-center justify-between border-t border-border pt-2">
         <span className="text-[10px] font-medium text-muted-foreground">
