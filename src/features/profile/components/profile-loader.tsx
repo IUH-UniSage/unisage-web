@@ -1,10 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { QUERY_POLICIES } from "@/constants/query-policies"
-import { profileApi } from "@/features/profile/api/profile-api"
-import { userKeys } from "@/features/users/queries/keys"
+import { useMyProfileQuery } from "@/features/profile/queries/use-queries"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { getErrorMessage } from "@/utils/error-handler"
 
@@ -15,15 +12,7 @@ export function ProfileLoader({
 }: {
   children: (me: AppUser) => ReactNode
 }) {
-  const {
-    data: me,
-    error,
-    isPending,
-  } = useQuery({
-    ...QUERY_POLICIES.detail,
-    queryFn: () => profileApi.getMe(),
-    queryKey: [...userKeys.all, "me"],
-  })
+  const { data: me, error, isPending } = useMyProfileQuery()
 
   if (isPending) {
     return (

@@ -104,6 +104,7 @@ export function useChatWorkspace() {
       retrievalScore: null,
       role: "USER",
       status: "COMPLETED",
+      ticketId: null,
     }
     const assistantMessageId = crypto.randomUUID()
     const assistantMessage: Message = {
@@ -117,6 +118,7 @@ export function useChatWorkspace() {
       retrievalScore: null,
       role: "ASSISTANT",
       status: "STREAMING",
+      ticketId: null,
     }
     setMessages(conversationId, (current) => [
       ...current,

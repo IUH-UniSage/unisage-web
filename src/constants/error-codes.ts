@@ -24,6 +24,7 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2125: "Không tìm thấy phân quyền phòng ban này.",
   2127: "Không tìm thấy hội thoại này.",
   2128: "Không tìm thấy tin nhắn này.",
+  2139: "Không tìm thấy yêu cầu hỗ trợ này.",
   2131: "Không tìm thấy Access Level này.",
 
   // Business rule
@@ -36,6 +37,11 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2129: "Hội thoại này đã có người khác nhận rồi.",
   2130: "Bạn đã dùng hết lượt chat miễn phí hôm nay. Quay lại sau 00:00 hoặc đăng nhập để tiếp tục nhé.",
   2132: "Access Level này đã tồn tại.",
+  2138: "Mật khẩu hiện tại không đúng.",
+  2140: "Tin nhắn này đã được báo cáo rồi.",
+  2141: "Chỉ báo cáo được câu trả lời của trợ lý trong hội thoại của bạn.",
+  2142: "Yêu cầu hỗ trợ này đã đóng, không thể thay đổi nữa.",
+  2143: "Cần nhập nội dung phản hồi khi đánh dấu đã giải quyết.",
 
   // Validation
   2133: "Nhà cung cấp không được để trống khi nguồn là Cloud API.",

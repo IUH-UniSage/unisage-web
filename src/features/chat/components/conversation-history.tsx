@@ -1,5 +1,7 @@
 import {
+  HelpCircle,
   Home,
+  KeyRound,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -36,6 +38,7 @@ import {
 import { ROUTES } from "@/constants/paths"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import type { Conversation } from "@/features/chat/schemas/chat-schemas"
+import { ChangePasswordDialog } from "@/features/profile/components/change-password-dialog"
 import { cn } from "@/lib/utils"
 
 export type ConversationHistoryProps = {
@@ -205,6 +208,7 @@ export function ConversationHistory({
   const { logout, session, status } = useAuth()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
   const isGuest = status === "unauthenticated"
 
   const handleLogout = async () => {
@@ -403,29 +407,38 @@ export function ConversationHistory({
                   {session?.email}
                 </p>
               </DropdownMenuLabel>
+
               <DropdownMenuSeparator />
+
+              <DropdownMenuItem onSelect={() => navigate(ROUTES.home)}>
+                <Home aria-hidden="true" />
+                Trang chủ
+              </DropdownMenuItem>
+              {/* Only system-role accounts can open the admin workspace. */}
+              {session?.isSystemRole ? (
+                <DropdownMenuItem onSelect={() => navigate(ROUTES.admin)}>
+                  <LayoutDashboard aria-hidden="true" />
+                  Trang quản trị
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem onSelect={() => navigate(ROUTES.tickets)}>
+                <HelpCircle aria-hidden="true" />
+                Yêu cầu hỗ trợ
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
               <DropdownMenuItem onSelect={() => navigate(ROUTES.profile)}>
                 <UserRound aria-hidden="true" />
                 Thông tin cá nhân
               </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setIsPasswordDialogOpen(true)}>
+                <KeyRound aria-hidden="true" />
+                Đổi mật khẩu
+              </DropdownMenuItem>
 
-              {session?.role === "SUPER_ADMIN" ? (
-                <DropdownMenuItem onSelect={() => navigate(ROUTES.admin)}>
-                  <LayoutDashboard aria-hidden="true" />
-                  Quay lại trang quản trị
-                </DropdownMenuItem>
-              ) : session?.role === "INGEST_ADMIN" ? (
-                <DropdownMenuItem onSelect={() => navigate(ROUTES.ingester)}>
-                  <LayoutDashboard aria-hidden="true" />
-                  Quay lại trang quản trị
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onSelect={() => navigate(ROUTES.home)}>
-                  <Home aria-hidden="true" />
-                  Trang chủ
-                </DropdownMenuItem>
-              )}
               <DropdownMenuSeparator />
+
               <DropdownMenuItem
                 disabled={isLoggingOut}
                 onSelect={() => void handleLogout()}
@@ -438,6 +451,11 @@ export function ConversationHistory({
           </DropdownMenu>
         )}
       </div>
+
+      <ChangePasswordDialog
+        onOpenChange={setIsPasswordDialogOpen}
+        open={isPasswordDialogOpen}
+      />
     </div>
   )
 }

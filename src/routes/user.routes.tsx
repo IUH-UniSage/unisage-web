@@ -5,10 +5,16 @@ import { ROUTE_SEGMENTS, ROUTES } from "@/constants/paths"
 import { ChatLayout } from "@/layouts/chat-layout"
 import { UserLayout } from "@/layouts/user-layout"
 import { WorkspacePlaceholderPage } from "@/pages/shared/workspace-placeholder-page"
+import { PrivateRoute } from "@/routes/private-route"
 
 const UserHomePage = lazy(async () => {
   const { UserHomePage } = await import("@/pages/user/user-home-page")
   return { default: UserHomePage }
+})
+
+const TicketsPage = lazy(async () => {
+  const { TicketsPage } = await import("@/pages/user/tickets-page")
+  return { default: TicketsPage }
 })
 
 const ProfilePage = lazy(async () => {
@@ -36,7 +42,11 @@ export const userRoutes: RouteObject[] = [
       },
       {
         path: ROUTE_SEGMENTS.tickets,
-        element: <WorkspacePlaceholderPage title="Yêu cầu hỗ trợ của tôi" />,
+        element: (
+          <PrivateRoute>
+            <TicketsPage />
+          </PrivateRoute>
+        ),
       },
       {
         path: ROUTE_SEGMENTS.notifications,

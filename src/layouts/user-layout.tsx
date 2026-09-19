@@ -189,7 +189,7 @@ export function UserLayout() {
                           <UserRound aria-hidden="true" className="size-4" />
                           Hồ sơ và quyền truy cập
                         </Link>
-                        {isInAdmin ? null : (
+                        {isInAdmin || !session.isSystemRole ? null : (
                           <Link
                             className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
                             to={ROUTES.admin}

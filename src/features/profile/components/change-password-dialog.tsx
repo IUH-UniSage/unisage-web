@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 
@@ -14,7 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { profileApi } from "@/features/profile/api/profile-api"
+import { useChangePasswordMutation } from "@/features/profile/queries/use-mutations"
 import {
   changePasswordFormSchema,
   type ChangePasswordFormValues,
@@ -50,10 +49,7 @@ export function ChangePasswordDialog({
     },
     resolver: zodResolver(changePasswordFormSchema),
   })
-  const changePassword = useMutation({
-    meta: { successMessage: "Đã đổi mật khẩu.", suppressGlobalError: true },
-    mutationFn: profileApi.changePassword,
-  })
+  const changePassword = useChangePasswordMutation()
 
   const handleOpenChange = (next: boolean) => {
     if (!next) reset()
