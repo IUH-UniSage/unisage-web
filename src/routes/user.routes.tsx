@@ -11,6 +11,11 @@ const UserHomePage = lazy(async () => {
   return { default: UserHomePage }
 })
 
+const ProfilePage = lazy(async () => {
+  const { ProfilePage } = await import("@/pages/user/profile-page")
+  return { default: ProfilePage }
+})
+
 const ChatPage = lazy(async () => {
   const { ChatPage } = await import("@/pages/user/chat-page")
   return { default: ChatPage }
@@ -39,7 +44,7 @@ export const userRoutes: RouteObject[] = [
       },
       {
         path: ROUTE_SEGMENTS.profile,
-        element: <WorkspacePlaceholderPage title="Hồ sơ và quyền truy cập" />,
+        element: <ProfilePage />,
       },
     ],
   },

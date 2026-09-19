@@ -29,6 +29,7 @@ export const ROUTES = {
   adminHealth: "/admin/health",
   adminLogs: "/admin/logs",
   adminModels: "/admin/models",
+  adminProfile: "/admin/profile",
   adminRbac: "/admin/rbac",
   adminSettings: "/admin/settings",
   adminUsers: "/admin/users",

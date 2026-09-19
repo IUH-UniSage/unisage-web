@@ -58,7 +58,11 @@ export function UserAccountMenu() {
           </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => navigate(ROUTES.profile)}>
+        <DropdownMenuItem
+          onSelect={() =>
+            navigate(isInAdmin ? ROUTES.adminProfile : ROUTES.profile)
+          }
+        >
           <UserRound aria-hidden="true" />
           Thông tin cá nhân
         </DropdownMenuItem>

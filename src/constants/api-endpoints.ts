@@ -75,6 +75,8 @@ export const API_ENDPOINTS = {
     preview: "/ingestion/preview",
   },
   users: {
+    me: "/users/me",
+    myPassword: "/users/me/password",
     user: (userId: string) => `/users/${userId}`,
     userRecover: (userId: string) => `/users/${userId}/recover`,
     users: "/users",

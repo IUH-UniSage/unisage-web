@@ -16,6 +16,11 @@ const IngestWizardPage = lazy(async () => {
   return { default: IngestWizardPage }
 })
 
+const ProfilePage = lazy(async () => {
+  const { ProfilePage } = await import("@/pages/system-admin/profile-page")
+  return { default: ProfilePage }
+})
+
 const UserDetailPage = lazy(async () => {
   const { UserDetailPage } =
     await import("@/pages/system-admin/user-detail-page")
@@ -148,6 +153,10 @@ export const systemAdminRoutes: RouteObject = {
         </PermissionRoute>
       ),
       path: `${ROUTE_SEGMENTS.documents}/:documentId`,
+    },
+    {
+      element: <ProfilePage />,
+      path: ROUTE_SEGMENTS.profile,
     },
     {
       path: "*",
