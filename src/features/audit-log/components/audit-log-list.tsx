@@ -261,12 +261,16 @@ export function AuditLogList() {
       },
       {
         cell: ({ row }) => (
-          <div className="flex flex-wrap items-center gap-2 text-sm">
+          <div className="flex min-w-0 items-center gap-2 text-sm">
             <span className="shrink-0">
               {getResourceTypeLabel(row.original.resourceType)}
             </span>
             {row.original.resourceId ? (
-              <CopyableId value={row.original.resourceId} />
+              <CopyableId
+                className="min-w-0"
+                truncate
+                value={row.original.resourceId}
+              />
             ) : null}
           </div>
         ),
