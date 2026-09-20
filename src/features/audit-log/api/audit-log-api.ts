@@ -10,7 +10,9 @@ import type { ApiResponse } from "@/utils/api-response"
 
 export type AuditLogsParams = {
   action?: AuditAction
-  actorId?: string
+  // The human-readable code (e.g. "SA-001"), not the actorId UUID - see
+  // audit-log-list.tsx's Filters type for why.
+  actorCode?: string
   fromDate?: string
   // 1-based, like the rest of the UI.
   page: number
@@ -26,7 +28,7 @@ export const auditLogApi = {
       {
         params: {
           action: params.action,
-          actorId: params.actorId || undefined,
+          actorCode: params.actorCode || undefined,
           fromDate: params.fromDate || undefined,
           limit: params.limit,
           page: params.page,

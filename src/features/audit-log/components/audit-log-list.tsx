@@ -1,11 +1,20 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { useMemo, useState } from "react"
+import { Fragment, useMemo, useState } from "react"
 
+import { CopyableId } from "@/components/shared/copyable-id"
 import { DataTable } from "@/components/shared/list/data-table"
+import { EntityActionsMenu } from "@/components/shared/list/entity-actions-menu"
 import { ListToolbar } from "@/components/shared/list/list-toolbar"
 import { Pagination } from "@/components/shared/list/pagination"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -16,11 +25,6 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
   AUDIT_ACTION_LABELS,
   auditActionSchema,
   getAuditActionBadgeClassName,
@@ -28,6 +32,7 @@ import {
   type AuditLog,
 } from "@/features/audit-log/schemas/audit-log-schemas"
 import { useAuditLogsQuery } from "@/features/audit-log/queries/use-queries"
+import { parseAuditDetails } from "@/features/audit-log/utils/format-details"
 import {
   getResourceTypeLabel,
   RESOURCE_TYPE_LABELS,
@@ -42,13 +47,18 @@ const ALL = "ALL"
 
 type Filters = {
   action?: AuditAction
-  actorId: string
+  // Filters by the human-readable actorCode (e.g. "SA-001"), not the actorId
+  // UUID - that's the only actor identifier visible anywhere in this UI (the
+  // "Người thực hiện" column), an admin has no way to know a raw UUID to
+  // type in. The backend's /audit-logs?actorCode= does a case-insensitive
+  // contains match against AuditLog.actorCode.
+  actorCode: string
   fromDate: string
   resourceType?: ResourceTypeKey
   toDate: string
 }
 
-const EMPTY_FILTERS: Filters = { actorId: "", fromDate: "", toDate: "" }
+const EMPTY_FILTERS: Filters = { actorCode: "", fromDate: "", toDate: "" }
 
 function AuditActionBadge({ action }: { action: AuditAction }) {
   return (
@@ -78,19 +88,110 @@ function AuditActorCell({ log }: { log: AuditLog }) {
 }
 
 function AuditDetailsCell({ details }: { details: string | null | undefined }) {
-  if (!details) return <span className="text-muted-foreground">—</span>
+  const rows = parseAuditDetails(details)
+
+  if (rows === null || rows.length === 0) {
+    return <span className="text-muted-foreground">{details || "—"}</span>
+  }
+
+  const [first, ...rest] = rows
+  const firstLine =
+    first.kind === "diff"
+      ? `${first.label}: ${first.oldValue} → ${first.newValue}`
+      : `${first.label}: ${first.value}`
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <p className="max-w-xs cursor-default truncate text-sm text-muted-foreground">
-          {details}
-        </p>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-sm break-words whitespace-pre-wrap">
-        {details}
-      </TooltipContent>
-    </Tooltip>
+    <div className="max-w-xs text-sm text-muted-foreground">
+      <p className="line-clamp-2 wrap-break-word">{firstLine}</p>
+      {rest.length > 0 ? (
+        <p className="mt-0.5 text-xs">+{rest.length} thay đổi khác</p>
+      ) : null}
+    </div>
+  )
+}
+
+function AuditLogDetailRows({
+  details,
+}: {
+  details: string | null | undefined
+}) {
+  const rows = parseAuditDetails(details)
+
+  if (rows === null) {
+    // Not the expected {field: value} / {field: {old, new}} shape (or
+    // empty) - show the raw string rather than hiding data.
+    return (
+      <p className="text-sm text-muted-foreground">
+        {details || "Không có dữ liệu chi tiết."}
+      </p>
+    )
+  }
+  if (rows.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Không có thay đổi nào được ghi nhận.
+      </p>
+    )
+  }
+
+  return (
+    <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
+      {rows.map((row) => (
+        <Fragment key={row.key}>
+          <dt className="text-muted-foreground">{row.label}</dt>
+          <dd className="col-span-2 wrap-break-word">
+            {row.kind === "diff" ? (
+              <>
+                <span className="text-muted-foreground line-through">
+                  {row.oldValue}
+                </span>{" "}
+                → <span className="font-medium">{row.newValue}</span>
+              </>
+            ) : (
+              row.value
+            )}
+          </dd>
+        </Fragment>
+      ))}
+    </dl>
+  )
+}
+
+function AuditLogDetailDialog({ log }: { log: AuditLog }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Dialog onOpenChange={setOpen} open={open}>
+      <EntityActionsMenu entityLabel="nhật ký" onDetail={() => setOpen(true)} />
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Chi tiết nhật ký</DialogTitle>
+          <DialogDescription>{formatDateTime(log.createdAt)}</DialogDescription>
+        </DialogHeader>
+        <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
+          <dt className="text-muted-foreground">Người thực hiện</dt>
+          <dd className="col-span-2">
+            {log.actorId
+              ? `${log.actorName || "Không xác định"}${log.actorCode ? ` (${log.actorCode})` : ""}`
+              : "Hệ thống"}
+          </dd>
+          <dt className="text-muted-foreground">Hành động</dt>
+          <dd className="col-span-2">
+            <AuditActionBadge action={log.action} />
+          </dd>
+          <dt className="text-muted-foreground">Đối tượng</dt>
+          <dd className="col-span-2">
+            <p>{getResourceTypeLabel(log.resourceType)}</p>
+            {log.resourceId ? (
+              <CopyableId className="mt-0.5" value={log.resourceId} />
+            ) : null}
+          </dd>
+        </dl>
+        <div className="max-h-80 overflow-auto rounded-lg border bg-muted/50 p-3">
+          <AuditLogDetailRows details={log.details} />
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -106,7 +207,7 @@ export function AuditLogList() {
 
   const { data, error, isPending } = useAuditLogsQuery({
     action: applied.action,
-    actorId: applied.actorId.trim() || undefined,
+    actorCode: applied.actorCode.trim() || undefined,
     // The date inputs give YYYY-MM-DD; the backend binds fromDate/toDate as
     // @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime and 400s on a bare
     // date, so widen to the start/end of day before sending.
@@ -120,7 +221,7 @@ export function AuditLogList() {
   const logs = useMemo(() => data?.data ?? [], [data])
   const firstRowNumber = (page - 1) * PAGE_SIZE + 1
   const isFiltered = Boolean(
-    applied.actorId ||
+    applied.actorCode ||
     applied.action ||
     applied.resourceType ||
     applied.fromDate ||
@@ -151,16 +252,20 @@ export function AuditLogList() {
       },
       {
         cell: ({ row }) => <AuditActionBadge action={row.original.action} />,
-        header: "Hành động",
+        // "Loại thao tác" (the CREATE/UPDATE/DELETE/... type), not to be
+        // confused with the "Hành động" row-actions column below - this
+        // codebase's convention (role-list.tsx, permission-list.tsx) reserves
+        // "Hành động" for the row's own action buttons.
+        header: "Loại thao tác",
         id: "action",
       },
       {
         cell: ({ row }) => (
-          <div className="text-sm">
+          <div className="max-w-52 text-sm">
             <p>{getResourceTypeLabel(row.original.resourceType)}</p>
-            <p className="max-w-40 truncate font-mono text-xs text-muted-foreground">
-              {row.original.resourceId}
-            </p>
+            {row.original.resourceId ? (
+              <CopyableId className="mt-0.5" value={row.original.resourceId} />
+            ) : null}
           </div>
         ),
         header: "Đối tượng",
@@ -170,6 +275,12 @@ export function AuditLogList() {
         cell: ({ row }) => <AuditDetailsCell details={row.original.details} />,
         header: "Chi tiết",
         id: "details",
+      },
+      {
+        cell: ({ row }) => <AuditLogDetailDialog log={row.original} />,
+        header: "Hành động",
+        id: "actions",
+        meta: { className: "text-right", headerClassName: "text-right" },
       },
     ],
     [firstRowNumber]
@@ -193,12 +304,12 @@ export function AuditLogList() {
           isFiltered={isFiltered}
           onApplyFilters={applyFilters}
           onResetFilters={resetFilters}
-          onSearchChange={(actorId) =>
-            setDraft((current) => ({ ...current, actorId }))
+          onSearchChange={(actorCode) =>
+            setDraft((current) => ({ ...current, actorCode }))
           }
-          search={draft.actorId}
+          search={draft.actorCode}
           searchAriaLabel="Tìm theo mã người thực hiện"
-          searchPlaceholder="Tìm theo mã người thực hiện (actorId)..."
+          searchPlaceholder="Tìm theo mã người thực hiện (VD: SA-001)..."
         >
           <Select
             onValueChange={(value) =>
@@ -335,16 +446,24 @@ export function AuditLogList() {
                     </div>
                     <AuditActionBadge action={log.action} />
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {getResourceTypeLabel(log.resourceType)} ·{" "}
-                    <span className="font-mono">{log.resourceId}</span>
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                    <span>{getResourceTypeLabel(log.resourceType)}</span>
+                    {log.resourceId ? (
+                      <>
+                        <span>·</span>
+                        <CopyableId value={log.resourceId} />
+                      </>
+                    ) : null}
+                  </div>
                   <div className="mt-2">
                     <AuditDetailsCell details={log.details} />
                   </div>
-                  <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">
-                    {formatDateTime(log.createdAt)}
-                  </p>
+                  <div className="mt-3 flex items-center justify-between border-t pt-3">
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(log.createdAt)}
+                    </p>
+                    <AuditLogDetailDialog log={log} />
+                  </div>
                 </article>
               ))}
             </div>
