@@ -14,6 +14,7 @@ export const RESOURCE_TYPE_LABELS = {
   INGEST: "Nạp liệu",
   CONVERSATION: "Hội thoại",
   MESSAGE: "Tin nhắn",
+  TICKET: "Yêu cầu hỗ trợ",
   AUDIT_LOG: "Nhật ký hệ thống",
   SYSTEM: "Hệ thống",
   OTHER: "Khác",
@@ -39,6 +40,8 @@ const RESOURCE_TYPE_BADGE_COLOR = {
   // Conversation
   CONVERSATION: "success",
   MESSAGE: "magenta",
+  // Support
+  TICKET: "teal",
   // Logs
   AUDIT_LOG: "warning",
   // System

@@ -7,6 +7,9 @@ export const API_ENDPOINTS = {
   aiChat: {
     stream: "/chat/stream",
   },
+  auditLogs: {
+    auditLogs: "/audit-logs",
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
