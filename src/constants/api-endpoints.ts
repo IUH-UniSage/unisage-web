@@ -10,6 +10,10 @@ export const API_ENDPOINTS = {
   auditLogs: {
     auditLogs: "/audit-logs",
   },
+  systemHealth: {
+    health: "/admin/health",
+    history: "/admin/health/history",
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
