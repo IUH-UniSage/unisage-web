@@ -5,6 +5,7 @@ import {
 } from "@/features/system-health/components/component-icons"
 import { HealthStatusBadge } from "@/features/system-health/components/health-status-badge"
 import {
+  getComponentDescription,
   getComponentLabel,
   type ComponentHealth,
   type KnownComponentKey,
@@ -38,6 +39,11 @@ export function ComponentHealthCard({
           </div>
           <div>
             <p className="font-medium">{getComponentLabel(componentKey)}</p>
+            {getComponentDescription(componentKey) ? (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {getComponentDescription(componentKey)}
+              </p>
+            ) : null}
             <p className="mt-0.5 text-xs text-muted-foreground">
               Cập nhật lúc {formatDateTime(checkedAt)}
               {typeof health.responseTimeMs === "number"

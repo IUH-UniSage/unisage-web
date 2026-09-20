@@ -83,10 +83,24 @@ export type KnownComponentKey = (typeof KNOWN_COMPONENT_KEYS)[number]
 export const COMPONENT_LABELS: Record<KnownComponentKey, string> = {
   agent: "Trợ lý AI",
   db: "Cơ sở dữ liệu",
-  gateway: "Cổng API",
+  gateway: "Cổng API (Gateway)",
   minio: "Lưu trữ file",
+}
+
+// One-line explanation of what each dependency actually is, shown under the
+// label so "Cổng API" etc. isn't just an unexplained name.
+export const COMPONENT_DESCRIPTIONS: Record<KnownComponentKey, string> = {
+  agent: "Dịch vụ AI xử lý câu hỏi và tạo câu trả lời (RAG).",
+  db: "Nơi lưu dữ liệu người dùng, tài liệu, hội thoại...",
+  gateway:
+    "Cửa ngõ định tuyến mọi yêu cầu từ trình duyệt đến các dịch vụ phía sau.",
+  minio: "Nơi lưu file tài liệu (PDF, Word...) được tải lên.",
 }
 
 export function getComponentLabel(key: string): string {
   return COMPONENT_LABELS[key as KnownComponentKey] ?? key
+}
+
+export function getComponentDescription(key: string): string | null {
+  return COMPONENT_DESCRIPTIONS[key as KnownComponentKey] ?? null
 }
