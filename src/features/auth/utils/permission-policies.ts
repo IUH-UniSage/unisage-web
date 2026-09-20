@@ -25,7 +25,11 @@ export const PERMISSION_POLICIES = {
   adminTickets: policy(PERMISSIONS.ticketRead),
   adminHealth: policy(PERMISSIONS.superAdminAll),
   adminRbac: policy(PERMISSIONS.roleRead, PERMISSIONS.permissionRead),
-  adminSettings: policy(PERMISSIONS.superAdminAll),
+  // UNISAGE-65: gated strictly on the system-config API's own read
+  // permission - not superAdminAll (that was adminLogs' mistake, fixed on
+  // the audit-log branch: a workspace-nav permission should map to the one
+  // permission that actually gates the page's own data fetch).
+  adminSettings: policy(PERMISSIONS.systemConfigRead),
   // DOCUMENT_ALL wildcard-satisfies DOCUMENT_READ/DOCUMENT_CREATE (see
   // getResourceWildcard in utils/permissions.ts), so INGEST_ADMIN (which only
   // holds DOCUMENT_ALL) already passes these without listing it explicitly.

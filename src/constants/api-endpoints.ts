@@ -77,6 +77,10 @@ export const API_ENDPOINTS = {
     job: (documentId: string) => `/ingestion/jobs/${documentId}`,
     preview: "/ingestion/preview",
   },
+  systemConfigs: {
+    systemConfig: (configKey: string) => `/system-configs/${configKey}`,
+    systemConfigs: "/system-configs",
+  },
   tickets: {
     myTicket: (ticketId: string) => `/tickets/my/${ticketId}`,
     myTickets: "/tickets/my",

@@ -133,6 +133,12 @@ const ChatModelPage = lazy(async () => {
   return { default: ChatModelPage }
 })
 
+const SystemSettingsPage = lazy(async () => {
+  const { SystemSettingsPage } =
+    await import("@/pages/system-admin/system-settings-page")
+  return { default: SystemSettingsPage }
+})
+
 const AuditLogPage = lazy(async () => {
   const { AuditLogPage } = await import("@/pages/system-admin/audit-log-page")
   return { default: AuditLogPage }
@@ -255,7 +261,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     workspaces: ["system-admin"],
   },
   {
-    element: <WorkspacePlaceholderPage title="Cài đặt hệ thống" />,
+    element: <SystemSettingsPage />,
     icon: Settings,
     key: "admin-settings",
     label: "Cài đặt",
