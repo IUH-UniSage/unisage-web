@@ -15,8 +15,14 @@ import {
   type ConversationHistoryProps,
 } from "@/features/chat/components/conversation-history"
 import { SearchConversationDialog } from "@/features/chat/components/search-conversation-dialog"
+import { CitationDrawer } from "@/features/chat/components/citation-drawer"
 import { SourcePanel } from "@/features/chat/components/source-panel"
 import { useChatWorkspace } from "@/features/chat/hooks/use-chat-workspace"
+import type { Citation } from "@/features/chat/schemas/chat-schemas"
+import {
+  groupCitationsByDocument,
+  latestCitations,
+} from "@/features/chat/utils/citations"
 import { cn } from "@/lib/utils"
 
 export function ChatPage() {
@@ -24,6 +30,8 @@ export function ChatPage() {
   const [sidebarWidth, setSidebarWidth] = useState(260)
   const [isResizing, setIsResizing] = useState(false)
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
+  const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
+  const sourceCitations = latestCitations(workspace.messages)
   const location = useLocation()
   const navigate = useNavigate()
   const hasSentInitialMessage = useRef(false)
@@ -158,6 +166,7 @@ export function ChatPage() {
             activeConversation={workspace.activeConversation}
             isSourcesOpen={workspace.isSourcesOpen}
             onOpenSources={() => workspace.setIsSourcesOpen(true)}
+            sourceCount={groupCitationsByDocument(sourceCitations).length}
           />
 
           <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
@@ -166,6 +175,7 @@ export function ChatPage() {
                 isSending={workspace.isSendingMessage}
                 isStreaming={workspace.isStreaming}
                 messages={workspace.messages}
+                onOpenCitation={setActiveCitation}
                 onSendMessage={workspace.sendMessage}
                 onStopGenerating={workspace.stopGenerating}
               />
@@ -181,11 +191,18 @@ export function ChatPage() {
         {/* Right Source Panel (Pushed all the way to top level, matching Sidebar height) */}
         {workspace.isSourcesOpen ? (
           <SourcePanel
+            citations={sourceCitations}
             onClose={() => workspace.setIsSourcesOpen(false)}
+            onOpenCitation={setActiveCitation}
             width={sidebarWidth}
           />
         ) : null}
       </div>
+
+      <CitationDrawer
+        citation={activeCitation}
+        onClose={() => setActiveCitation(null)}
+      />
 
       {/* Search Dialog Modal (Exact ChatGPT Command Palette) */}
       <SearchConversationDialog

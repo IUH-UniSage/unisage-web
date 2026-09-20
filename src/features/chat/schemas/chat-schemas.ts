@@ -15,9 +15,31 @@ export const conversationSchema = z.object({
   userId: z.uuid().nullable(),
 })
 
+// One cited source of an assistant reply, written by unisage-agent. Never carries
+// the storage object key (the history API is public) - a file is opened by
+// `documentId` through the citation endpoint instead.
+export const citationSchema = z.object({
+  documentId: z.string().nullish(),
+  index: z.number().int().positive(),
+  pageEnd: z.number().nullish(),
+  pageStart: z.number().nullish(),
+  section: z.string().nullish(),
+  sourceType: z.string().nullish(),
+  title: z.string(),
+})
+
+export const citationDocumentSchema = z.object({
+  fileName: z.string().nullish(),
+  fileType: z.string().nullish(),
+  fileUrl: z.string().nullish(),
+  id: z.string(),
+  title: z.string(),
+})
+
 export const messageSchema = z.object({
   chatModelId: z.uuid().nullable(),
-  citations: z.unknown().nullable(),
+  // Falls back to null on an unexpected shape so a bad row can't break the whole history.
+  citations: z.array(citationSchema).nullable().catch(null),
   content: z.string(),
   conversationId: z.uuid(),
   createdAt: z.string(),
@@ -48,3 +70,6 @@ export type CreateConversationRequest = z.infer<
   typeof createConversationRequestSchema
 >
 export type SendMessageRequest = z.infer<typeof sendMessageRequestSchema>
+
+export type Citation = z.infer<typeof citationSchema>
+export type CitationDocument = z.infer<typeof citationDocumentSchema>

@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
   documents: {
     documents: "/documents",
     document: (documentId: string) => `/documents/${documentId}`,
+    documentCitation: (documentId: string) =>
+      `/documents/${documentId}/citation`,
     documentStatus: (documentId: string) => `/documents/${documentId}/status`,
   },
   departments: {

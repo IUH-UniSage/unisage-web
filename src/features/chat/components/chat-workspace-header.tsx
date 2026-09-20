@@ -14,7 +14,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { ROUTES } from "@/constants/paths"
-import { CHAT_SOURCES } from "@/features/chat/chat-data"
 import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 
 type MobileChatHeaderProps = {
@@ -62,12 +61,14 @@ export function MobileChatHeader({ historyContent }: MobileChatHeaderProps) {
 
 type DesktopChatHeaderProps = {
   activeConversation: Conversation | null
+  sourceCount: number
   isSourcesOpen: boolean
   onOpenSources: () => void
 }
 
 export function DesktopChatHeader({
   activeConversation,
+  sourceCount,
   isSourcesOpen,
   onOpenSources,
 }: DesktopChatHeaderProps) {
@@ -86,7 +87,7 @@ export function DesktopChatHeader({
             <Sparkles className="size-3.5 text-knowledge" />
             <span>Nguồn tham chiếu</span>
             <Badge className="ml-0.5 size-4 justify-center rounded-full bg-muted p-0 text-[10px] leading-none text-muted-foreground">
-              {CHAT_SOURCES.length}
+              {sourceCount}
             </Badge>
           </Button>
         ) : null}

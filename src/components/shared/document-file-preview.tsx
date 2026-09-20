@@ -34,41 +34,52 @@ function getPreviewKind(fileType: string | null | undefined): PreviewKind {
 }
 
 type DocumentFilePreviewProps = {
+  // Fill the parent's height (edge to edge) instead of the default fixed-height card.
+  fill?: boolean
   fileType: string | null | undefined
   fileUrl: string
+  // 1-based page to open a PDF on; ignored for other types.
+  page?: number | null
   title: string
 }
 
+const FILL_FRAME_CLASS = "h-full rounded-none border-0 shadow-none"
+
 export function DocumentFilePreview({
+  fill = false,
   fileType,
   fileUrl,
+  page,
   title,
 }: DocumentFilePreviewProps) {
   const kind = getPreviewKind(fileType)
+  const frameClassName = fill ? FILL_FRAME_CLASS : undefined
+  const isPdf = fileType?.toUpperCase() === "PDF"
 
   if (kind === "iframe") {
     return (
       <iframe
-        className="h-125 w-full rounded-xl border bg-background shadow-xs"
-        sandbox={
-          fileType?.toUpperCase() === "PDF" ? undefined : "allow-same-origin"
-        }
-        src={fileUrl}
+        className={cn(
+          "h-125 w-full rounded-xl border bg-background shadow-xs",
+          frameClassName
+        )}
+        sandbox={isPdf ? undefined : "allow-same-origin"}
+        src={isPdf && page ? `${fileUrl}#page=${page}` : fileUrl}
         title={`Xem trước ${title}`}
       />
     )
   }
 
   if (kind === "txt") {
-    return <TxtPreview fileUrl={fileUrl} />
+    return <TxtPreview fileUrl={fileUrl} frameClassName={frameClassName} />
   }
 
   if (kind === "docx") {
-    return <DocxPreview fileUrl={fileUrl} />
+    return <DocxPreview fileUrl={fileUrl} frameClassName={frameClassName} />
   }
 
   if (kind === "xlsx") {
-    return <XlsxPreview fileUrl={fileUrl} />
+    return <XlsxPreview fileUrl={fileUrl} frameClassName={frameClassName} />
   }
 
   return (
@@ -116,7 +127,13 @@ function PreviewError({ message }: { message: string }) {
   )
 }
 
-function TxtPreview({ fileUrl }: { fileUrl: string }) {
+function TxtPreview({
+  fileUrl,
+  frameClassName,
+}: {
+  fileUrl: string
+  frameClassName?: string
+}) {
   const [text, setText] = useState<string>()
   const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
 
@@ -152,7 +169,7 @@ function TxtPreview({ fileUrl }: { fileUrl: string }) {
 
   if (status === "loading" || text === undefined) {
     return (
-      <PreviewFrame className="space-y-2">
+      <PreviewFrame className={cn("space-y-2", frameClassName)}>
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-5/6" />
@@ -161,7 +178,7 @@ function TxtPreview({ fileUrl }: { fileUrl: string }) {
   }
 
   return (
-    <PreviewFrame className="bg-background">
+    <PreviewFrame className={cn("bg-background", frameClassName)}>
       <pre className="font-mono text-sm whitespace-pre-wrap text-foreground">
         {text}
       </pre>
@@ -169,7 +186,13 @@ function TxtPreview({ fileUrl }: { fileUrl: string }) {
   )
 }
 
-function DocxPreview({ fileUrl }: { fileUrl: string }) {
+function DocxPreview({
+  fileUrl,
+  frameClassName,
+}: {
+  fileUrl: string
+  frameClassName?: string
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
 
@@ -214,7 +237,9 @@ function DocxPreview({ fileUrl }: { fileUrl: string }) {
   }
 
   return (
-    <PreviewFrame className={cn(status === "loading" && "space-y-2")}>
+    <PreviewFrame
+      className={cn(status === "loading" && "space-y-2", frameClassName)}
+    >
       {status === "loading" ? (
         <>
           <Skeleton className="h-4 w-2/3" />
@@ -230,7 +255,13 @@ function DocxPreview({ fileUrl }: { fileUrl: string }) {
   )
 }
 
-function XlsxPreview({ fileUrl }: { fileUrl: string }) {
+function XlsxPreview({
+  fileUrl,
+  frameClassName,
+}: {
+  fileUrl: string
+  frameClassName?: string
+}) {
   const [sheets, setSheets] = useState<{ html: string; name: string }[]>()
   const [activeSheet, setActiveSheet] = useState(0)
   const [status, setStatus] = useState<"error" | "loading" | "ready">("loading")
@@ -277,7 +308,7 @@ function XlsxPreview({ fileUrl }: { fileUrl: string }) {
 
   if (status === "loading" || !sheets) {
     return (
-      <PreviewFrame className="space-y-2">
+      <PreviewFrame className={cn("space-y-2", frameClassName)}>
         <Skeleton className="h-4 w-1/3" />
         <Skeleton className="h-40 w-full" />
       </PreviewFrame>
@@ -285,7 +316,7 @@ function XlsxPreview({ fileUrl }: { fileUrl: string }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", frameClassName && "flex h-full flex-col")}>
       {sheets.length > 1 ? (
         <div className="flex flex-wrap gap-1.5">
           {sheets.map((sheet, index) => (
@@ -306,7 +337,10 @@ function XlsxPreview({ fileUrl }: { fileUrl: string }) {
         </div>
       ) : null}
       <PreviewFrame
-        className="[&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1 [&_td]:text-xs"
+        className={cn(
+          "[&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1 [&_td]:text-xs",
+          frameClassName && "min-h-0 flex-1 rounded-none border-0"
+        )}
         html={sheets[activeSheet].html}
       />
     </div>
