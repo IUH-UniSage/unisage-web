@@ -25,7 +25,7 @@ export function LiveHealthSection() {
     return (
       <div aria-label="Đang kiểm tra tình trạng hệ thống" className="space-y-4">
         <Skeleton className="h-20 rounded-xl" />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Skeleton className="h-24 rounded-xl" />
           <Skeleton className="h-24 rounded-xl" />
           <Skeleton className="h-24 rounded-xl" />
@@ -85,7 +85,7 @@ export function LiveHealthSection() {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {componentEntries.map(([key, health]) => (
           <ComponentHealthCard
             checkedAt={data.checkedAt}

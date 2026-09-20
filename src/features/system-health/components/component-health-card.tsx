@@ -4,7 +4,9 @@ import {
   FALLBACK_COMPONENT_ICON,
 } from "@/features/system-health/components/component-icons"
 import { HealthStatusBadge } from "@/features/system-health/components/health-status-badge"
+import { cn } from "@/lib/utils"
 import {
+  getAgentSubComponents,
   getComponentDescription,
   getComponentLabel,
   type ComponentHealth,
@@ -26,6 +28,7 @@ export function ComponentHealthCard({
   const Icon =
     COMPONENT_ICONS[componentKey as KnownComponentKey] ??
     FALLBACK_COMPONENT_ICON
+  const subComponents = getAgentSubComponents(health.details)
 
   return (
     <Card size="sm">
@@ -50,6 +53,27 @@ export function ComponentHealthCard({
                 ? ` · ${health.responseTimeMs}ms`
                 : ""}
             </p>
+            {subComponents ? (
+              <ul className="mt-1.5 space-y-0.5">
+                {subComponents.map((sub) => (
+                  <li
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                    key={sub.key}
+                  >
+                    <span
+                      className={cn(
+                        "size-1.5 shrink-0 rounded-full",
+                        sub.up ? "bg-success" : "bg-destructive"
+                      )}
+                    />
+                    <span>{sub.label}</span>
+                    {typeof sub.responseTimeMs === "number" ? (
+                      <span>· {sub.responseTimeMs}ms</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         </div>
         <HealthStatusBadge status={health.status} />

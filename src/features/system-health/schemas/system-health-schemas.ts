@@ -87,14 +87,15 @@ export const COMPONENT_LABELS: Record<KnownComponentKey, string> = {
   minio: "Lưu trữ file",
 }
 
-// One-line explanation of what each dependency actually is, shown under the
-// label so "Cổng API" etc. isn't just an unexplained name.
+// One-line explanation of what each dependency actually is, naming the real
+// technology (not just a generic role) so "Cổng API"/"Trợ lý AI" aren't
+// unexplained names on their own.
 export const COMPONENT_DESCRIPTIONS: Record<KnownComponentKey, string> = {
-  agent: "Dịch vụ AI xử lý câu hỏi và tạo câu trả lời (RAG).",
-  db: "Nơi lưu dữ liệu người dùng, tài liệu, hội thoại...",
+  agent: "Dịch vụ Python xử lý câu hỏi và tạo câu trả lời (RAG).",
+  db: "PostgreSQL - nơi lưu dữ liệu người dùng, tài liệu, hội thoại...",
   gateway:
-    "Cửa ngõ định tuyến mọi yêu cầu từ trình duyệt đến các dịch vụ phía sau.",
-  minio: "Nơi lưu file tài liệu (PDF, Word...) được tải lên.",
+    "Spring Cloud Gateway - định tuyến mọi yêu cầu đến các dịch vụ phía sau.",
+  minio: "MinIO - nơi lưu file tài liệu (PDF, Word...) được tải lên.",
 }
 
 export function getComponentLabel(key: string): string {
@@ -103,4 +104,48 @@ export function getComponentLabel(key: string): string {
 
 export function getComponentDescription(key: string): string | null {
   return COMPONENT_DESCRIPTIONS[key as KnownComponentKey] ?? null
+}
+
+// The "agent" component's own `details.components` - unisage-agent's /health
+// checks its OWN Postgres/Redis/Qdrant and reports them here (see
+// unisage-backend's AgentHealthIndicator, which forwards this map as-is).
+// Status strings are lowercase ("up"/"down"), unlike the top-level Actuator
+// vocabulary (UP/DOWN) - a different service, a different convention.
+const AGENT_SUB_COMPONENT_LABELS: Record<string, string> = {
+  database: "PostgreSQL (riêng của Trợ lý AI)",
+  qdrant: "Qdrant (vector database)",
+  redis: "Redis",
+}
+
+export type AgentSubComponent = {
+  key: string
+  label: string
+  responseTimeMs: number | null
+  up: boolean
+}
+
+/**
+ * Parses the agent component's nested dependency breakdown out of its raw
+ * `details.components` map, if present - returns null for every other
+ * component (db/gateway/minio don't have this nested shape) or if the
+ * backend hasn't forwarded it yet.
+ */
+export function getAgentSubComponents(
+  details: Record<string, unknown> | null | undefined
+): AgentSubComponent[] | null {
+  const raw = details?.components
+  if (!raw || typeof raw !== "object") return null
+
+  return Object.entries(raw as Record<string, unknown>).map(([key, value]) => {
+    const entry = (value ?? {}) as Record<string, unknown>
+    return {
+      key,
+      label: AGENT_SUB_COMPONENT_LABELS[key] ?? key,
+      responseTimeMs:
+        typeof entry.response_time_ms === "number"
+          ? entry.response_time_ms
+          : null,
+      up: entry.status === "up",
+    }
+  })
 }
