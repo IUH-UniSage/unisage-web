@@ -12,6 +12,7 @@ import { useMemo, useState } from "react"
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CategoryConfigForm } from "@/features/system-settings/components/category-config-form"
+import { groupIngestConfigs } from "@/features/system-settings/components/ingest-config-groups"
 import { useSystemConfigsQuery } from "@/features/system-settings/queries/use-queries"
 import {
   SYSTEM_CONFIG_CATEGORY_LABELS,
@@ -48,7 +49,9 @@ const SYSTEM_CONFIG_CATEGORY_DESCRIPTIONS: Record<
 export function SystemSettingsDashboard() {
   const { data, error, isPending } = useSystemConfigsQuery()
   const { canUpdate } = useResourcePermissions("system_config")
-  const [activeTab, setActiveTab] = useState<SystemConfigCategory>("GENERAL")
+  const [requestedTab, setRequestedTab] = useState<SystemConfigCategory | null>(
+    null
+  )
 
   const configs = data ?? EMPTY_CONFIGS
 
@@ -63,6 +66,13 @@ export function SystemSettingsDashboard() {
     return grouped
   }, [configs])
 
+  // Only show a tab for a category that actually has seeded rows - an empty
+  // tab (e.g. AUDIT, currently unseeded) is dead weight, not a placeholder
+  // worth keeping around.
+  const availableCategories = SYSTEM_CONFIG_CATEGORY_ORDER.filter(
+    (category) => (configsByCategory.get(category)?.length ?? 0) > 0
+  )
+
   if (isPending) {
     return <SystemSettingsSkeleton />
   }
@@ -75,19 +85,30 @@ export function SystemSettingsDashboard() {
     )
   }
 
+  const activeTab =
+    requestedTab && availableCategories.includes(requestedTab)
+      ? requestedTab
+      : (availableCategories[0] ?? SYSTEM_CONFIG_CATEGORY_ORDER[0])
+
   return (
     <TabbedListPage
       description={SYSTEM_CONFIG_CATEGORY_DESCRIPTIONS[activeTab]}
       kicker="Quản trị · Hệ thống"
-      onTabChange={(value) => setActiveTab(value as SystemConfigCategory)}
-      tabs={SYSTEM_CONFIG_CATEGORY_ORDER.map((category) => {
+      onTabChange={(value) => setRequestedTab(value as SystemConfigCategory)}
+      tabs={availableCategories.map((category) => {
         const Icon = SYSTEM_CONFIG_CATEGORY_ICONS[category]
+        const categoryConfigs = configsByCategory.get(category) ?? EMPTY_CONFIGS
 
         return {
           content: (
             <CategoryConfigForm
               canUpdate={canUpdate}
-              configs={configsByCategory.get(category) ?? EMPTY_CONFIGS}
+              configs={categoryConfigs}
+              groups={
+                category === "INGEST"
+                  ? groupIngestConfigs(categoryConfigs)
+                  : undefined
+              }
             />
           ),
           icon: <Icon aria-hidden="true" />,

@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Button } from "@/components/ui/button"
 import { ConfigField } from "@/features/system-settings/components/config-field"
+import type { ConfigGroup } from "@/features/system-settings/components/ingest-config-groups"
 import { useUpdateSystemConfigMutation } from "@/features/system-settings/queries/use-mutations"
 import type { SystemConfig } from "@/features/system-settings/schemas/system-config-schemas"
 import { getErrorMessage } from "@/utils/error-handler"
@@ -41,6 +42,11 @@ function initialValues(configs: SystemConfig[]): Record<string, string> {
 type CategoryConfigFormProps = {
   canUpdate: boolean
   configs: SystemConfig[]
+  // Optional visual grouping into cards (e.g. INGEST's per-chunking-strategy
+  // breakdown) - `configs` must still be the same rows flattened, since
+  // dirty-tracking/save always operates on the whole tab in one go regardless
+  // of how it's grouped visually.
+  groups?: ConfigGroup[]
 }
 
 // One form per category tab - not a table, per UNISAGE-65's brief (this is a
@@ -55,6 +61,7 @@ type CategoryConfigFormProps = {
 export function CategoryConfigForm({
   canUpdate,
   configs,
+  groups,
 }: CategoryConfigFormProps) {
   const [baseline, setBaseline] = useState(() => initialValues(configs))
   const [draft, setDraft] = useState(() => initialValues(configs))
@@ -139,19 +146,35 @@ export function CategoryConfigForm({
     }
   }
 
+  const renderField = (config: SystemConfig) => (
+    <ConfigField
+      config={config}
+      error={fieldErrors[config.configKey]}
+      key={config.configKey}
+      onChange={(value) => handleChange(config.configKey, value)}
+      value={draft[config.configKey]}
+    />
+  )
+
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
-        {configs.map((config) => (
-          <ConfigField
-            config={config}
-            error={fieldErrors[config.configKey]}
-            key={config.configKey}
-            onChange={(value) => handleChange(config.configKey, value)}
-            value={draft[config.configKey]}
-          />
-        ))}
-      </div>
+      {groups ? (
+        <div className="space-y-4">
+          {groups.map((group) => (
+            <div
+              className="space-y-3 rounded-xl border bg-card p-4 shadow-xs"
+              key={group.title}
+            >
+              <h3 className="text-xs font-black tracking-widest text-muted-foreground uppercase">
+                {group.title}
+              </h3>
+              <div className="space-y-3">{group.configs.map(renderField)}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">{configs.map(renderField)}</div>
+      )}
 
       {canUpdate ? (
         <div className="flex justify-end">
