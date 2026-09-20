@@ -28,6 +28,7 @@ import {
 } from "@/constants/doc-status"
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { DocumentChunksSection } from "@/features/documents/components/document-chunks-section"
+import { DocumentVersionHistorySection } from "@/features/documents/components/document-version-history-section"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
@@ -278,6 +279,8 @@ export function DocumentDetailDialog({
       </Card>
 
       <DocumentChunksSection documentId={document.id} />
+
+      <DocumentVersionHistorySection documentId={document.id} />
 
       {/* Audit Info Card */}
       <Card className="border bg-card shadow-none">

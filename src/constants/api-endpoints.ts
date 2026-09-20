@@ -24,6 +24,8 @@ export const API_ENDPOINTS = {
     documentCitation: (documentId: string) =>
       `/documents/${documentId}/citation`,
     documentStatus: (documentId: string) => `/documents/${documentId}/status`,
+    documentVersions: (documentId: string) =>
+      `/documents/${documentId}/versions`,
   },
   departments: {
     accessSuggestion: (parentId: string) =>

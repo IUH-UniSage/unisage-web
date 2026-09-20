@@ -26,3 +26,10 @@ export function useDocumentChunksQuery(
     placeholderData: keepPreviousData,
   })
 }
+
+export function useDocumentVersionsQuery(documentId: string | undefined) {
+  return useQuery({
+    ...documentOptions.versions(documentId ?? ""),
+    enabled: Boolean(documentId),
+  })
+}
