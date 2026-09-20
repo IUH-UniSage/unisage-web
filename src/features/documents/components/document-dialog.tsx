@@ -83,7 +83,13 @@ export function DocumentDialog({
       fileType: document?.fileType ?? "",
       isPublic: document?.isPublic ?? false,
       minAccessLevelId: document?.minAccessLevelId ?? null,
-      sourceUrl: document?.sourceUrl ?? "",
+      // Neither create nor edit currently exposes a way to set an external
+      // URL (that flow is disabled - see the TODO(url-source) block below),
+      // so this must stay empty. Defaulting it to document?.sourceUrl would
+      // resubmit that stale value on every metadata-only edit save and
+      // silently revert a newer replacement file back to whatever was
+      // current when the form was opened, bypassing version history.
+      sourceUrl: "",
       title: document?.title ?? "",
     },
     resolver: zodResolver(isEdit ? documentEditFormSchema : documentFormSchema),
