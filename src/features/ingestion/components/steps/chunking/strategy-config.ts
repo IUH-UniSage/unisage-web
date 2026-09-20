@@ -37,15 +37,20 @@ export const STRATEGY_DESCRIPTIONS: Record<ChunkingStrategyName, string> = {
 }
 
 export function buildChunkingParams(
-  values: ChunkingFormValues
+  values: ChunkingFormValues,
+  // Defaults to the hardcoded constant, but callers should pass the live
+  // merged defaults from useChunkingDefaults() so a field the user never
+  // touched still submits the admin-configured value, not the stale
+  // hardcoded one - see use-chunking-defaults.ts.
+  defaults: typeof STRATEGY_DEFAULTS = STRATEGY_DEFAULTS
 ): Record<string, unknown> {
   switch (values.strategy) {
     case "excel_row": {
-      const d = STRATEGY_DEFAULTS.excel_row
+      const d = defaults.excel_row
       return { rows_per_chunk: values.rowsPerChunk ?? d.rows_per_chunk }
     }
     case "semantic": {
-      const d = STRATEGY_DEFAULTS.semantic
+      const d = defaults.semantic
       return {
         overlap_ratio: values.overlapRatio ?? d.overlap_ratio,
         similarity_threshold:
@@ -56,7 +61,7 @@ export function buildChunkingParams(
     case "token_based":
     case "recursive":
     case "markdown_aware": {
-      const d = STRATEGY_DEFAULTS[values.strategy]
+      const d = defaults[values.strategy]
       return {
         chunk_size: values.chunkSize ?? d.chunk_size,
         overlap: values.overlap ?? d.overlap,

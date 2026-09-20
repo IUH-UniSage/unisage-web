@@ -16,6 +16,7 @@ import {
   STRATEGY_DESCRIPTIONS,
 } from "@/features/ingestion/components/steps/chunking/strategy-config"
 import { StrategyFields } from "@/features/ingestion/components/steps/chunking/strategy-fields"
+import { useChunkingDefaults } from "@/features/ingestion/components/steps/chunking/use-chunking-defaults"
 import { ErrorAlert } from "@/features/ingestion/components/steps/step-primitives"
 import { type StepProps } from "@/features/ingestion/components/steps/shared"
 import {
@@ -39,9 +40,13 @@ export function ChunkingConfigPanel({ wizard }: StepProps) {
   const strategy = watch("strategy")
   const isSubmitting = wizard.chunkMutation.isPending
   const error = wizard.chunkMutation.error
+  const chunkingDefaults = useChunkingDefaults()
 
   const submit = (values: ChunkingFormValues) => {
-    wizard.runChunk(values.strategy, buildChunkingParams(values))
+    wizard.runChunk(
+      values.strategy,
+      buildChunkingParams(values, chunkingDefaults)
+    )
   }
 
   return (
@@ -84,7 +89,12 @@ export function ChunkingConfigPanel({ wizard }: StepProps) {
       </p>
 
       <div className="space-y-4 pt-1">
-        <StrategyFields register={register} strategy={strategy} watch={watch} />
+        <StrategyFields
+          defaults={chunkingDefaults}
+          register={register}
+          strategy={strategy}
+          watch={watch}
+        />
       </div>
 
       {errors.strategy ? (

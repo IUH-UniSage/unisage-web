@@ -58,6 +58,12 @@ export const PERMISSIONS = {
   auditLogRead: "AUDIT_LOG_READ",
   llmTraceLogAll: "LLM_TRACE_LOG_ALL",
   llmTraceLogRead: "LLM_TRACE_LOG_READ",
+  // UNISAGE-64/65: read-only listing + update-existing-value only - no
+  // create/delete permission, new keys are added via backend migration, not
+  // through the UI (see system-settings feature).
+  systemConfigAll: "SYSTEM_CONFIG_ALL",
+  systemConfigRead: "SYSTEM_CONFIG_READ",
+  systemConfigUpdate: "SYSTEM_CONFIG_UPDATE",
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -78,6 +84,7 @@ export type ResourceName =
   | "ticket"
   | "audit_log"
   | "llm_trace_log"
+  | "system_config"
   | "super_admin"
 
 export type PermissionRequirement =

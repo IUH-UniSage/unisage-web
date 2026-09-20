@@ -1,7 +1,7 @@
 import type { UseFormRegister, UseFormWatch } from "react-hook-form"
 
 import { Input } from "@/components/ui/input"
-import { STRATEGY_DEFAULTS } from "@/features/ingestion/components/steps/chunking/strategy-config"
+import type { ChunkingDefaults } from "@/features/ingestion/components/steps/chunking/use-chunking-defaults"
 import type {
   ChunkingFormValues,
   ChunkingStrategyName,
@@ -60,10 +60,14 @@ function NumberField({
   )
 }
 
-function ExcelRowFields({ register, watch }: FieldGroupProps) {
+function ExcelRowFields({
+  defaults,
+  register,
+  watch,
+}: FieldGroupProps & { defaults: ChunkingDefaults }) {
   return (
     <NumberField
-      fallback={STRATEGY_DEFAULTS.excel_row.rows_per_chunk}
+      fallback={defaults.excel_row.rows_per_chunk}
       id="chunking-rows-per-chunk"
       label="Số dòng mỗi đoạn"
       name="rowsPerChunk"
@@ -74,8 +78,12 @@ function ExcelRowFields({ register, watch }: FieldGroupProps) {
   )
 }
 
-function SemanticFields({ register, watch }: FieldGroupProps) {
-  const d = STRATEGY_DEFAULTS.semantic
+function SemanticFields({
+  defaults,
+  register,
+  watch,
+}: FieldGroupProps & { defaults: ChunkingDefaults }) {
+  const d = defaults.semantic
   return (
     <div className="space-y-4">
       <NumberField
@@ -141,19 +149,27 @@ function TokenSizeFields({
 }
 
 export function StrategyFields({
+  defaults,
   register,
   strategy,
   watch,
-}: FieldGroupProps & { strategy: ChunkingStrategyName }) {
+}: FieldGroupProps & {
+  defaults: ChunkingDefaults
+  strategy: ChunkingStrategyName
+}) {
   switch (strategy) {
     case "excel_row":
-      return <ExcelRowFields register={register} watch={watch} />
+      return (
+        <ExcelRowFields defaults={defaults} register={register} watch={watch} />
+      )
     case "semantic":
-      return <SemanticFields register={register} watch={watch} />
+      return (
+        <SemanticFields defaults={defaults} register={register} watch={watch} />
+      )
     default:
       return (
         <TokenSizeFields
-          defaults={STRATEGY_DEFAULTS[strategy]}
+          defaults={defaults[strategy]}
           register={register}
           watch={watch}
         />
