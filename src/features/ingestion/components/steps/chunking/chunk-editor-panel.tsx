@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react"
+import { FileText, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
@@ -16,8 +16,18 @@ type ChunkEditorPanelProps = {
   wizard: StepProps["wizard"]
 }
 
+function cleanMarkdownPreview(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => !/^\[.*\]$/.test(line.trim()))
+    .join("\n")
+}
+
 export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
+  // The parent keys this panel by chunk (index + content), so it remounts and
+  // the draft restarts from the chunk's content whenever that changes.
   const [draft, setDraft] = useState(chunk?.content ?? "")
+
   // A table chunk is markdown text, unreadable as raw pipes: open it as a
   // rendered table and let the user switch to the raw text to edit. This panel
   // is keyed by chunk, so the mode resets whenever another chunk is selected.
@@ -40,7 +50,10 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
     )
   }
 
-  const idx = chunk.chunk_index
+  // Label by position: chunk_index keeps its draft value after a deletion.
+  const position = wizard.chunks.findIndex(
+    (item) => item.chunk_index === chunk.chunk_index
+  )
   const tokens = estimateTokens(draft)
 
   return (
@@ -48,7 +61,7 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-black tracking-widest text-primary uppercase">
-            Nội dung đoạn #{idx + 1}
+            Nội dung đoạn #{position + 1}
           </span>
           <RegionBadge type={chunk.region_type} />
         </div>
@@ -59,6 +72,16 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
           <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary">
             ~{tokens} tokens
           </span>
+          <Button
+            className="h-7 gap-1 rounded-lg px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => wizard.deleteChunk(chunk.chunk_index)}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            <Trash2 className="size-3.5" />
+            <span className="text-[11px] font-semibold">Xóa đoạn</span>
+          </Button>
         </div>
       </div>
 
@@ -92,15 +115,15 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
       ) : null}
 
       {isTable && mode === "preview" ? (
-        <div className="max-h-112 min-h-80 flex-1 overflow-auto rounded-2xl border border-border bg-muted/50 p-4">
+        <div className="h-80 max-h-[400px] flex-1 overflow-auto rounded-2xl border border-border bg-muted/50 p-4 md:h-[360px]">
           <MarkdownRenderer
             className="text-sm leading-relaxed"
-            content={draft}
+            content={cleanMarkdownPreview(draft)}
           />
         </div>
       ) : (
         <Textarea
-          className="min-h-80 flex-1 resize-none rounded-2xl border border-border bg-muted/50 p-4 font-mono text-xs leading-relaxed text-foreground focus:bg-card focus:ring-2 focus:ring-primary focus:outline-none"
+          className="h-80 max-h-[400px] flex-1 resize-none overflow-y-auto rounded-2xl border border-border bg-muted/50 p-4 font-mono text-xs leading-relaxed text-foreground focus:bg-card focus:ring-2 focus:ring-primary focus:outline-none md:h-[360px]"
           onChange={(event) => setDraft(event.target.value)}
           value={draft}
         />

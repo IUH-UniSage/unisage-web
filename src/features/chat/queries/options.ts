@@ -5,6 +5,15 @@ import { chatApi } from "@/features/chat/api/chat-api"
 import { chatKeys } from "@/features/chat/queries/keys"
 
 export const chatOptions = {
+  // realtime (staleTime: 0): fileUrl is a presigned URL that expires - refetch
+  // on every open instead of showing a stale link from cache.
+  citationDocument: (documentId: string) =>
+    queryOptions({
+      ...QUERY_POLICIES.realtime,
+      enabled: Boolean(documentId),
+      queryFn: () => chatApi.getCitationDocument(documentId),
+      queryKey: chatKeys.citationDocument(documentId),
+    }),
   // Guests (userId === "") have no user to scope by - their history is resolved
   // server-side from the guest_session_id httpOnly cookie instead (see
   // GET /conversations/guest), so the query is never disabled here.

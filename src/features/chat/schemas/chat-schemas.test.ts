@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  citationSchema,
   conversationSchema,
   createConversationRequestSchema,
   messageSchema,
@@ -51,5 +52,36 @@ describe("chat schemas", () => {
         role: "USER",
       })
     ).toThrow()
+  })
+  it("parses agent citations on a message and never expects an object key", () => {
+    const base = {
+      chatModelId: null,
+      content: "Học phí là 35 triệu [1].",
+      conversationId: "a76398bd-c8ac-4fa8-803e-0a91e207347c",
+      createdAt: "2026-07-28T08:00:00",
+      id: "c76398bd-c8ac-4fa8-803e-0a91e207347c",
+      metadata: null,
+      retrievalScore: null,
+      role: "ASSISTANT",
+      status: "COMPLETED",
+    }
+    const citation = {
+      documentId: "d76398bd-c8ac-4fa8-803e-0a91e207347c",
+      index: 1,
+      pageEnd: 4,
+      pageStart: 3,
+      section: "Mục 3",
+      sourceType: "PDF",
+      title: "Quyet dinh 1035",
+    }
+
+    expect(citationSchema.parse(citation)).not.toHaveProperty("objectKey")
+    expect(
+      messageSchema.parse({ ...base, citations: [citation] }).citations
+    ).toEqual([citation])
+    // A malformed value must not break the whole message history.
+    expect(
+      messageSchema.parse({ ...base, citations: "oops" }).citations
+    ).toBeNull()
   })
 })

@@ -2,6 +2,8 @@ import { z } from "zod"
 
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
+  type CitationDocument,
+  citationDocumentSchema,
   type Conversation,
   conversationSchema,
   type CreateConversationRequest,
@@ -14,6 +16,14 @@ import { readApiResponse, readSuccessData } from "@/utils/api-response"
 import type { ApiResponse } from "@/utils/api-response"
 
 export const chatApi = {
+  async getCitationDocument(documentId: string): Promise<CitationDocument> {
+    const response = await httpClient.get<ApiResponse<CitationDocument>>(
+      API_ENDPOINTS.documents.documentCitation(documentId)
+    )
+
+    return readSuccessData(response.data, citationDocumentSchema)
+  },
+
   async claimConversation(conversationId: string): Promise<Conversation> {
     const response = await httpClient.patch<ApiResponse<Conversation>>(
       API_ENDPOINTS.conversations.conversationClaim(conversationId)

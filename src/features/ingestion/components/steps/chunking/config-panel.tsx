@@ -4,6 +4,13 @@ import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   buildChunkingParams,
   STRATEGIES,
   STRATEGY_DESCRIPTIONS,
@@ -14,8 +21,8 @@ import { type StepProps } from "@/features/ingestion/components/steps/shared"
 import {
   chunkingFormSchema,
   type ChunkingFormValues,
+  type ChunkingStrategyName,
 } from "@/features/ingestion/schemas/ingestion-schemas"
-import { cn } from "@/lib/utils"
 import { getErrorMessage } from "@/utils/error-handler"
 
 export function ChunkingConfigPanel({ wizard }: StepProps) {
@@ -39,7 +46,7 @@ export function ChunkingConfigPanel({ wizard }: StepProps) {
 
   return (
     <form
-      className="flex flex-col space-y-4"
+      className="flex h-full flex-col space-y-4"
       onSubmit={(event) => void handleSubmit(submit)(event)}
     >
       <div className="flex items-center gap-3 border-b border-border pb-3">
@@ -51,23 +58,26 @@ export function ChunkingConfigPanel({ wizard }: StepProps) {
         </h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5 pt-1">
-        {STRATEGIES.map((option) => (
-          <button
-            className={cn(
-              "cursor-pointer rounded-xl border px-1.5 py-2 text-[9px] font-black tracking-widest transition-all",
-              strategy === option.id
-                ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                : "border-border bg-muted text-muted-foreground hover:border-muted-foreground/40"
-            )}
-            key={option.id}
-            onClick={() => setValue("strategy", option.id)}
-            type="button"
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+      <Select
+        onValueChange={(val) =>
+          setValue("strategy", val as ChunkingStrategyName)
+        }
+        value={strategy}
+      >
+        <SelectTrigger
+          aria-label="Chọn chiến lược phân đoạn"
+          className="w-full"
+        >
+          <SelectValue placeholder="Chọn chiến lược" />
+        </SelectTrigger>
+        <SelectContent>
+          {STRATEGIES.map((option) => (
+            <SelectItem key={option.id} value={option.id}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <p className="text-[10px] font-bold text-muted-foreground">
         {STRATEGY_DESCRIPTIONS[strategy]}
@@ -82,7 +92,7 @@ export function ChunkingConfigPanel({ wizard }: StepProps) {
       ) : null}
       {error ? <ErrorAlert message={getErrorMessage(error)} /> : null}
 
-      <div className="pt-2">
+      <div className="mt-auto pt-2">
         <Button
           className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border-primary/30 text-xs font-black tracking-widest text-primary uppercase hover:bg-primary/10"
           disabled={isSubmitting}

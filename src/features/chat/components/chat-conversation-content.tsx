@@ -7,8 +7,13 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { AskUserFormCard } from "@/features/chat/components/ask-user-form"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
-import type { Message } from "@/features/chat/schemas/chat-schemas"
+import { CitationChips } from "@/features/chat/components/citation-chips"
+import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
 import { extractAskUserForm } from "@/features/chat/utils/ask-user-form"
+import {
+  groupCitationsByDocument,
+  markerNumbers,
+} from "@/features/chat/utils/citations"
 import { findQuestionBefore } from "@/features/chat/utils/question-before"
 import { ReportMessageButton } from "@/features/support-tickets/components/report-message-button"
 
@@ -18,6 +23,7 @@ type ActiveConversationProps = {
   isSending: boolean
   isStreaming: boolean
   messages: Message[]
+  onOpenCitation: (citation: Citation) => void
   onSendMessage: (content: string) => void
   onStopGenerating: () => void
 }
@@ -26,6 +32,7 @@ export function ActiveConversation({
   isSending,
   isStreaming,
   messages,
+  onOpenCitation,
   onSendMessage,
   onStopGenerating,
 }: ActiveConversationProps) {
@@ -77,6 +84,7 @@ export function ActiveConversation({
                     content={message.content}
                     disabled={isWaitingForReply}
                     message={message}
+                    onOpenCitation={onOpenCitation}
                     onSendMessage={onSendMessage}
                     questionText={findQuestionBefore(messages, index)}
                     // Ids are only the server's once the stream is done and
@@ -109,6 +117,7 @@ type AssistantReplyProps = {
   content: string
   disabled: boolean
   message: Message
+  onOpenCitation: (citation: Citation) => void
   onSendMessage: (content: string) => void
   questionText: string | null
   reportDisabled: boolean
@@ -119,17 +128,37 @@ function AssistantReply({
   content,
   disabled,
   message,
+  onOpenCitation,
   onSendMessage,
   questionText,
   reportDisabled,
 }: AssistantReplyProps) {
   const { form, text } = extractAskUserForm(content)
+  const citations = message.citations ?? []
+  const numbers = markerNumbers(groupCitationsByDocument(citations))
 
   return (
     <>
       <div className="w-full">
-        <MarkdownRenderer content={text} />
+        <MarkdownRenderer
+          citationMarkers={
+            citations.length
+              ? {
+                  indexes: citations.map((citation) => citation.index),
+                  numbers,
+                  onSelect: (index) => {
+                    const citation = citations.find(
+                      (item) => item.index === index
+                    )
+                    if (citation) onOpenCitation(citation)
+                  },
+                }
+              : undefined
+          }
+          content={text}
+        />
       </div>
+      <CitationChips citations={citations} onOpenCitation={onOpenCitation} />
       {form ? (
         <AskUserFormCard
           answerText={answerText}

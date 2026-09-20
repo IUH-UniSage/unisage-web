@@ -9,3 +9,7 @@ export function useConversationsQuery(userId: string) {
 export function useMessagesQuery(conversationId: string) {
   return useQuery(chatOptions.messages(conversationId))
 }
+
+export function useCitationDocumentQuery(documentId: string) {
+  return useQuery(chatOptions.citationDocument(documentId))
+}

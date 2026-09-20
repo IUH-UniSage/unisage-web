@@ -2,6 +2,7 @@ import { Layers } from "lucide-react"
 import { useState } from "react"
 
 import { Pagination } from "@/components/shared/list/pagination"
+import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import {
   Card,
   CardContent,
@@ -16,6 +17,13 @@ import type { Chunk } from "@/features/ingestion/schemas/ingestion-schemas"
 import { cn } from "@/lib/utils"
 
 const CHUNKS_PAGE_SIZE = 20
+
+function cleanMarkdownPreview(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => !/^\[.*\]$/.test(line.trim()))
+    .join("\n")
+}
 
 type DocumentChunksSectionProps = {
   documentId: string
@@ -85,27 +93,48 @@ export function DocumentChunksSection({
 
 function ChunkRow({ chunk }: { chunk: Chunk }) {
   const [expanded, setExpanded] = useState(false)
+  const isTable = chunk.region_type === "table"
 
   return (
-    <button
-      className="w-full cursor-pointer rounded-xl border bg-muted/20 p-3.5 text-left transition-colors hover:border-muted-foreground/40"
-      onClick={() => setExpanded((current) => !current)}
-      type="button"
-    >
-      <div className="mb-1.5 flex items-center justify-between gap-2">
+    <div className="w-full rounded-xl border bg-muted/20 p-3.5 text-left transition-colors hover:border-muted-foreground/40">
+      <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-xs font-semibold text-muted-foreground">
           #{chunk.chunk_index + 1}
         </span>
-        <RegionBadge type={chunk.region_type} />
+        <div className="flex items-center gap-2">
+          <RegionBadge type={chunk.region_type} />
+          <button
+            className="cursor-pointer text-xs font-medium text-primary hover:underline"
+            onClick={() => setExpanded((current) => !current)}
+            type="button"
+          >
+            {expanded ? "Thu gọn" : "Xem thêm"}
+          </button>
+        </div>
       </div>
-      <p
-        className={cn(
-          "text-sm leading-relaxed text-foreground",
-          !expanded && "line-clamp-3"
-        )}
-      >
-        {chunk.content}
-      </p>
-    </button>
+
+      {isTable ? (
+        <div
+          className={cn(
+            "overflow-auto text-sm leading-relaxed",
+            !expanded && "max-h-48 overflow-hidden"
+          )}
+        >
+          <MarkdownRenderer
+            className="text-sm leading-relaxed"
+            content={cleanMarkdownPreview(chunk.content)}
+          />
+        </div>
+      ) : (
+        <p
+          className={cn(
+            "text-sm leading-relaxed whitespace-pre-wrap text-foreground",
+            !expanded && "line-clamp-3"
+          )}
+        >
+          {chunk.content}
+        </p>
+      )}
+    </div>
   )
 }

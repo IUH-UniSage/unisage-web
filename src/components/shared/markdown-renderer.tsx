@@ -1,15 +1,29 @@
 import { Check, Copy } from "lucide-react"
-import { useState } from "react"
+import { createContext, useContext, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
+// `[n]` source markers the reader can click. Only indexes listed in `indexes`
+// become buttons - anything else (e.g. while a reply is still streaming and its
+// sources aren't known yet) stays a plain superscript.
+type CitationMarkers = {
+  indexes: number[]
+  // Number to display for an index (defaults to the index itself).
+  numbers?: Record<number, number>
+  onSelect: (index: number) => void
+}
+
+const CitationMarkersContext = createContext<CitationMarkers | null>(null)
+
 type MarkdownRendererProps = {
+  citationMarkers?: CitationMarkers
   className?: string
   content: string
 }
 
 export function MarkdownRenderer({
+  citationMarkers,
   className,
   content,
 }: MarkdownRendererProps) {
@@ -19,32 +33,67 @@ export function MarkdownRenderer({
   const parts = content.split(/(```[\s\S]*?```)/g)
 
   return (
-    <div
-      className={cn(
-        "space-y-2.5 text-[15px] leading-[1.75] text-foreground antialiased",
-        className
+    <CitationMarkersContext.Provider value={citationMarkers ?? null}>
+      <div
+        className={cn(
+          "space-y-2.5 text-[15px] leading-[1.75] text-foreground antialiased",
+          className
+        )}
+      >
+        {parts.map((part, index) => {
+          if (part.startsWith("```") && part.endsWith("```")) {
+            // Code block
+            const lines = part.slice(3, -3).trim().split("\n")
+            const maybeLanguage = lines[0].trim()
+            const isKnownLanguage = /^[a-zA-Z0-9_-]+$/.test(maybeLanguage)
+            const language = isKnownLanguage ? maybeLanguage : ""
+            const code = isKnownLanguage
+              ? lines.slice(1).join("\n")
+              : lines.join("\n")
+
+            return (
+              <CodeBlock
+                code={code}
+                key={`code-${index}`}
+                language={language}
+              />
+            )
+          }
+
+          // Regular markdown text (paragraphs, headings, lists)
+          return <MarkdownText block={part} key={`text-${index}`} />
+        })}
+      </div>
+    </CitationMarkersContext.Provider>
+  )
+}
+
+function CitationMarker({ indexes }: { indexes: number[] }) {
+  const markers = useContext(CitationMarkersContext)
+
+  return (
+    <>
+      {indexes.map((index) =>
+        markers?.indexes.includes(index) ? (
+          <button
+            aria-label={`Xem nguồn ${markers.numbers?.[index] ?? index}`}
+            className="mx-0.5 cursor-pointer rounded bg-primary/10 px-1 align-super text-[11px] leading-none font-semibold text-primary transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            key={index}
+            onClick={() => markers.onSelect(index)}
+            type="button"
+          >
+            {markers.numbers?.[index] ?? index}
+          </button>
+        ) : (
+          <sup
+            className="mx-0.5 rounded bg-primary/10 px-1 text-[11px] font-semibold text-primary"
+            key={index}
+          >
+            {index}
+          </sup>
+        )
       )}
-    >
-      {parts.map((part, index) => {
-        if (part.startsWith("```") && part.endsWith("```")) {
-          // Code block
-          const lines = part.slice(3, -3).trim().split("\n")
-          const maybeLanguage = lines[0].trim()
-          const isKnownLanguage = /^[a-zA-Z0-9_-]+$/.test(maybeLanguage)
-          const language = isKnownLanguage ? maybeLanguage : ""
-          const code = isKnownLanguage
-            ? lines.slice(1).join("\n")
-            : lines.join("\n")
-
-          return (
-            <CodeBlock code={code} key={`code-${index}`} language={language} />
-          )
-        }
-
-        // Regular markdown text (paragraphs, headings, lists)
-        return <MarkdownText block={part} key={`text-${index}`} />
-      })}
-    </div>
+    </>
   )
 }
 
@@ -325,7 +374,8 @@ function renderInline(text: string): React.ReactNode[] {
   // [text](url), and bare citation markers [1] (the agent's citation_rules
   // prompt has the model emit these inline, e.g. "...khóa tuyển sinh [1][2]",
   // referencing the numbered source list at the end of the reply).
-  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+\])/g
+  const regex =
+    /(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+(?:\s*,\s*\d+)*\])/g
   const parts = text.split(regex)
 
   return parts.map((part, index) => {
@@ -359,16 +409,14 @@ function renderInline(text: string): React.ReactNode[] {
       )
     }
 
-    // Citation marker, e.g. "[1]" referencing the numbered source list
-    const citationMatch = part.match(/^\[(\d+)\]$/)
+    // Citation marker, e.g. "[1]" or "[1, 2]" referencing the numbered sources
+    const citationMatch = part.match(/^\[(\d+(?:\s*,\s*\d+)*)\]$/)
     if (citationMatch) {
       return (
-        <sup
-          className="mx-0.5 rounded bg-primary/10 px-1 text-[11px] font-semibold text-primary"
+        <CitationMarker
+          indexes={citationMatch[1].split(",").map((n) => Number(n.trim()))}
           key={index}
-        >
-          {citationMatch[1]}
-        </sup>
+        />
       )
     }
 
