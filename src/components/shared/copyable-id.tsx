@@ -11,15 +11,19 @@ import { cn } from "@/lib/utils"
 type CopyableIdProps = {
   className?: string
   value: string
+  // Single-line ellipsis instead of wrapping the full value onto multiple
+  // lines - for tight table cells where the full id would push the row
+  // height or wrap awkwardly. The full value is still copied on click and
+  // shown in the tooltip either way, so nothing is actually hidden.
+  truncate?: boolean
 }
 
 /**
- * Renders a full id/UUID value (never truncated) that copies itself to the
- * clipboard on click, with brief visual feedback - mirrors the
- * handleCopyEndpoint pattern in chat-model-list.tsx so every id in the app
- * behaves the same way.
+ * Renders an id/UUID value that copies itself to the clipboard on click,
+ * with brief visual feedback - mirrors the handleCopyEndpoint pattern in
+ * chat-model-list.tsx so every id in the app behaves the same way.
  */
-export function CopyableId({ className, value }: CopyableIdProps) {
+export function CopyableId({ className, truncate, value }: CopyableIdProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async (event: React.MouseEvent) => {
@@ -38,13 +42,18 @@ export function CopyableId({ className, value }: CopyableIdProps) {
       <TooltipTrigger asChild>
         <button
           className={cn(
-            "inline-flex max-w-full cursor-pointer items-center gap-1 rounded-sm font-mono text-xs break-all text-muted-foreground transition-colors hover:text-foreground",
+            "inline-flex max-w-full cursor-pointer items-center gap-1 rounded-sm font-mono text-xs text-muted-foreground transition-colors hover:text-foreground",
+            truncate ? "" : "break-all",
             className
           )}
           onClick={handleCopy}
           type="button"
         >
-          <span className="text-left break-all">{value}</span>
+          <span
+            className={cn("text-left", truncate ? "truncate" : "break-all")}
+          >
+            {value}
+          </span>
           {copied ? (
             <Check className="size-3 shrink-0 text-emerald-500" />
           ) : (
@@ -52,7 +61,9 @@ export function CopyableId({ className, value }: CopyableIdProps) {
           )}
         </button>
       </TooltipTrigger>
-      <TooltipContent>{copied ? "Đã sao chép" : "Sao chép"}</TooltipContent>
+      <TooltipContent>
+        {copied ? "Đã sao chép" : truncate ? value : "Sao chép"}
+      </TooltipContent>
     </Tooltip>
   )
 }

@@ -64,6 +64,10 @@ export const PERMISSIONS = {
   systemConfigAll: "SYSTEM_CONFIG_ALL",
   systemConfigRead: "SYSTEM_CONFIG_READ",
   systemConfigUpdate: "SYSTEM_CONFIG_UPDATE",
+  // UNISAGE-63: read-only status dashboard - no update/create/delete
+  // permission exists because there's nothing to edit on this page (see
+  // system-health feature).
+  systemHealthRead: "SYSTEM_HEALTH_READ",
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -85,6 +89,7 @@ export type ResourceName =
   | "audit_log"
   | "llm_trace_log"
   | "system_config"
+  | "system_health"
   | "super_admin"
 
 export type PermissionRequirement =

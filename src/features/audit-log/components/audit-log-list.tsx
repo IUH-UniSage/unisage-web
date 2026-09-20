@@ -261,10 +261,16 @@ export function AuditLogList() {
       },
       {
         cell: ({ row }) => (
-          <div className="max-w-52 text-sm">
-            <p>{getResourceTypeLabel(row.original.resourceType)}</p>
+          <div className="flex min-w-0 items-center gap-2 text-sm">
+            <span className="shrink-0">
+              {getResourceTypeLabel(row.original.resourceType)}
+            </span>
             {row.original.resourceId ? (
-              <CopyableId className="mt-0.5" value={row.original.resourceId} />
+              <CopyableId
+                className="min-w-0"
+                truncate
+                value={row.original.resourceId}
+              />
             ) : null}
           </div>
         ),

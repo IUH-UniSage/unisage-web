@@ -144,6 +144,12 @@ const AuditLogPage = lazy(async () => {
   return { default: AuditLogPage }
 })
 
+const SystemHealthPage = lazy(async () => {
+  const { SystemHealthPage } =
+    await import("@/pages/system-admin/system-health-page")
+  return { default: SystemHealthPage }
+})
+
 // Array order = nav display order, per workspace, in the order each
 // workspace's filtered view encounters entries - see getWorkspaceFeatures().
 // Placing an entry earlier moves it earlier in every workspace it belongs
@@ -252,7 +258,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     workspaces: ["system-admin"],
   },
   {
-    element: <WorkspacePlaceholderPage title="Tình trạng dịch vụ" />,
+    element: <SystemHealthPage />,
     icon: HeartPulse,
     key: "admin-health",
     label: "Tình trạng dịch vụ",

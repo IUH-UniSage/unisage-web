@@ -1,2 +1,1 @@
-// Service health checks and incident details will live here.
-export {}
+export { SystemHealthDashboard } from "@/features/system-health/components/system-health-dashboard"
