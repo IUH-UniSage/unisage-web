@@ -107,11 +107,14 @@ export function AuditLogList() {
   const { data, error, isPending } = useAuditLogsQuery({
     action: applied.action,
     actorId: applied.actorId.trim() || undefined,
-    fromDate: applied.fromDate || undefined,
+    // The date inputs give YYYY-MM-DD; the backend binds fromDate/toDate as
+    // @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime and 400s on a bare
+    // date, so widen to the start/end of day before sending.
+    fromDate: applied.fromDate ? `${applied.fromDate}T00:00:00` : undefined,
     limit: PAGE_SIZE,
     page,
     resourceType: applied.resourceType,
-    toDate: applied.toDate || undefined,
+    toDate: applied.toDate ? `${applied.toDate}T23:59:59` : undefined,
   })
 
   const logs = useMemo(() => data?.data ?? [], [data])
