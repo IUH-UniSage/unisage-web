@@ -6,6 +6,7 @@ import {
   Building,
   Gauge,
   HeartPulse,
+  Hourglass,
   Layers,
   LifeBuoy,
   Settings,
@@ -105,6 +106,12 @@ const UserPage = lazy(async () => {
 const TicketPage = lazy(async () => {
   const { TicketPage } = await import("@/pages/system-admin/ticket-page")
   return { default: TicketPage }
+})
+
+const UsageLimitPage = lazy(async () => {
+  const { UsageLimitPage } =
+    await import("@/pages/system-admin/usage-limit-page")
+  return { default: UsageLimitPage }
 })
 
 const DepartmentPage = lazy(async () => {
@@ -219,6 +226,15 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Yêu cầu hỗ trợ",
     requiredPermissions: PERMISSION_POLICIES.adminTickets,
     segment: ROUTE_SEGMENTS.tickets,
+    workspaces: ["system-admin"],
+  },
+  {
+    element: <UsageLimitPage />,
+    icon: Hourglass,
+    key: "admin-usage-limits",
+    label: "Cấu hình hạn mức",
+    requiredPermissions: PERMISSION_POLICIES.adminUsageLimits,
+    segment: ROUTE_SEGMENTS.usageLimits,
     workspaces: ["system-admin"],
   },
   {

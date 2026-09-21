@@ -46,6 +46,11 @@ export const PERMISSIONS = {
   conversationRead: "CONVERSATION_READ",
   conversationCreate: "CONVERSATION_CREATE",
   conversationDelete: "CONVERSATION_DELETE",
+  usageLimitPlanAll: "USAGE_LIMIT_PLAN_ALL",
+  usageLimitPlanRead: "USAGE_LIMIT_PLAN_READ",
+  usageLimitPlanCreate: "USAGE_LIMIT_PLAN_CREATE",
+  usageLimitPlanUpdate: "USAGE_LIMIT_PLAN_UPDATE",
+  usageLimitPlanDelete: "USAGE_LIMIT_PLAN_DELETE",
   ticketAll: "TICKET_ALL",
   ticketRead: "TICKET_READ",
   ticketCreate: "TICKET_CREATE",
@@ -86,6 +91,7 @@ export type ResourceName =
   | "conversation"
   | "message"
   | "ticket"
+  | "usage_limit_plan"
   | "audit_log"
   | "llm_trace_log"
   | "system_config"

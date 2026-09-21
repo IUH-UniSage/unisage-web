@@ -25,6 +25,7 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2127: "Không tìm thấy hội thoại này.",
   2128: "Không tìm thấy tin nhắn này.",
   2139: "Không tìm thấy yêu cầu hỗ trợ này.",
+  2151: "Không tìm thấy gói hạn mức này.",
   2131: "Không tìm thấy Access Level này.",
 
   // Business rule
@@ -35,8 +36,11 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2120: "Tên danh mục này đã tồn tại.",
   2126: "Phân quyền phòng ban này đã có rồi.",
   2129: "Hội thoại này đã có người khác nhận rồi.",
-  2130: "Bạn đã dùng hết lượt chat miễn phí hôm nay. Quay lại sau 00:00 hoặc đăng nhập để tiếp tục nhé.",
+  2130: "Bạn đã dùng hết hạn mức sử dụng. Hãy quay lại sau khi hạn mức được làm mới nhé.",
   2132: "Access Level này đã tồn tại.",
+  2152: "Tên gói hạn mức này đã tồn tại.",
+  2153: "Không thể xóa hoặc bỏ đánh dấu gói mặc định. Hãy chọn gói mặc định khác trước.",
+  2154: "Gói hạn mức đang được gán cho vai trò, không thể xóa.",
   2138: "Mật khẩu hiện tại không đúng.",
   2140: "Tin nhắn này đã được báo cáo rồi.",
   2141: "Chỉ báo cáo được câu trả lời của trợ lý trong hội thoại của bạn.",
@@ -57,6 +61,9 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2405: "File vượt quá dung lượng cho phép.",
   2406: "Định dạng file này chưa được hỗ trợ.",
   2407: "Mỗi lần chỉ được gửi 1 file thôi.",
+
+  // Hạn mức sử dụng
+  2150: "Hệ thống chưa cấu hình gói hạn mức mặc định.",
 
   // System
   9999: "Có lỗi xảy ra, bạn thử lại sau nhé.",

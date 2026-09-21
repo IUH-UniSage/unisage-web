@@ -17,6 +17,7 @@ import {
 import { SearchConversationDialog } from "@/features/chat/components/search-conversation-dialog"
 import { CitationDrawer } from "@/features/chat/components/citation-drawer"
 import { SourcePanel } from "@/features/chat/components/source-panel"
+import { UsageWarningPanel } from "@/features/usage-limits/components/usage-warning-panel"
 import { useChatWorkspace } from "@/features/chat/hooks/use-chat-workspace"
 import type { Citation } from "@/features/chat/schemas/chat-schemas"
 import {
@@ -32,6 +33,11 @@ export function ChatPage() {
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
   const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
   const sourceCitations = latestCitations(workspace.messages)
+  // Closing the low-usage warning lasts until the page is reloaded.
+  const [isUsageWarningDismissed, setIsUsageWarningDismissed] = useState(false)
+  const usageWarning = isUsageWarningDismissed ? null : (
+    <UsageWarningPanel onDismiss={() => setIsUsageWarningDismissed(true)} />
+  )
   const location = useLocation()
   const navigate = useNavigate()
   const hasSentInitialMessage = useRef(false)
@@ -178,11 +184,13 @@ export function ChatPage() {
                 onOpenCitation={setActiveCitation}
                 onSendMessage={workspace.sendMessage}
                 onStopGenerating={workspace.stopGenerating}
+                usageWarning={usageWarning}
               />
             ) : (
               <NewConversation
                 isSending={workspace.isSendingMessage}
                 onSendMessage={workspace.sendMessage}
+                usageWarning={usageWarning}
               />
             )}
           </section>

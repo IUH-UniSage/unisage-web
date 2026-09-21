@@ -241,6 +241,15 @@ export function RoleList({
         id: "permissions",
       },
       {
+        cell: ({ row }) =>
+          row.original.usageLimitPlan?.name ?? (
+            <span className="text-muted-foreground">Gói mặc định</span>
+          ),
+        header: "Gói hạn mức",
+        id: "usageLimitPlan",
+        meta: { className: "text-sm" },
+      },
+      {
         cell: ({ row }) => row.original.createdByName || "System",
         header: "Người tạo",
         id: "createdBy",

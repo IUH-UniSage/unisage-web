@@ -23,6 +23,7 @@ export const PERMISSION_POLICIES = {
   adminLogs: policy(PERMISSIONS.auditLogRead),
   adminModels: policy(PERMISSIONS.chatModelRead),
   adminTickets: policy(PERMISSIONS.ticketRead),
+  adminUsageLimits: policy(PERMISSIONS.usageLimitPlanRead),
   // UNISAGE-63: gated strictly on the system-health API's own read
   // permission - not superAdminAll (that was adminLogs' original mistake,
   // fixed on the audit-log branch: a workspace-nav permission should map to

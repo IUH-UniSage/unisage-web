@@ -128,6 +128,16 @@ export function RoleDetailDialog({
               {role.description || "Chưa có mô tả cho vai trò này."}
             </p>
           </div>
+
+          {/* Usage limit plan */}
+          <div>
+            <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              Gói hạn mức
+            </span>
+            <p className="mt-1.5 rounded-xl border bg-muted/40 p-3.5 text-sm leading-relaxed text-foreground">
+              {role.usageLimitPlan?.name ?? "Dùng gói mặc định"}
+            </p>
+          </div>
         </CardContent>
       </Card>
 
