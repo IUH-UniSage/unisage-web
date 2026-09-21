@@ -95,6 +95,13 @@ export const API_ENDPOINTS = {
     ticket: (ticketId: string) => `/tickets/${ticketId}`,
     tickets: "/tickets",
   },
+  usageLimitPlans: {
+    plan: (planId: string) => `/usage-limit-plans/${planId}`,
+    plans: "/usage-limit-plans",
+  },
+  usageLimits: {
+    me: "/usage-limits/me",
+  },
   users: {
     me: "/users/me",
     myPassword: "/users/me/password",

@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { useRef, useState } from "react"
+import { toast } from "sonner"
 
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import { useChatStream } from "@/features/chat/hooks/use-chat-stream"
@@ -13,6 +14,12 @@ import {
   useMessagesQuery,
 } from "@/features/chat/queries/use-queries"
 import type { Message } from "@/features/chat/schemas/chat-schemas"
+import { usageLimitKeys } from "@/features/usage-limits/queries/keys"
+import { describeUsageLimitExceeded } from "@/features/usage-limits/utils/usage-format"
+import { ApiResponseError } from "@/utils/api-response"
+
+// Backend ErrorCode.USAGE_LIMIT_EXCEEDED
+const USAGE_LIMIT_EXCEEDED_CODE = 2130
 
 const CONVERSATION_TITLE_MAX_LENGTH = 80
 
@@ -154,8 +161,21 @@ export function useChatWorkspace() {
           void queryClient.invalidateQueries({
             queryKey: chatKeys.messages(conversationIdForStream),
           })
+          // What is left of the quota changed with this turn.
+          void queryClient.invalidateQueries({
+            queryKey: usageLimitKeys.mine(),
+          })
         },
-        onError: () => {
+        onError: (error) => {
+          void queryClient.invalidateQueries({
+            queryKey: usageLimitKeys.mine(),
+          })
+          if (
+            error instanceof ApiResponseError &&
+            error.code === USAGE_LIMIT_EXCEEDED_CODE
+          ) {
+            toast.error(describeUsageLimitExceeded(error.errors))
+          }
           // Deliberately not invalidating here: backend-java may not have
           // persisted anything past the USER message (or may be left
           // holding an orphaned STREAMING placeholder) for a failed stream,

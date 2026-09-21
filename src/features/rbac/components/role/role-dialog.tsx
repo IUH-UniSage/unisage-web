@@ -15,6 +15,13 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { PermissionMatrix } from "@/features/rbac/components/permission/permission-matrix"
 import { buildPermissionMatrix } from "@/features/rbac/utils/permission-matrix"
@@ -29,7 +36,12 @@ import {
   type AccessRole,
   type CreateRoleRequest,
 } from "@/features/rbac/schemas/rbac-schemas"
+import { useUsageLimitPlansQuery } from "@/features/usage-limits/queries/use-queries"
+import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
+
+// Radix Select cannot hold an empty value, so "no plan of its own" gets a stand-in.
+const DEFAULT_PLAN_VALUE = "default"
 
 type RoleDialogProps = {
   isSaving: boolean
@@ -48,6 +60,11 @@ export function RoleDialog({
   role,
 }: RoleDialogProps) {
   const [permissionSearch, setPermissionSearch] = useState("")
+  // A role editor without permission to list plans keeps the role's current plan untouched.
+  const canReadPlans = useResourcePermissions("usage_limit_plan").canRead
+  const plansQuery = useUsageLimitPlansQuery({ enabled: canReadPlans })
+  const plans = plansQuery.data ?? []
+  const defaultPlan = plans.find((plan) => plan.isDefault)
   const deferredPermissionSearch = useDeferredValue(permissionSearch)
   const matrixRows = useMemo(
     () => buildPermissionMatrix(permissions, deferredPermissionSearch),
@@ -71,6 +88,7 @@ export function RoleDialog({
         role?.permissions.map((permission) => permission.id) ?? [],
         permissions
       ),
+      usageLimitPlanId: role?.usageLimitPlan?.id ?? null,
     },
     resolver: zodResolver(createRoleRequestSchema),
   })
@@ -268,6 +286,41 @@ export function RoleDialog({
                   {...register("description")}
                 />
               </div>
+
+              {canReadPlans ? (
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="role-usage-plan">Gói hạn mức</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      setValue(
+                        "usageLimitPlanId",
+                        value === DEFAULT_PLAN_VALUE ? null : value,
+                        { shouldDirty: true }
+                      )
+                    }
+                    value={watch("usageLimitPlanId") ?? DEFAULT_PLAN_VALUE}
+                  >
+                    <SelectTrigger className="w-full" id="role-usage-plan">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={DEFAULT_PLAN_VALUE}>
+                        Dùng gói mặc định
+                        {defaultPlan ? ` (${defaultPlan.name})` : ""}
+                      </SelectItem>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Quy định số token người dùng thuộc vai trò này được dùng
+                    trong 24 giờ và 7 ngày. Bỏ trống để dùng gói mặc định.
+                  </p>
+                </div>
+              ) : null}
 
               <ToggleOptionCard
                 checked={watch("isSystemRole")}

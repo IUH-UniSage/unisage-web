@@ -70,6 +70,7 @@ describe("rbac schemas", () => {
         isSystemRole: true,
         name: "SUPER_ADMIN",
         permissionIds: [permission.id],
+        usageLimitPlanId: null,
       }).permissionIds
     ).toEqual([permission.id])
   })
@@ -81,6 +82,39 @@ describe("rbac schemas", () => {
         isActive: true,
         isSystemRole: false,
         name: "content reviewer",
+        permissionIds: [],
+        usageLimitPlanId: null,
+      })
+    ).toThrow()
+  })
+
+  it("carries the usage limit plan of a role, or null for the default plan", () => {
+    const planId = "4c5b5c5e-3f3e-4f5a-9f57-2f2a0c9e0b11"
+    const base = {
+      description: null,
+      isActive: true,
+      isSystemRole: false,
+      name: "CONTENT_REVIEWER",
+      permissionIds: [],
+    }
+
+    expect(
+      updateRoleRequestSchema.parse({ ...base, usageLimitPlanId: planId })
+        .usageLimitPlanId
+    ).toBe(planId)
+    expect(
+      updateRoleRequestSchema.parse({ ...base, usageLimitPlanId: null })
+        .usageLimitPlanId
+    ).toBeNull()
+  })
+
+  it("requires the plan field to be stated so an update cannot clear it by omission", () => {
+    expect(() =>
+      updateRoleRequestSchema.parse({
+        description: null,
+        isActive: true,
+        isSystemRole: false,
+        name: "CONTENT_REVIEWER",
         permissionIds: [],
       })
     ).toThrow()

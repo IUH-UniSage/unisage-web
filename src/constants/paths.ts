@@ -17,6 +17,7 @@ export const ROUTE_SEGMENTS = {
   rbac: "rbac",
   settings: "settings",
   tickets: "tickets",
+  usageLimits: "usage-limits",
   users: "users",
 } as const
 
@@ -33,6 +34,7 @@ export const ROUTES = {
   adminTickets: "/admin/tickets",
   adminRbac: "/admin/rbac",
   adminSettings: "/admin/settings",
+  adminUsageLimits: "/admin/usage-limits",
   adminUsers: "/admin/users",
   chat: "/chat",
   home: "/",

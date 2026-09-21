@@ -27,6 +27,8 @@ export const accessRoleSchema = auditFieldsSchema.extend({
   isSystemRole: z.boolean(),
   name: z.string().trim().min(1),
   permissions: z.array(rolePermissionSchema),
+  // null: the role has no plan of its own and uses the default plan.
+  usageLimitPlan: z.object({ id: z.uuid(), name: z.string().min(1) }).nullish(),
 })
 
 const pageSchema = <T>(itemSchema: z.ZodType<T>) =>
@@ -55,6 +57,8 @@ export const roleRequestSchema = z.object({
       "Dùng chữ in hoa, số và dấu gạch dưới; bắt đầu bằng chữ."
     ),
   permissionIds: z.array(z.uuid()),
+  // Required (not optional) so a payload can never clear the plan by omission.
+  usageLimitPlanId: z.uuid().nullable(),
 })
 
 export const createRoleRequestSchema = roleRequestSchema

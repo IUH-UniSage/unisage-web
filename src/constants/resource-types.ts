@@ -15,6 +15,7 @@ export const RESOURCE_TYPE_LABELS = {
   CONVERSATION: "Hội thoại",
   MESSAGE: "Tin nhắn",
   TICKET: "Yêu cầu hỗ trợ",
+  USAGE_LIMIT_PLAN: "Gói hạn mức",
   AUDIT_LOG: "Nhật ký hệ thống",
   SYSTEM: "Hệ thống",
   OTHER: "Khác",
@@ -42,6 +43,7 @@ const RESOURCE_TYPE_BADGE_COLOR = {
   MESSAGE: "magenta",
   // Support
   TICKET: "teal",
+  USAGE_LIMIT_PLAN: "sky",
   // Logs
   AUDIT_LOG: "warning",
   // System

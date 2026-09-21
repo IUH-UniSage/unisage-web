@@ -1,4 +1,5 @@
 import { Check, Copy } from "lucide-react"
+import type { ReactNode } from "react"
 import { useState } from "react"
 
 import { BrandMark } from "@/components/shared/brand/brand-mark"
@@ -26,6 +27,7 @@ type ActiveConversationProps = {
   onOpenCitation: (citation: Citation) => void
   onSendMessage: (content: string) => void
   onStopGenerating: () => void
+  usageWarning?: ReactNode
 }
 
 export function ActiveConversation({
@@ -35,6 +37,7 @@ export function ActiveConversation({
   onOpenCitation,
   onSendMessage,
   onStopGenerating,
+  usageWarning,
 }: ActiveConversationProps) {
   const lastMessage = messages.at(-1)
   const isWaitingForReply =
@@ -102,6 +105,7 @@ export function ActiveConversation({
           ) : null}
         </div>
       </ScrollArea>
+      {usageWarning}
       <ChatComposer
         disabled={isWaitingForReply}
         isStreaming={isStreaming}
@@ -213,11 +217,13 @@ function CopyMessageButton({ content }: { content: string }) {
 type NewConversationProps = {
   isSending: boolean
   onSendMessage: (content: string) => void
+  usageWarning?: ReactNode
 }
 
 export function NewConversation({
   isSending,
   onSendMessage,
+  usageWarning,
 }: NewConversationProps) {
   return (
     <div className="chat-empty-ambient flex min-h-0 flex-1 flex-col px-4 pt-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:items-center md:justify-center md:py-8">
@@ -232,6 +238,7 @@ export function NewConversation({
         </p>
       </div>
       <div className="w-full shrink-0 md:mt-8 md:max-w-3xl">
+        {usageWarning}
         <ChatComposer centered disabled={isSending} onSubmit={onSendMessage} />
       </div>
     </div>

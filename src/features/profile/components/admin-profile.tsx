@@ -30,6 +30,7 @@ import {
   getProfileFullName,
   getProfileGenderLabel,
 } from "@/features/profile/utils/profile-display"
+import { UsageLimitCard } from "@/features/usage-limits/components/usage-limit-card"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { formatAuditDate } from "@/utils/date-format"
 
@@ -151,6 +152,8 @@ export function AdminProfile({ me }: { me: AppUser }) {
           </div>
         </CardContent>
       </Card>
+
+      <UsageLimitCard />
 
       <ChangePasswordDialog
         onOpenChange={setIsPasswordDialogOpen}
