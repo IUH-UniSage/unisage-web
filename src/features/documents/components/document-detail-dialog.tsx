@@ -89,7 +89,9 @@ export function DocumentDetailDialog({
             Quản trị · Nội dung
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold md:text-3xl">{document.title}</h1>
+            <h1 className="min-w-0 text-2xl font-bold wrap-break-word md:text-3xl">
+              {document.title}
+            </h1>
             <Badge
               className={cn(
                 "gap-1.5 px-2.5",

@@ -129,7 +129,7 @@ export function DocumentDialog({
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Nội dung
           </p>
-          <h1 className="mt-1 text-2xl font-bold md:text-3xl">
+          <h1 className="mt-1 text-2xl font-bold wrap-break-word md:text-3xl">
             {isEdit
               ? `Chỉnh sửa tài liệu — ${document?.title}`
               : "Thêm tài liệu mới"}
