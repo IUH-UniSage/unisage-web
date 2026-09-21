@@ -8,6 +8,10 @@ import {
   type DocumentFormValues,
   type DocumentPage,
 } from "@/features/documents/schemas/document-schemas"
+import {
+  documentVersionSchema,
+  type DocumentVersion,
+} from "@/features/documents/schemas/document-version-schemas"
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import { readApiResponse, readSuccessData } from "@/utils/api-response"
 import { httpClient } from "@/lib/axios-client"
@@ -64,6 +68,14 @@ export const documentApi = {
     )
 
     return readSuccessData(response.data, documentPageSchema)
+  },
+
+  async getDocumentVersions(documentId: string): Promise<DocumentVersion[]> {
+    const response = await httpClient.get<ApiResponse<DocumentVersion[]>>(
+      API_ENDPOINTS.documents.documentVersions(documentId)
+    )
+
+    return readSuccessData(response.data, z.array(documentVersionSchema))
   },
 
   async updateDocument(

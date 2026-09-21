@@ -28,6 +28,7 @@ import {
 } from "@/constants/doc-status"
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { DocumentChunksSection } from "@/features/documents/components/document-chunks-section"
+import { DocumentVersionHistorySection } from "@/features/documents/components/document-version-history-section"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
@@ -88,7 +89,9 @@ export function DocumentDetailDialog({
             Quản trị · Nội dung
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold md:text-3xl">{document.title}</h1>
+            <h1 className="min-w-0 text-2xl font-bold wrap-break-word md:text-3xl">
+              {document.title}
+            </h1>
             <Badge
               className={cn(
                 "gap-1.5 px-2.5",
@@ -278,6 +281,8 @@ export function DocumentDetailDialog({
       </Card>
 
       <DocumentChunksSection documentId={document.id} />
+
+      <DocumentVersionHistorySection documentId={document.id} />
 
       {/* Audit Info Card */}
       <Card className="border bg-card shadow-none">

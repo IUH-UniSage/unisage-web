@@ -27,4 +27,10 @@ export const documentOptions = {
       queryFn: () => documentApi.getDocuments(page, limit),
       queryKey: documentKeys.list(page, limit),
     }),
+  versions: (id: string) =>
+    queryOptions({
+      ...QUERY_POLICIES.list,
+      queryFn: () => documentApi.getDocumentVersions(id),
+      queryKey: documentKeys.versions(id),
+    }),
 }

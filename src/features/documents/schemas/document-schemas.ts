@@ -110,10 +110,9 @@ export const documentFormSchema = documentFormBaseSchema.superRefine(
   }
 )
 
-// Editing a document currently only changes its metadata (see
-// DocumentDialog's isEdit branch, which shows a file preview instead of an
-// upload control) - unlike create, an existing file/source doesn't need to
-// be re-supplied on every save.
+// Editing a document doesn't require a file/source - the existing one stays
+// in place unless the user picks a replacement via DocumentDialog's isEdit
+// branch, which archives the current file into version history on save.
 export const documentEditFormSchema =
   documentFormBaseSchema.superRefine(checkFileExtension)
 

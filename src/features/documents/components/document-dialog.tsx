@@ -83,7 +83,13 @@ export function DocumentDialog({
       fileType: document?.fileType ?? "",
       isPublic: document?.isPublic ?? false,
       minAccessLevelId: document?.minAccessLevelId ?? null,
-      sourceUrl: document?.sourceUrl ?? "",
+      // Neither create nor edit currently exposes a way to set an external
+      // URL (that flow is disabled - see the TODO(url-source) block below),
+      // so this must stay empty. Defaulting it to document?.sourceUrl would
+      // resubmit that stale value on every metadata-only edit save and
+      // silently revert a newer replacement file back to whatever was
+      // current when the form was opened, bypassing version history.
+      sourceUrl: "",
       title: document?.title ?? "",
     },
     resolver: zodResolver(isEdit ? documentEditFormSchema : documentFormSchema),
@@ -123,7 +129,7 @@ export function DocumentDialog({
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Nội dung
           </p>
-          <h1 className="mt-1 text-2xl font-bold md:text-3xl">
+          <h1 className="mt-1 text-2xl font-bold wrap-break-word md:text-3xl">
             {isEdit
               ? `Chỉnh sửa tài liệu — ${document?.title}`
               : "Thêm tài liệu mới"}
@@ -210,25 +216,80 @@ export function DocumentDialog({
             </div>
             <CardDescription>
               {isEdit
-                ? "Xem trước tệp tài liệu hiện tại. Thay thế tệp khi chỉnh sửa sẽ được bổ sung sau."
+                ? "Xem trước tệp tài liệu hiện tại. Chọn tệp mới bên dưới để thay thế — tệp cũ sẽ được lưu lại trong lịch sử phiên bản."
                 : "Tải lên tệp tài liệu trực tiếp từ máy tính."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isEdit ? (
-              document?.fileUrl ? (
-                <DocumentFilePreview
-                  fileType={document.fileType}
-                  fileUrl={document.fileUrl}
-                  title={document.title}
-                />
-              ) : (
-                <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
-                  {document?.sourceUrl
-                    ? `Tài liệu này trỏ tới nguồn ngoài: ${document.sourceUrl}`
-                    : "Tài liệu này chưa có tệp đính kèm."}
-                </div>
-              )
+              <div className="space-y-3">
+                {document?.fileUrl ? (
+                  <DocumentFilePreview
+                    fileType={document.fileType}
+                    fileUrl={document.fileUrl}
+                    title={document.title}
+                  />
+                ) : (
+                  <div className="rounded-xl border bg-muted/30 p-4 text-sm text-muted-foreground">
+                    {document?.sourceUrl
+                      ? `Tài liệu này trỏ tới nguồn ngoài: ${document.sourceUrl}`
+                      : "Tài liệu này chưa có tệp đính kèm."}
+                  </div>
+                )}
+
+                {selectedFile ? (
+                  <div className="flex items-center justify-between gap-2 rounded-xl border bg-muted/20 p-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="rounded-lg bg-primary/10 p-2.5 text-primary">
+                        <FileText className="size-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB ·
+                          Sẽ thay thế tệp hiện tại
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      aria-label="Bỏ chọn tệp thay thế"
+                      onClick={() =>
+                        setValue("file", null, { shouldValidate: true })
+                      }
+                      size="icon-sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <X aria-hidden="true" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label
+                    className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center text-sm font-medium text-primary transition-colors hover:border-primary/50 hover:bg-muted/30"
+                    htmlFor="document-file-replace"
+                  >
+                    <UploadCloud aria-hidden="true" className="size-4" />
+                    Thay thế tệp tài liệu
+                    <input
+                      accept={ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(",")}
+                      className="sr-only"
+                      id="document-file-replace"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] ?? null
+                        setValue("file", file, { shouldValidate: true })
+                      }}
+                      type="file"
+                    />
+                  </label>
+                )}
+                {errors.file ? (
+                  <p className="text-xs text-destructive">
+                    {errors.file.message}
+                  </p>
+                ) : null}
+              </div>
             ) : (
               <>
                 {/* TODO(url-source): re-enable the "Dán đường dẫn URL" tab
