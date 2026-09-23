@@ -3,6 +3,10 @@ export const API_ENDPOINTS = {
   // `documents` below, which is backend-java's `/documents` via httpClient.
   agentDocuments: {
     chunks: (documentId: string) => `/documents/${documentId}/chunks`,
+    deleteIndexedChunk: (documentId: string, chunkId: string) =>
+      `/documents/${documentId}/chunks/indexed/${encodeURIComponent(chunkId)}`,
+    indexedChunks: (documentId: string) =>
+      `/documents/${documentId}/chunks/indexed`,
   },
   aiChat: {
     stream: "/chat/stream",

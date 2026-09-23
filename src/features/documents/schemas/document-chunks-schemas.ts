@@ -17,3 +17,27 @@ export const documentChunkPageResponseSchema = z.object({
 export type DocumentChunkPageResponse = z.infer<
   typeof documentChunkPageResponseSchema
 >
+
+// Mirrors unisage-agent's `IndexedChunk` (app/schemas/ingestion.py) - a
+// `Chunk` read back from its live Qdrant point, so it additionally carries
+// `chunk_id` and the two fields `MultiRepresentationEnricher` only computes
+// at embed time (`summary`/`questions`) - neither of which the plain
+// chunking-draft `Chunk`/`chunkSchema` above ever has.
+export const indexedChunkSchema = chunkSchema.extend({
+  chunk_id: z.string(),
+  questions: z.array(z.string()),
+  summary: z.string(),
+})
+
+export const indexedChunkPageResponseSchema = z.object({
+  data: z.array(indexedChunkSchema),
+  limit: z.number().int().positive(),
+  page: z.number().int().positive(),
+  total_items: z.number().int().nonnegative(),
+  total_pages: z.number().int().nonnegative(),
+})
+
+export type IndexedChunk = z.infer<typeof indexedChunkSchema>
+export type IndexedChunkPageResponse = z.infer<
+  typeof indexedChunkPageResponseSchema
+>

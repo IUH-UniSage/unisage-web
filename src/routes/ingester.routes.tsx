@@ -27,6 +27,12 @@ const DocumentFormPage = lazy(async () => {
   return { default: DocumentFormPage }
 })
 
+const DocumentChunksPage = lazy(async () => {
+  const { DocumentChunksPage } =
+    await import("@/pages/shared/document-chunks-page")
+  return { default: DocumentChunksPage }
+})
+
 export const ingesterRoutes: RouteObject = {
   path: ROUTES.ingester,
   element: (
@@ -69,6 +75,14 @@ export const ingesterRoutes: RouteObject = {
         </PermissionRoute>
       ),
       path: `${ROUTE_SEGMENTS.documents}/:documentId`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentChunksPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/:documentId/chunks`,
     },
     {
       path: "*",
