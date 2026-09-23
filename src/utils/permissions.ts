@@ -73,6 +73,7 @@ export const PERMISSIONS = {
   // permission exists because there's nothing to edit on this page (see
   // system-health feature).
   systemHealthRead: "SYSTEM_HEALTH_READ",
+  dashboardRead: "DASHBOARD_READ",
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
