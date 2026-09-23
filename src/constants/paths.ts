@@ -96,6 +96,10 @@ export function adminDocumentEditPath(documentId: string): string {
   return `${ROUTES.adminDocuments}/${documentId}/edit`
 }
 
+export function adminDocumentChunksPath(documentId: string): string {
+  return `${ROUTES.adminDocuments}/${documentId}/chunks`
+}
+
 export function ingesterDocumentNewPath(): string {
   return `${ROUTES.ingesterDocuments}/new`
 }
@@ -106,4 +110,8 @@ export function ingesterDocumentDetailPath(documentId: string): string {
 
 export function ingesterDocumentEditPath(documentId: string): string {
   return `${ROUTES.ingesterDocuments}/${documentId}/edit`
+}
+
+export function ingesterDocumentChunksPath(documentId: string): string {
+  return `${ROUTES.ingesterDocuments}/${documentId}/chunks`
 }

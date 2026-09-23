@@ -12,6 +12,12 @@ export const documentOptions = {
       queryFn: () => documentChunksApi.list(id, { limit, page }),
       queryKey: documentKeys.chunks(id, page, limit),
     }),
+  indexedChunks: (id: string, page: number, limit: number) =>
+    queryOptions({
+      ...QUERY_POLICIES.list,
+      queryFn: () => documentChunksApi.listIndexed(id, { limit, page }),
+      queryKey: documentKeys.indexedChunks(id, page, limit),
+    }),
   detail: (id: string) =>
     queryOptions({
       // realtime (staleTime: 0): fileUrl is a MinIO presigned URL that expires

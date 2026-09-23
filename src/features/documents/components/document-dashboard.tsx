@@ -6,10 +6,12 @@ import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-d
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
+  adminDocumentChunksPath,
   adminDocumentDetailPath,
   adminDocumentEditPath,
   adminDocumentIngestWizardPath,
   adminDocumentNewPath,
+  ingesterDocumentChunksPath,
   ingesterDocumentDetailPath,
   ingesterDocumentEditPath,
   ingesterDocumentNewPath,
@@ -44,6 +46,9 @@ export function DocumentDashboard() {
   const wizardPath = isAdmin
     ? adminDocumentIngestWizardPath
     : ingesterIngestWizardPath
+  const chunksPath = isAdmin
+    ? adminDocumentChunksPath
+    : ingesterDocumentChunksPath
 
   if (dashboard.isPending) {
     return <DocumentSkeleton />
@@ -83,6 +88,7 @@ export function DocumentDashboard() {
         onPageChange={dashboard.setPage}
         onProcess={(document) => navigate(wizardPath(document.id))}
         onRequestDelete={dashboard.requestDelete}
+        onViewChunks={(document) => navigate(chunksPath(document.id))}
         onViewDetail={(document) => navigate(detailPath(document.id))}
         progressByDocumentId={progressByDocumentId}
         totalItems={dashboard.totalItems}

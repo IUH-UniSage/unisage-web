@@ -53,6 +53,12 @@ export const chunkSchema = z.object({
   header_source: headerSourceSchema.optional(),
   header_confidence: z.number().min(0).max(1).optional(),
   chunking_version: z.string().optional(),
+  // TABLE chunks only (Phase 4, backend) - the lowest structural confidence
+  // of any row in the chunk, and the de-duplicated parse warnings for those
+  // rows. `undefined`/`[]` for chunks that never had table structure
+  // inferred, including every chunk written before these fields existed.
+  structure_confidence: z.number().min(0).max(1).nullable().optional(),
+  parse_warnings: z.array(z.string()).default([]),
 })
 
 export const previewRequestSchema = z.object({

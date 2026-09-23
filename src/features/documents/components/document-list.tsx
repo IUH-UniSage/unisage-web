@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import {
   Download,
   Eye,
+  Layers,
   MoreHorizontal,
   Pencil,
   Search,
@@ -39,6 +40,7 @@ type DocumentActionsProps = {
   onEdit: (document: Document) => void
   onProcess: (document: Document) => void
   onRequestDelete: (document: Document) => void
+  onViewChunks: (document: Document) => void
   onViewDetail: (document: Document) => void
 }
 
@@ -50,6 +52,7 @@ function DocumentActions({
   onEdit,
   onProcess,
   onRequestDelete,
+  onViewChunks,
   onViewDetail,
 }: DocumentActionsProps) {
   const canDownload = Boolean(document.fileUrl)
@@ -70,6 +73,10 @@ function DocumentActions({
         <DropdownMenuItem onSelect={() => onViewDetail(document)}>
           <Eye aria-hidden="true" />
           Xem chi tiết
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onViewChunks(document)}>
+          <Layers aria-hidden="true" />
+          Quản lý chunk
         </DropdownMenuItem>
         {canDownload ? (
           <DropdownMenuItem asChild>
@@ -119,6 +126,7 @@ type DocumentListProps = {
   onPageChange: (page: number) => void
   onProcess: (document: Document) => void
   onRequestDelete: (document: Document) => void
+  onViewChunks: (document: Document) => void
   onViewDetail: (document: Document) => void
   /** Live embed-progress percent per document id - see DocumentDashboard. */
   progressByDocumentId?: Record<string, number>
@@ -163,6 +171,7 @@ export function DocumentList({
   onPageChange,
   onProcess,
   onRequestDelete,
+  onViewChunks,
   onViewDetail,
   progressByDocumentId,
   totalItems,
@@ -232,6 +241,7 @@ export function DocumentList({
             onEdit={onEdit}
             onProcess={onProcess}
             onRequestDelete={onRequestDelete}
+            onViewChunks={onViewChunks}
             onViewDetail={onViewDetail}
           />
         ),
@@ -248,6 +258,7 @@ export function DocumentList({
       onEdit,
       onProcess,
       onRequestDelete,
+      onViewChunks,
       onViewDetail,
       progressByDocumentId,
     ]
@@ -313,6 +324,7 @@ export function DocumentList({
                   onEdit={onEdit}
                   onProcess={onProcess}
                   onRequestDelete={onRequestDelete}
+                  onViewChunks={onViewChunks}
                   onViewDetail={onViewDetail}
                 />
               </div>

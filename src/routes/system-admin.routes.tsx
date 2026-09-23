@@ -54,6 +54,12 @@ const DocumentFormPage = lazy(async () => {
   return { default: DocumentFormPage }
 })
 
+const DocumentChunksPage = lazy(async () => {
+  const { DocumentChunksPage } =
+    await import("@/pages/shared/document-chunks-page")
+  return { default: DocumentChunksPage }
+})
+
 export const systemAdminRoutes: RouteObject = {
   path: ROUTES.admin,
   element: (
@@ -153,6 +159,14 @@ export const systemAdminRoutes: RouteObject = {
         </PermissionRoute>
       ),
       path: `${ROUTE_SEGMENTS.documents}/:documentId`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.documents}>
+          <DocumentChunksPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.documents}/:documentId/chunks`,
     },
     {
       element: <ProfilePage />,
