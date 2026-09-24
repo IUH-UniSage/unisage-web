@@ -1,4 +1,4 @@
-import { FileText, Trash2 } from "lucide-react"
+import { AlertTriangle, FileText, Trash2 } from "lucide-react"
 
 import { RegionBadge } from "@/features/ingestion/components/steps/region-badge"
 import {
@@ -74,6 +74,16 @@ export function ChunkListPanel({
                 </span>
                 <div className="flex items-center gap-1.5">
                   <RegionBadge type={chunk.region_type} />
+                  {chunk.parse_warnings.length > 0 ? (
+                    <span
+                      title={`Cảnh báo phân tích: ${chunk.parse_warnings.join(", ")}`}
+                    >
+                      <AlertTriangle
+                        aria-label="Nội dung đoạn có thể bị lỗi phân tích, nên kiểm tra lại"
+                        className="size-3 text-warning-foreground"
+                      />
+                    </span>
+                  ) : null}
                   <span className="text-[8px] font-bold text-muted-foreground">
                     ~{estimateTokens(chunk.content)}tk
                   </span>

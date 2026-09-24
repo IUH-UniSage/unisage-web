@@ -1,4 +1,4 @@
-import { FileText, Trash2 } from "lucide-react"
+import { AlertTriangle, FileText, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
@@ -84,6 +84,23 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
           </Button>
         </div>
       </div>
+
+      {chunk.parse_warnings.length > 0 ? (
+        <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+          <AlertTriangle
+            aria-hidden="true"
+            className="mt-0.5 size-3.5 shrink-0"
+          />
+          <p>
+            Nội dung đoạn này có thể bị trích xuất sai từ tệp gốc (
+            {chunk.parse_warnings.join(", ")}
+            {chunk.structure_confidence != null
+              ? `, độ tin cậy cấu trúc ${Math.round(chunk.structure_confidence * 100)}%`
+              : ""}
+            ). Vui lòng đối chiếu với tài liệu gốc trước khi lưu.
+          </p>
+        </div>
+      ) : null}
 
       {isTable ? (
         <div
