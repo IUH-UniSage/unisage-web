@@ -152,12 +152,15 @@ function isTableSeparatorRow(line: string): boolean {
   return /^\|(\s*:?-+:?\s*\|)+$/.test(line)
 }
 
+// An escaped pipe (`\|`) is text inside a cell, not a column boundary (GFM) -
+// the ingestion chunker escapes cells like "Môn lý thuyết: 980.000 | Môn thực
+// hành: 1.600.000" this way.
 function splitTableRow(line: string): string[] {
   return line
     .replace(/^\|/, "")
-    .replace(/\|$/, "")
-    .split("|")
-    .map((cell) => cell.trim())
+    .replace(/(?<!\\)\|$/, "")
+    .split(/(?<!\\)\|/)
+    .map((cell) => cell.trim().replace(/\\\|/g, "|"))
 }
 
 function MarkdownTable({
@@ -370,15 +373,23 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
 }
 
 function renderInline(text: string): React.ReactNode[] {
-  // Regex to match bold **text**, italic *text*, inline code `code`, links
-  // [text](url), and bare citation markers [1] (the agent's citation_rules
-  // prompt has the model emit these inline, e.g. "...khóa tuyển sinh [1][2]",
+  // Regex to match a raw `<br>` (the table-parsing pipeline's line-break
+  // marker for a wrapped cell - see table_normalizer.py's `strip_markup`
+  // docstring: "A `<br>` is kept - it is a line break inside the cell"),
+  // bold **text**, italic *text*, inline code `code`, links [text](url),
+  // and bare citation markers [1] (the agent's citation_rules prompt has
+  // the model emit these inline, e.g. "...khóa tuyển sinh [1][2]",
   // referencing the numbered source list at the end of the reply).
   const regex =
-    /(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+(?:\s*,\s*\d+)*\])/g
+    /(<br\s*\/?>|\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+(?:\s*,\s*\d+)*\])/gi
   const parts = text.split(regex)
 
   return parts.map((part, index) => {
+    // Line break marker from a wrapped table cell
+    if (/^<br\s*\/?>$/i.test(part)) {
+      return <br key={index} />
+    }
+
     // Bold
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
