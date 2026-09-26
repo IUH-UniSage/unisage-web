@@ -6,10 +6,13 @@ import {
   useDeleteChatModelMutation,
   useRecoverChatModelMutation,
   useUpdateChatModelMutation,
+  useUpdateChatModelStatusMutation,
+  useVerifyChatModelMutation,
 } from "@/features/chat-models/queries/use-mutations"
 import { useChatModelsQuery } from "@/features/chat-models/queries/use-queries"
 import type {
   ChatModel,
+  ChatModelPurpose,
   ChatModelSourceType,
   CreateChatModelRequest,
 } from "@/features/chat-models/schemas/chat-model-schemas"
@@ -25,6 +28,7 @@ const CHAT_MODEL_FETCH_LIMIT = 500
 
 export type StatusFilter = "ALL" | "ACTIVE" | "INACTIVE"
 export type SourceFilter = "ALL" | ChatModelSourceType
+export type PurposeFilter = "ALL" | ChatModelPurpose
 
 const EMPTY_CHAT_MODELS: ChatModel[] = []
 
@@ -38,12 +42,15 @@ export function useChatModelDashboard() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("ALL")
+  const [purposeFilter, setPurposeFilter] = useState<PurposeFilter>("ALL")
 
   const chatModelsQuery = useChatModelsQuery(1, CHAT_MODEL_FETCH_LIMIT)
   const createChatModel = useCreateChatModelMutation()
   const updateChatModel = useUpdateChatModelMutation()
   const deleteChatModel = useDeleteChatModelMutation()
   const recoverChatModel = useRecoverChatModelMutation()
+  const updateChatModelStatus = useUpdateChatModelStatusMutation()
+  const verifyChatModel = useVerifyChatModelMutation()
 
   const { canCreate, canDelete, canRead, canUpdate } =
     useResourcePermissions("chat_model")
@@ -79,9 +86,13 @@ export function useChatModelDashboard() {
       const matchesSource =
         sourceFilter === "ALL" || model.sourceType === sourceFilter
 
-      return matchesSearch && matchesStatus && matchesSource
+      // Purpose matching (plan.md groups the registry by CHAT/EMBEDDING/EXTRACTION)
+      const matchesPurpose =
+        purposeFilter === "ALL" || model.modelPurpose === purposeFilter
+
+      return matchesSearch && matchesStatus && matchesSource && matchesPurpose
     })
-  }, [rawChatModels, search, statusFilter, sourceFilter])
+  }, [rawChatModels, search, statusFilter, sourceFilter, purposeFilter])
 
   const totalItems = filteredChatModels.length
   const totalPages = Math.max(
@@ -149,6 +160,23 @@ export function useChatModelDashboard() {
   const requestStatusChange = (chatModel: ChatModel) =>
     setStatusChatModel(chatModel)
 
+  // "status" here is the ACTIVE/INACTIVE/PENDING/DISABLED state machine, a
+  // separate axis from the isActive soft-delete toggle above.
+  const activateChatModel = (chatModel: ChatModel) =>
+    updateChatModelStatus.mutateAsync({
+      chatModelId: chatModel.id,
+      status: "ACTIVE",
+    })
+
+  const deactivateChatModel = (chatModel: ChatModel) =>
+    updateChatModelStatus.mutateAsync({
+      chatModelId: chatModel.id,
+      status: "INACTIVE",
+    })
+
+  const reverifyChatModel = (chatModel: ChatModel) =>
+    verifyChatModel.mutateAsync(chatModel.id)
+
   const closeStatusDialog = () => setStatusChatModel(undefined)
 
   const confirmStatusChange = async () => {
@@ -180,17 +208,27 @@ export function useChatModelDashboard() {
     setPage(1)
   }
 
+  const updatePurposeFilter = (value: PurposeFilter) => {
+    setPurposeFilter(value)
+    setPage(1)
+  }
+
   const resetFilters = () => {
     setSearch("")
     setStatusFilter("ALL")
     setSourceFilter("ALL")
+    setPurposeFilter("ALL")
     setPage(1)
   }
 
   const isFiltered =
-    Boolean(search.trim()) || statusFilter !== "ALL" || sourceFilter !== "ALL"
+    Boolean(search.trim()) ||
+    statusFilter !== "ALL" ||
+    sourceFilter !== "ALL" ||
+    purposeFilter !== "ALL"
 
   return {
+    activateChatModel,
     canCreate,
     canDelete,
     canRead,
@@ -201,21 +239,27 @@ export function useChatModelDashboard() {
     closeDialog,
     closeStatusDialog,
     confirmStatusChange,
+    deactivateChatModel,
     editingChatModel,
     isDialogOpen,
     isFiltered,
     isPending: chatModelsQuery.isPending,
     isSaving: createChatModel.isPending || updateChatModel.isPending,
+    isUpdatingChatModelStatus: updateChatModelStatus.isPending,
     isUpdatingStatus: deleteChatModel.isPending || recoverChatModel.isPending,
+    isVerifying: verifyChatModel.isPending,
     openChatModelDetail,
     openCreate,
     openEdit,
     page: currentPage,
+    purposeFilter,
     requestStatusChange,
     resetFilters,
+    reverifyChatModel,
     save,
     search,
     setPage,
+    setPurposeFilter: updatePurposeFilter,
     setSearch: updateSearch,
     setSourceFilter: updateSourceFilter,
     setStatusFilter: updateStatusFilter,

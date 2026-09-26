@@ -5,6 +5,8 @@ import {
   chatModelPageSchema,
   type ChatModelPage,
   chatModelSchema,
+  type ChatModelStatus,
+  chatModelStatusRequestSchema,
   type CreateChatModelRequest,
   createChatModelRequestSchema,
   type UpdateChatModelRequest,
@@ -59,6 +61,29 @@ export const chatModelApi = {
     const response = await httpClient.put<ApiResponse<ChatModel>>(
       API_ENDPOINTS.chatModels.chatModel(chatModelId),
       request
+    )
+
+    return readSuccessData(response.data, chatModelSchema)
+  },
+
+  // ACTIVE/INACTIVE only - every other status transition happens server-side
+  // via verify/promote (see chatModelStatusRequestSchema).
+  async updateChatModelStatus(
+    chatModelId: string,
+    status: ChatModelStatus
+  ): Promise<ChatModel> {
+    const request = chatModelStatusRequestSchema.parse({ status })
+    const response = await httpClient.patch<ApiResponse<ChatModel>>(
+      API_ENDPOINTS.chatModels.chatModelStatus(chatModelId),
+      request
+    )
+
+    return readSuccessData(response.data, chatModelSchema)
+  },
+
+  async verifyChatModel(chatModelId: string): Promise<ChatModel> {
+    const response = await httpClient.post<ApiResponse<ChatModel>>(
+      API_ENDPOINTS.chatModels.chatModelVerify(chatModelId)
     )
 
     return readSuccessData(response.data, chatModelSchema)

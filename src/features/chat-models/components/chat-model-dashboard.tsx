@@ -2,12 +2,22 @@ import { Plus, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ChatModelDetailDialog } from "@/features/chat-models/components/chat-model-detail-dialog"
 import { ChatModelDialog } from "@/features/chat-models/components/chat-model-dialog"
 import { ChatModelList } from "@/features/chat-models/components/chat-model-list"
 import { ChatModelStatusDialog } from "@/features/chat-models/components/chat-model-status-dialog"
 import { useChatModelDashboard } from "@/features/chat-models/hooks/use-chat-model-dashboard"
+import type { PurposeFilter } from "@/features/chat-models/hooks/use-chat-model-dashboard"
+import { chatModelPurposeSchema } from "@/features/chat-models/schemas/chat-model-schemas"
+import { getPurposeLabel } from "@/features/chat-models/utils/chat-model-formatters"
 
 export function ChatModelDashboard() {
   const dashboard = useChatModelDashboard()
@@ -45,19 +55,43 @@ export function ChatModelDashboard() {
           ) : null}
         </div>
 
-        {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            aria-label="Tìm kiếm mô hình chat"
-            className="h-10 rounded-xl pl-9.5 text-sm"
-            onChange={(e) => dashboard.setSearch(e.target.value)}
-            placeholder="Tìm theo tên mô hình, nhà cung cấp hoặc URL..."
-            value={dashboard.search}
-          />
+        {/* Search + Purpose Filter */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative max-w-md flex-1">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              aria-label="Tìm kiếm mô hình chat"
+              className="h-10 rounded-xl pl-9.5 text-sm"
+              onChange={(e) => dashboard.setSearch(e.target.value)}
+              placeholder="Tìm theo tên mô hình, nhà cung cấp hoặc URL..."
+              value={dashboard.search}
+            />
+          </div>
+
+          <Select
+            onValueChange={(value) =>
+              dashboard.setPurposeFilter(value as PurposeFilter)
+            }
+            value={dashboard.purposeFilter}
+          >
+            <SelectTrigger
+              aria-label="Lọc theo mục đích sử dụng"
+              className="h-10 w-full rounded-xl sm:w-56"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Tất cả mục đích</SelectItem>
+              {chatModelPurposeSchema.options.map((purpose) => (
+                <SelectItem key={purpose} value={purpose}>
+                  {getPurposeLabel(purpose)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Card Grid List */}
@@ -67,9 +101,14 @@ export function ChatModelDashboard() {
           canUpdate={dashboard.canUpdate}
           chatModels={dashboard.chatModels}
           currentPage={dashboard.page}
+          isUpdatingStatus={dashboard.isUpdatingChatModelStatus}
+          isVerifying={dashboard.isVerifying}
+          onActivate={dashboard.activateChatModel}
+          onDeactivate={dashboard.deactivateChatModel}
           onDetail={dashboard.openChatModelDetail}
           onEdit={dashboard.openEdit}
           onPageChange={dashboard.setPage}
+          onReverify={dashboard.reverifyChatModel}
           onStatusRequest={dashboard.requestStatusChange}
           totalItems={dashboard.totalItems}
           totalPages={dashboard.totalPages}

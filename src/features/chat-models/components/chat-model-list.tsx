@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Bot,
   Check,
   Cloud,
@@ -7,6 +8,8 @@ import {
   Gauge,
   Globe,
   KeyRound,
+  Power,
+  RefreshCw,
   Server,
   Sparkles,
   Zap,
@@ -19,9 +22,20 @@ import { Pagination } from "@/components/shared/list/pagination"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { CHAT_MODEL_PAGE_SIZE } from "@/features/chat-models/hooks/use-chat-model-dashboard"
 import type { ChatModel } from "@/features/chat-models/schemas/chat-model-schemas"
-import { getSourceTypeLabel } from "@/features/chat-models/utils/chat-model-formatters"
+import {
+  getActivateBlockedReason,
+  getPurposeLabel,
+  getStatusLabel,
+  getVerificationStatusDisplayLabel,
+  getSourceTypeLabel,
+} from "@/features/chat-models/utils/chat-model-formatters"
 import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
 
@@ -31,12 +45,26 @@ type ChatModelListProps = {
   canUpdate: boolean
   chatModels: ChatModel[]
   currentPage: number
+  isUpdatingStatus: boolean
+  isVerifying: boolean
+  onActivate: (chatModel: ChatModel) => Promise<unknown>
+  onDeactivate: (chatModel: ChatModel) => Promise<unknown>
   onDetail: (chatModel: ChatModel) => void
   onEdit: (chatModel: ChatModel) => void
   onPageChange: (page: number) => void
+  onReverify: (chatModel: ChatModel) => Promise<unknown>
   onStatusRequest: (chatModel: ChatModel) => void
   totalItems: number
   totalPages: number
+}
+
+const STATUS_BADGE_STYLES: Record<ChatModel["status"], string> = {
+  ACTIVE:
+    "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  DISABLED: "border-destructive/30 bg-destructive/10 text-destructive",
+  INACTIVE: "border-border bg-muted/50 text-muted-foreground",
+  PENDING:
+    "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
 }
 
 function getProviderVisuals(
@@ -100,9 +128,14 @@ export function ChatModelList({
   canUpdate,
   chatModels,
   currentPage,
+  isUpdatingStatus,
+  isVerifying,
+  onActivate,
+  onDeactivate,
   onDetail,
   onEdit,
   onPageChange,
+  onReverify,
   onStatusRequest,
   totalItems,
   totalPages,
@@ -117,9 +150,14 @@ export function ChatModelList({
               canRecover={canRecover}
               canUpdate={canUpdate}
               chatModel={chatModel}
+              isUpdatingStatus={isUpdatingStatus}
+              isVerifying={isVerifying}
               key={chatModel.id}
+              onActivate={onActivate}
+              onDeactivate={onDeactivate}
               onDetail={onDetail}
               onEdit={onEdit}
+              onReverify={onReverify}
               onStatusRequest={onStatusRequest}
             />
           ))}
@@ -149,16 +187,26 @@ function ChatModelCard({
   canRecover,
   canUpdate,
   chatModel,
+  isUpdatingStatus,
+  isVerifying,
+  onActivate,
+  onDeactivate,
   onDetail,
   onEdit,
+  onReverify,
   onStatusRequest,
 }: {
   canDelete: boolean
   canRecover: boolean
   canUpdate: boolean
   chatModel: ChatModel
+  isUpdatingStatus: boolean
+  isVerifying: boolean
+  onActivate: (chatModel: ChatModel) => Promise<unknown>
+  onDeactivate: (chatModel: ChatModel) => Promise<unknown>
   onDetail: (chatModel: ChatModel) => void
   onEdit: (chatModel: ChatModel) => void
+  onReverify: (chatModel: ChatModel) => Promise<unknown>
   onStatusRequest: (chatModel: ChatModel) => void
 }) {
   const [copied, setCopied] = useState(false)
@@ -168,6 +216,7 @@ function ChatModelCard({
     chatModel.sourceType
   )
   const ProviderIcon = visuals.icon
+  const activateBlockedReason = getActivateBlockedReason(chatModel)
 
   const handleCopyEndpoint = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -179,6 +228,13 @@ function ChatModelCard({
       // ignore
     }
   }
+
+  const stopAnd =
+    (action: (chatModel: ChatModel) => Promise<unknown>) =>
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      void action(chatModel)
+    }
 
   return (
     <article
@@ -224,9 +280,26 @@ function ChatModelCard({
           </div>
         </div>
 
-        {/* Badges: Status + Source Type + Priority */}
+        {/* Badges: Soft-delete status + Registry status + Purpose + Source Type + Priority */}
         <div className="flex flex-wrap items-center gap-1.5">
           <EntityStatusBadge isActive={chatModel.isActive} />
+
+          <Badge
+            className={cn(
+              "gap-1 font-medium",
+              STATUS_BADGE_STYLES[chatModel.status]
+            )}
+            variant="outline"
+          >
+            <span>{getStatusLabel(chatModel.status)}</span>
+          </Badge>
+
+          <Badge
+            className="font-normal text-muted-foreground"
+            variant="outline"
+          >
+            {getPurposeLabel(chatModel.modelPurpose)}
+          </Badge>
 
           <Badge
             className="gap-1 font-normal text-muted-foreground"
@@ -250,6 +323,33 @@ function ChatModelCard({
             </Badge>
           ) : null}
         </div>
+
+        {chatModel.hasPendingChange ? (
+          <div className="flex items-start gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-2 text-xs text-amber-700 dark:text-amber-400">
+            <AlertTriangle
+              aria-hidden="true"
+              className="mt-0.5 size-3.5 shrink-0"
+            />
+            <span>
+              Thay đổi đang chờ xác minh — đang chạy bằng cấu hình cũ.
+            </span>
+          </div>
+        ) : null}
+
+        {chatModel.latestVerification?.status === "FAILED" ? (
+          <div className="flex items-start gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-xs text-destructive">
+            <AlertTriangle
+              aria-hidden="true"
+              className="mt-0.5 size-3.5 shrink-0"
+            />
+            <span>
+              Thay đổi chưa được áp dụng
+              {chatModel.latestVerification.errorMessage
+                ? ` — ${chatModel.latestVerification.errorMessage}`
+                : "."}
+            </span>
+          </div>
+        ) : null}
 
         {/* Technical Specs: RPM & API Key */}
         <div className="grid grid-cols-2 gap-2 rounded-xl border border-border/50 bg-muted/30 p-2.5 text-xs dark:bg-muted/15">
@@ -275,7 +375,45 @@ function ChatModelCard({
               {chatModel.hasApiKey ? "Đã có API Key" : "Không dùng Key"}
             </span>
           </div>
+
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="truncate">
+              Rev.{" "}
+              <strong className="font-semibold text-foreground">
+                {chatModel.revision ?? "—"}
+              </strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="truncate">
+              Xác minh: {formatAuditDate(chatModel.verifiedAt)}
+            </span>
+          </div>
         </div>
+
+        {chatModel.latestVerification || chatModel.lastErrorCode ? (
+          <div className="space-y-1 rounded-xl border border-border/50 bg-muted/30 p-2.5 text-xs dark:bg-muted/15">
+            {chatModel.latestVerification ? (
+              <div className="flex items-center justify-between gap-2 text-muted-foreground">
+                <span>Xác minh gần nhất</span>
+                <span className="font-medium text-foreground">
+                  {getVerificationStatusDisplayLabel(
+                    chatModel.latestVerification
+                  )}
+                </span>
+              </div>
+            ) : null}
+            {chatModel.lastErrorCode ? (
+              <div className="flex items-center justify-between gap-2 text-muted-foreground">
+                <span>Lỗi gần nhất</span>
+                <span className="truncate font-medium text-destructive">
+                  {chatModel.lastErrorCode}
+                </span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* Endpoint URL Box */}
         <div className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/40 px-3 py-2 text-xs dark:bg-muted/20">
@@ -307,6 +445,68 @@ function ChatModelCard({
           </button>
         </div>
       </div>
+
+      {canUpdate ? (
+        <div className="mt-3 flex items-center gap-1.5 border-t border-border/40 pt-3">
+          {chatModel.status === "INACTIVE" ? (
+            activateBlockedReason ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      className="h-7 cursor-not-allowed px-2.5 text-xs"
+                      disabled
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Power aria-hidden="true" className="size-3.5" />
+                      Kích hoạt
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent onClick={(e) => e.stopPropagation()}>
+                  {activateBlockedReason.message}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Button
+                className="h-7 cursor-pointer px-2.5 text-xs"
+                disabled={isUpdatingStatus}
+                onClick={stopAnd(onActivate)}
+                size="sm"
+                variant="outline"
+              >
+                <Power aria-hidden="true" className="size-3.5" />
+                Kích hoạt
+              </Button>
+            )
+          ) : null}
+
+          {chatModel.status === "ACTIVE" ? (
+            <Button
+              className="h-7 cursor-pointer px-2.5 text-xs"
+              disabled={isUpdatingStatus}
+              onClick={stopAnd(onDeactivate)}
+              size="sm"
+              variant="outline"
+            >
+              <Power aria-hidden="true" className="size-3.5" />
+              Tạm ngưng
+            </Button>
+          ) : null}
+
+          <Button
+            className="h-7 cursor-pointer px-2.5 text-xs"
+            disabled={isVerifying}
+            onClick={stopAnd(onReverify)}
+            size="sm"
+            variant="outline"
+          >
+            <RefreshCw aria-hidden="true" className="size-3.5" />
+            Xác minh lại
+          </Button>
+        </div>
+      ) : null}
 
       {/* Footer Actions */}
       <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3 text-xs">
