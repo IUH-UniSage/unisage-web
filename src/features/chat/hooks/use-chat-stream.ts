@@ -5,10 +5,25 @@ import { aiHttpClient } from "@/lib/ai-client"
 import { ApiResponseError } from "@/utils/api-response"
 import { STORAGE_KEYS, storage } from "@/utils/local-storage"
 
+export type ChatStreamErrorPayload = {
+  code: string
+  message: string
+  retryable: boolean
+}
+
 type ChatStreamCallbacks = {
   onChunk?: (token: string, fullText: string) => void
   onDone?: (fullText: string) => void
   onError?: (error: Error) => void
+  /**
+   * `event: error` - the backend's own SSE error contract (`code`/`message`/
+   * `retryable`), always immediately followed by `event: done`. Fired
+   * instead of `onDone` (never both) so the caller can mark the message
+   * errored without a `done` handler also treating the turn as a normal
+   * success. `fullText` is whatever streamed before the failure - kept, not
+   * discarded.
+   */
+  onStreamError?: (payload: ChatStreamErrorPayload, fullText: string) => void
 }
 
 type ChatStreamInput = {
@@ -56,10 +71,11 @@ async function readStreamErrorMessage(response: Response): Promise<Error> {
 /**
  * Consumes `POST /chat/stream` (unisage-agent, via the gateway's
  * `python-ai-agent-route`): an SSE response emitting `event: token` per
- * generated token and a terminal `event: done`. Uses a raw `fetch` (not
- * axios/EventSource) because the response body needs to be read
- * incrementally as a stream - see `useChatStream` in lisa-visa-web for the
- * same rationale.
+ * generated token, an optional `event: error` (`code`/`message`/`retryable`)
+ * immediately before a terminal `event: done` when the turn failed. Uses a
+ * raw `fetch` (not axios/EventSource) because the response body needs to be
+ * read incrementally as a stream - see `useChatStream` in lisa-visa-web for
+ * the same rationale.
  *
  * Auth is the browser's httpOnly session cookie (`credentials: "include"`),
  * same as every other request in this app - no manual bearer token.
@@ -111,6 +127,10 @@ export function useChatStream() {
     const decoder = new TextDecoder()
     let buffer = ""
     let fullText = ""
+    // `event: error` (if any) always arrives immediately before the
+    // terminal `event: done` - once seen, `done` must not also fire
+    // `onDone` (that would tell the caller this turn succeeded).
+    let sawError = false
 
     try {
       while (true) {
@@ -129,8 +149,12 @@ export function useChatStream() {
             const token = JSON.parse(data) as string
             fullText += token
             callbacks.onChunk?.(token, fullText)
+          } else if (event === "error" && data !== undefined) {
+            sawError = true
+            const payload = JSON.parse(data) as ChatStreamErrorPayload
+            callbacks.onStreamError?.(payload, fullText)
           } else if (event === "done") {
-            callbacks.onDone?.(fullText)
+            if (!sawError) callbacks.onDone?.(fullText)
           }
 
           boundary = buffer.indexOf("\n\n")
