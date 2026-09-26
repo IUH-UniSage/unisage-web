@@ -448,7 +448,9 @@ function ChatModelCard({
 
       {canUpdate ? (
         <div className="mt-3 flex items-center gap-1.5 border-t border-border/40 pt-3">
-          {chatModel.status === "INACTIVE" ? (
+          {chatModel.status === "INACTIVE" ||
+          chatModel.status === "PENDING" ||
+          chatModel.status === "DISABLED" ? (
             activateBlockedReason ? (
               <Tooltip>
                 <TooltipTrigger asChild>
