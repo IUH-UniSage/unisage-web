@@ -1,10 +1,10 @@
 /**
- * Hand-maintained until the contract-sync tooling (`pnpm contracts:sync`,
- * todo.md "Task 0.8") exists. That tool doesn't exist anywhere in this
- * codebase yet, so this type is copied by hand from the backend's source of
- * truth and must be kept in sync manually:
+ * Hand-maintained until a `pnpm contracts:sync` tool exists to generate this
+ * from the backend's source of truth automatically. That tool doesn't exist
+ * anywhere in this codebase yet, so this type is copied by hand from
  * `backend-java/contracts/verification-statuses.json` (generated from the
- * Java enum `ChatModelVerificationStatus`, plan.md "Trạng thái verification").
+ * Java enum `ChatModelVerificationStatus`, plan.md "Trạng thái verification")
+ * and must be kept in sync manually.
  *
  * When the sync tool ships, this file is replaced by the generated one and
  * can be deleted.

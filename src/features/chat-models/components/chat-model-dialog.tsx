@@ -21,13 +21,27 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
+  buildChatModelFormSchema,
   type ChatModel,
+  type ChatModelPurpose,
+  chatModelPurposeSchema,
   type CreateChatModelRequest,
-  createChatModelRequestSchema,
-  updateChatModelRequestSchema,
 } from "@/features/chat-models/schemas/chat-model-schemas"
-import { getSourceTypeLabel } from "@/features/chat-models/utils/chat-model-formatters"
-import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
+import {
+  getPurposeLabel,
+  getSourceTypeLabel,
+} from "@/features/chat-models/utils/chat-model-formatters"
+import {
+  applyFieldErrors,
+  getErrorCode,
+  getErrorMessage,
+} from "@/utils/error-handler"
+
+// Mirrors ErrorCode.java's Dynamic Model Registry block (25xx) - these two
+// don't come back as a field-keyed `errors` map (unlike, say,
+// CHAT_MODEL_API_KEY_REQUIRED), so they need mapping to a field by hand.
+const CHAT_MODEL_API_KEY_REQUIRED_FOR_NEW_HOST_CODE = 2514
+const CHAT_MODEL_URL_NOT_ALLOWED_CODE = 2516
 
 type ChatModelDialogProps = {
   chatModel?: ChatModel
@@ -58,15 +72,15 @@ export function ChatModelDialog({
       llmModelName: chatModel?.llmModelName ?? "",
       llmProvider: chatModel?.llmProvider ?? "",
       maxRpm: chatModel?.maxRpm ?? 60,
+      modelPurpose: chatModel?.modelPurpose ?? "CHAT",
       modelSourceRef: chatModel?.modelSourceRef ?? "",
       priority: chatModel?.priority ?? null,
       sourceType: chatModel?.sourceType ?? "CLOUD_API",
     },
-    resolver: zodResolver(
-      chatModel ? updateChatModelRequestSchema : createChatModelRequestSchema
-    ),
+    resolver: zodResolver(buildChatModelFormSchema(Boolean(chatModel))),
   })
   const sourceType = watch("sourceType")
+  const modelPurpose = watch("modelPurpose")
   const isBusy = isSaving || isSubmitting
 
   const submit = async (values: CreateChatModelRequest) => {
@@ -87,7 +101,16 @@ export function ChatModelDialog({
             : undefined,
       })
     } catch (error) {
-      if (!applyFieldErrors(error, setError)) {
+      const errorCode = getErrorCode(error)
+
+      if (errorCode === CHAT_MODEL_API_KEY_REQUIRED_FOR_NEW_HOST_CODE) {
+        setError("apiKey", { message: getErrorMessage(error), type: "server" })
+      } else if (errorCode === CHAT_MODEL_URL_NOT_ALLOWED_CODE) {
+        setError("apiBaseUrl", {
+          message: getErrorMessage(error),
+          type: "server",
+        })
+      } else if (!applyFieldErrors(error, setError)) {
         setError("root", { message: getErrorMessage(error) })
       }
     }
@@ -109,6 +132,38 @@ export function ChatModelDialog({
           className="space-y-5"
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
+          <div className="space-y-3 rounded-xl border p-3">
+            <Label htmlFor="chat-model-purpose">
+              Mục đích sử dụng{" "}
+              <span className="translate-y-0.5 text-destructive">*</span>
+            </Label>
+            <Select
+              disabled={Boolean(chatModel)}
+              onValueChange={(value) =>
+                setValue("modelPurpose", value as ChatModelPurpose, {
+                  shouldDirty: true,
+                })
+              }
+              value={modelPurpose}
+            >
+              <SelectTrigger className="w-full" id="chat-model-purpose">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {chatModelPurposeSchema.options.map((purpose) => (
+                  <SelectItem key={purpose} value={purpose}>
+                    {getPurposeLabel(purpose)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {chatModel ? (
+              <p className="text-xs text-muted-foreground">
+                Mục đích sử dụng không thể thay đổi sau khi tạo.
+              </p>
+            ) : null}
+          </div>
+
           <div className="space-y-3 rounded-xl border p-3">
             <Label htmlFor="chat-model-source-type">
               Nguồn mô hình{" "}

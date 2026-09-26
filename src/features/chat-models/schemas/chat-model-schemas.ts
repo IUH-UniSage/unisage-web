@@ -109,11 +109,12 @@ function requireProviderForCloudApi<
   }
 }
 
-export const createChatModelRequestSchema = chatModelBaseFieldsSchema
-  .extend({
-    apiKey: z.string().trim().max(2048).optional(),
-    modelPurpose: chatModelPurposeSchema,
-  })
+const chatModelFormFieldsSchema = chatModelBaseFieldsSchema.extend({
+  apiKey: z.string().trim().max(2048).optional(),
+  modelPurpose: chatModelPurposeSchema,
+})
+
+export const createChatModelRequestSchema = chatModelFormFieldsSchema
   .superRefine(requireProviderForCloudApi)
   .refine(
     (values) =>
@@ -123,6 +124,17 @@ export const createChatModelRequestSchema = chatModelBaseFieldsSchema
       path: ["apiKey"],
     }
   )
+
+// Same shape as `createChatModelRequestSchema` (both infer to CreateChatModelRequest)
+// so the create/edit dialog's form can share one `useForm` type - only the
+// validation differs: edit mode drops the "apiKey required for CLOUD_API"
+// rule since a blank apiKey there means "keep the existing key", not
+// "clear it" (see updateChatModelRequestSchema's own comment above).
+export function buildChatModelFormSchema(isEditing: boolean) {
+  return isEditing
+    ? chatModelFormFieldsSchema.superRefine(requireProviderForCloudApi)
+    : createChatModelRequestSchema
+}
 
 // Update never carries modelPurpose (immutable) or apiKey as a plain required
 // field: blank means "keep the old key" (plan.md "Credential rotation" - the
@@ -161,6 +173,6 @@ export type UpdateChatModelRequest = z.infer<
 >
 
 // Re-exported so callers don't need to know the union lives in a separate,
-// hand-maintained file (todo.md Task 17 - contracts:sync doesn't exist yet).
+// hand-maintained file (no contracts:sync tool exists yet).
 export { VERIFICATION_STATUSES }
 export type { VerificationStatus } from "@/features/chat-models/schemas/verification-status"
