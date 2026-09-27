@@ -1,20 +1,21 @@
 import { z } from "zod"
 
-// Mirrors com.unisage.backend.entity.enums.AllowedFileType — keep in sync with
-// the backend whitelist (enforced in FileServiceImpl.upload()) when it changes.
-export const ALLOWED_DOCUMENT_FILE_EXTENSIONS = [
+// Fallback only - the real whitelist is the admin setting
+// `ingest.allowed_file_extensions` (see useAllowedFileExtensions), which the
+// backend enforces in FileServiceImpl. Mirrors its AllowedFileType default.
+export const DEFAULT_ALLOWED_DOCUMENT_FILE_EXTENSIONS = [
   ".txt",
   ".pdf",
   ".docx",
-  ".doc",
   ".html",
 ]
 
-function hasAllowedExtension(filename: string): boolean {
+function hasAllowedExtension(
+  filename: string,
+  allowedExtensions: readonly string[]
+): boolean {
   const lower = filename.toLowerCase()
-  return ALLOWED_DOCUMENT_FILE_EXTENSIONS.some((extension) =>
-    lower.endsWith(extension)
-  )
+  return allowedExtensions.some((extension) => lower.endsWith(extension))
 }
 
 export const docStatusSchema = z.enum([
@@ -84,12 +85,16 @@ const documentFormBaseSchema = z.object({
 
 function checkFileExtension(
   values: z.infer<typeof documentFormBaseSchema>,
-  ctx: z.RefinementCtx
+  ctx: z.RefinementCtx,
+  allowedExtensions: readonly string[]
 ) {
-  if (values.file && !hasAllowedExtension(values.file.name)) {
+  if (
+    values.file &&
+    !hasAllowedExtension(values.file.name, allowedExtensions)
+  ) {
     ctx.addIssue({
       code: "custom",
-      message: `Định dạng file không được hỗ trợ. Chỉ chấp nhận: ${ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(", ")}.`,
+      message: `Định dạng file không được hỗ trợ. Chỉ chấp nhận: ${allowedExtensions.join(", ")}.`,
       path: ["file"],
     })
   }
@@ -110,8 +115,10 @@ function checkPublicAccessLevel(
 }
 
 // Creating a document requires a file or a source URL.
-export const documentFormSchema = documentFormBaseSchema.superRefine(
-  (values, ctx) => {
+export function createDocumentFormSchema(
+  allowedExtensions: readonly string[] = DEFAULT_ALLOWED_DOCUMENT_FILE_EXTENSIONS
+) {
+  return documentFormBaseSchema.superRefine((values, ctx) => {
     if (!values.file && !values.sourceUrl) {
       ctx.addIssue({
         code: "custom",
@@ -120,20 +127,24 @@ export const documentFormSchema = documentFormBaseSchema.superRefine(
       })
     }
 
-    checkFileExtension(values, ctx)
+    checkFileExtension(values, ctx, allowedExtensions)
     checkPublicAccessLevel(values, ctx)
-  }
-)
+  })
+}
+
+export const documentFormSchema = createDocumentFormSchema()
 
 // Editing a document doesn't require a file/source - the existing one stays
 // in place unless the user picks a replacement via DocumentDialog's isEdit
 // branch, which archives the current file into version history on save.
-export const documentEditFormSchema = documentFormBaseSchema.superRefine(
-  (values, ctx) => {
-    checkFileExtension(values, ctx)
+export function createDocumentEditFormSchema(
+  allowedExtensions: readonly string[] = DEFAULT_ALLOWED_DOCUMENT_FILE_EXTENSIONS
+) {
+  return documentFormBaseSchema.superRefine((values, ctx) => {
+    checkFileExtension(values, ctx, allowedExtensions)
     checkPublicAccessLevel(values, ctx)
-  }
-)
+  })
+}
 
 export type Document = z.infer<typeof documentSchema>
 export type DocumentPage = z.infer<typeof documentPageSchema>
