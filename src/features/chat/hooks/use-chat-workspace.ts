@@ -166,6 +166,24 @@ export function useChatWorkspace() {
             queryKey: usageLimitKeys.mine(),
           })
         },
+        onStreamError: (payload) => {
+          // Content up to this point already landed via `onChunk` above -
+          // kept as-is, never discarded. `event: done` (already suppressed
+          // by useChatStream once an error was seen) also means Java has
+          // already PATCHed this message ERROR server-side, so - same as
+          // `onError` below - refetching now would add nothing but risk a
+          // race with that PATCH; the next natural refetch reconciles.
+          toast.error(payload.message)
+          setIsStreaming(false)
+          inFlightRef.current = null
+          setMessages(conversationIdForStream, (current) =>
+            current.map((message) =>
+              message.id === assistantMessageId
+                ? { ...message, status: "ERROR" }
+                : message
+            )
+          )
+        },
         onError: (error) => {
           void queryClient.invalidateQueries({
             queryKey: usageLimitKeys.mine(),

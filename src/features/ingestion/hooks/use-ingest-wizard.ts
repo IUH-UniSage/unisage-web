@@ -40,7 +40,7 @@ export function useIngestWizard(document: Document) {
   const [previewText, setPreviewText] = useState<string>()
   const [chunks, setChunks] = useState<Chunk[]>([])
   const [chunkingStrategy, setChunkingStrategy] =
-    useState<ChunkingStrategyName>("recursive")
+    useState<ChunkingStrategyName>("semantic")
   const [chunkingParams, setChunkingParams] = useState<Record<string, unknown>>(
     {}
   )
@@ -112,9 +112,12 @@ export function useIngestWizard(document: Document) {
   // see Documents' "no docPackageId" case) has nothing for the trusted-context
   // department/access_level check to validate against - the wizard can't
   // proceed for it, so this is surfaced instead of silently sending
-  // department_id: undefined to the AI agent.
+  // department_id: undefined to the AI agent. A public document intentionally
+  // has no minAccessLevel (it has no access gate at all - see
+  // documents_public_access_level_check), so that field isn't required for it.
   const missingDepartmentInfo =
-    !document.departmentId || document.minAccessLevel == null
+    !document.departmentId ||
+    (document.minAccessLevel == null && !document.isPublic)
 
   // The document fields every step needs, narrowed to non-null once. The
   // wizard UI already blocks on `missingDepartmentInfo`, so in practice
@@ -122,11 +125,12 @@ export function useIngestWizard(document: Document) {
   const processCtx =
     document.departmentId != null &&
     document.sourceUrl != null &&
-    document.minAccessLevel != null
+    (document.minAccessLevel != null || document.isPublic)
       ? {
           departmentId: document.departmentId,
           sourceUrl: document.sourceUrl,
-          accessLevel: document.minAccessLevel,
+          accessLevel: document.minAccessLevel ?? 0,
+          isPublic: document.isPublic ?? false,
         }
       : null
 
@@ -238,6 +242,7 @@ export function useIngestWizard(document: Document) {
         department_id: processCtx.departmentId,
         document_id: document.id,
         object_key: processCtx.sourceUrl,
+        is_public: processCtx.isPublic,
       },
       {
         onSuccess: (response) => {

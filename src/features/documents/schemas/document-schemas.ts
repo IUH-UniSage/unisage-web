@@ -95,6 +95,20 @@ function checkFileExtension(
   }
 }
 
+// A public document has no access-level gate - mirrors the backend/DB constraint.
+function checkPublicAccessLevel(
+  values: z.infer<typeof documentFormBaseSchema>,
+  ctx: z.RefinementCtx
+) {
+  if (values.isPublic && values.minAccessLevelId) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Tài liệu công khai không được đặt cấp độ truy cập tối thiểu.",
+      path: ["minAccessLevelId"],
+    })
+  }
+}
+
 // Creating a document requires a file or a source URL.
 export const documentFormSchema = documentFormBaseSchema.superRefine(
   (values, ctx) => {
@@ -107,14 +121,19 @@ export const documentFormSchema = documentFormBaseSchema.superRefine(
     }
 
     checkFileExtension(values, ctx)
+    checkPublicAccessLevel(values, ctx)
   }
 )
 
 // Editing a document doesn't require a file/source - the existing one stays
 // in place unless the user picks a replacement via DocumentDialog's isEdit
 // branch, which archives the current file into version history on save.
-export const documentEditFormSchema =
-  documentFormBaseSchema.superRefine(checkFileExtension)
+export const documentEditFormSchema = documentFormBaseSchema.superRefine(
+  (values, ctx) => {
+    checkFileExtension(values, ctx)
+    checkPublicAccessLevel(values, ctx)
+  }
+)
 
 export type Document = z.infer<typeof documentSchema>
 export type DocumentPage = z.infer<typeof documentPageSchema>

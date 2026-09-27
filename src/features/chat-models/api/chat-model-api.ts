@@ -4,7 +4,10 @@ import {
   type ChatModel,
   chatModelPageSchema,
   type ChatModelPage,
+  type ChatModelPurpose,
   chatModelSchema,
+  type ChatModelStatus,
+  chatModelStatusRequestSchema,
   type CreateChatModelRequest,
   createChatModelRequestSchema,
   type UpdateChatModelRequest,
@@ -14,6 +17,17 @@ import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import { readApiResponse, readSuccessData } from "@/utils/api-response"
 import { httpClient } from "@/lib/axios-client"
 import type { ApiResponse } from "@/utils/api-response"
+
+export type ChatModelsParams = {
+  isActive?: boolean
+  modelPurpose?: ChatModelPurpose
+  // 1-based, like the rest of the UI; the backend page index is 0-based.
+  page: number
+  q?: string
+  size: number
+  sort?: "asc" | "desc"
+  status?: ChatModelStatus
+}
 
 export const chatModelApi = {
   async createChatModel(input: CreateChatModelRequest): Promise<ChatModel> {
@@ -34,10 +48,28 @@ export const chatModelApi = {
     readApiResponse(response.data, z.null())
   },
 
-  async getChatModels(page: number, limit: number): Promise<ChatModelPage> {
+  async getChatModels({
+    isActive,
+    modelPurpose,
+    page,
+    q,
+    size,
+    sort,
+    status,
+  }: ChatModelsParams): Promise<ChatModelPage> {
     const response = await httpClient.get<ApiResponse<ChatModelPage>>(
       API_ENDPOINTS.chatModels.chatModels,
-      { params: { page: page - 1, size: limit } }
+      {
+        params: {
+          isActive,
+          modelPurpose,
+          page: page - 1,
+          q: q || undefined,
+          size,
+          sort: sort ? `priority,${sort}` : undefined,
+          status,
+        },
+      }
     )
 
     return readSuccessData(response.data, chatModelPageSchema)
@@ -59,6 +91,29 @@ export const chatModelApi = {
     const response = await httpClient.put<ApiResponse<ChatModel>>(
       API_ENDPOINTS.chatModels.chatModel(chatModelId),
       request
+    )
+
+    return readSuccessData(response.data, chatModelSchema)
+  },
+
+  // ACTIVE/INACTIVE only - every other status transition happens server-side
+  // via verify/promote (see chatModelStatusRequestSchema).
+  async updateChatModelStatus(
+    chatModelId: string,
+    status: ChatModelStatus
+  ): Promise<ChatModel> {
+    const request = chatModelStatusRequestSchema.parse({ status })
+    const response = await httpClient.patch<ApiResponse<ChatModel>>(
+      API_ENDPOINTS.chatModels.chatModelStatus(chatModelId),
+      request
+    )
+
+    return readSuccessData(response.data, chatModelSchema)
+  },
+
+  async verifyChatModel(chatModelId: string): Promise<ChatModel> {
+    const response = await httpClient.post<ApiResponse<ChatModel>>(
+      API_ENDPOINTS.chatModels.chatModelVerify(chatModelId)
     )
 
     return readSuccessData(response.data, chatModelSchema)

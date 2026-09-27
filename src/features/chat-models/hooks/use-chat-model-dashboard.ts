@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
+import { useSearchParams } from "react-router-dom"
 
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import {
@@ -6,44 +7,116 @@ import {
   useDeleteChatModelMutation,
   useRecoverChatModelMutation,
   useUpdateChatModelMutation,
+  useUpdateChatModelStatusMutation,
+  useVerifyChatModelMutation,
 } from "@/features/chat-models/queries/use-mutations"
 import { useChatModelsQuery } from "@/features/chat-models/queries/use-queries"
 import type {
   ChatModel,
-  ChatModelSourceType,
+  ChatModelPurpose,
+  ChatModelStatus,
   CreateChatModelRequest,
 } from "@/features/chat-models/schemas/chat-model-schemas"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { PERMISSIONS } from "@/utils/permissions"
 
-export const CHAT_MODEL_PAGE_SIZE = 12
-// The backend paginates server-side, but search/status/source filtering here
-// is client-side - fetch every model in one request (matches the rbac
-// feature's approach) so filtering and pagination both operate on the full
-// set instead of whatever one server page happens to be loaded.
-const CHAT_MODEL_FETCH_LIMIT = 500
+export const CHAT_MODEL_PAGE_SIZE = 10
 
-export type StatusFilter = "ALL" | "ACTIVE" | "INACTIVE"
-export type SourceFilter = "ALL" | ChatModelSourceType
+// Soft-delete axis (BaseEntity.isActive) - "ACTIVE" (the default) sends
+// isActive=true to the backend so a fresh page load only shows
+// non-soft-deleted rows, separate from the ChatModelStatus state machine below.
+export type ActiveFilter = "ALL" | "ACTIVE" | "INACTIVE"
+export type PurposeFilter = "ALL" | ChatModelPurpose
+export type ModelStatusFilter = "ALL" | ChatModelStatus
+export type PrioritySort = "asc" | "desc"
 
 const EMPTY_CHAT_MODELS: ChatModel[] = []
 
-function paginate<T>(items: T[], page: number) {
-  const start = (page - 1) * CHAT_MODEL_PAGE_SIZE
-  return items.slice(start, start + CHAT_MODEL_PAGE_SIZE)
-}
+const PARAM_DEFAULTS = {
+  active: "ACTIVE",
+  modelStatus: "ALL",
+  page: "1",
+  purpose: "ALL",
+  q: "",
+  sort: "asc",
+} as const
 
+type Param = keyof typeof PARAM_DEFAULTS
+
+// Short keys keep the URL readable; only this map needs to change if a param
+// is renamed - the rest of the hook keeps using the descriptive Param names.
+const URL_PARAM_KEYS = {
+  active: "active",
+  modelStatus: "status",
+  page: "page",
+  purpose: "purpose",
+  q: "q",
+  sort: "sort",
+} as const satisfies Record<Param, string>
+
+// Admin list: filters are drafted in the toolbar and only applied (and only
+// then sent to the backend) when the SA clicks "Lọc" - and applied filters
+// live in the URL so a refresh never loses them.
 export function useChatModelDashboard() {
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("ALL")
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const chatModelsQuery = useChatModelsQuery(1, CHAT_MODEL_FETCH_LIMIT)
+  const getParam = (key: Param) =>
+    searchParams.get(URL_PARAM_KEYS[key]) ?? PARAM_DEFAULTS[key]
+
+  const setParams = (updates: Partial<Record<Param, string>>) => {
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
+        for (const key of Object.keys(updates) as Param[]) {
+          const value = updates[key]
+          const urlKey = URL_PARAM_KEYS[key]
+          if (value === undefined || value === PARAM_DEFAULTS[key]) {
+            next.delete(urlKey)
+          } else {
+            next.set(urlKey, value)
+          }
+        }
+        return next
+      },
+      { replace: true }
+    )
+  }
+
+  const getPage = () => {
+    const page = Number.parseInt(getParam("page"), 10)
+    return Number.isFinite(page) && page > 0 ? page : 1
+  }
+
+  const appliedQ = getParam("q")
+  const appliedPurpose = getParam("purpose") as PurposeFilter
+  const appliedModelStatus = getParam("modelStatus") as ModelStatusFilter
+  const appliedActive = getParam("active") as ActiveFilter
+  const appliedSort = getParam("sort") as PrioritySort
+  const page = getPage()
+
+  const [draftQ, setDraftQ] = useState(appliedQ)
+  const [draftPurpose, setDraftPurpose] =
+    useState<PurposeFilter>(appliedPurpose)
+  const [draftModelStatus, setDraftModelStatus] =
+    useState<ModelStatusFilter>(appliedModelStatus)
+  const [draftActive, setDraftActive] = useState<ActiveFilter>(appliedActive)
+  const [draftSort, setDraftSort] = useState<PrioritySort>(appliedSort)
+
+  const chatModelsQuery = useChatModelsQuery({
+    isActive: appliedActive === "ALL" ? undefined : appliedActive === "ACTIVE",
+    modelPurpose: appliedPurpose === "ALL" ? undefined : appliedPurpose,
+    page,
+    q: appliedQ,
+    size: CHAT_MODEL_PAGE_SIZE,
+    sort: appliedSort,
+    status: appliedModelStatus === "ALL" ? undefined : appliedModelStatus,
+  })
   const createChatModel = useCreateChatModelMutation()
   const updateChatModel = useUpdateChatModelMutation()
   const deleteChatModel = useDeleteChatModelMutation()
   const recoverChatModel = useRecoverChatModelMutation()
+  const updateChatModelStatus = useUpdateChatModelStatusMutation()
+  const verifyChatModel = useVerifyChatModelMutation()
 
   const { canCreate, canDelete, canRead, canUpdate } =
     useResourcePermissions("chat_model")
@@ -55,64 +128,7 @@ export function useChatModelDashboard() {
   const [viewingChatModel, setViewingChatModel] = useState<ChatModel>()
   const [statusChatModel, setStatusChatModel] = useState<ChatModel>()
 
-  const rawChatModels = chatModelsQuery.data?.data ?? EMPTY_CHAT_MODELS
-
-  // Filter models based on search & filter criteria
-  const filteredChatModels = useMemo(() => {
-    return rawChatModels.filter((model) => {
-      // Search matching
-      const query = search.trim().toLowerCase()
-      const matchesSearch =
-        !query ||
-        model.llmModelName.toLowerCase().includes(query) ||
-        (model.llmProvider?.toLowerCase().includes(query) ?? false) ||
-        (model.modelSourceRef?.toLowerCase().includes(query) ?? false) ||
-        model.apiBaseUrl.toLowerCase().includes(query)
-
-      // Status matching
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        (statusFilter === "ACTIVE" && model.isActive) ||
-        (statusFilter === "INACTIVE" && !model.isActive)
-
-      // Source matching
-      const matchesSource =
-        sourceFilter === "ALL" || model.sourceType === sourceFilter
-
-      return matchesSearch && matchesStatus && matchesSource
-    })
-  }, [rawChatModels, search, statusFilter, sourceFilter])
-
-  const totalItems = filteredChatModels.length
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredChatModels.length / CHAT_MODEL_PAGE_SIZE)
-  )
-  const currentPage = Math.min(page, totalPages)
-  const pagedChatModels = paginate(filteredChatModels, currentPage)
-
-  // Summary KPI Metrics
-  const stats = useMemo(() => {
-    const total = rawChatModels.length
-    const active = rawChatModels.filter((m) => m.isActive).length
-    const cloud = rawChatModels.filter(
-      (m) => m.sourceType === "CLOUD_API"
-    ).length
-    const selfHosted = rawChatModels.filter(
-      (m) => m.sourceType === "SELF_HOSTED"
-    ).length
-    const totalRpm = rawChatModels
-      .filter((m) => m.isActive)
-      .reduce((sum, m) => sum + (m.maxRpm || 0), 0)
-
-    return {
-      active,
-      cloud,
-      selfHosted,
-      total,
-      totalRpm,
-    }
-  }, [rawChatModels])
+  const chatModels = chatModelsQuery.data?.data ?? EMPTY_CHAT_MODELS
 
   const openCreate = () => {
     setViewingChatModel(undefined)
@@ -149,6 +165,23 @@ export function useChatModelDashboard() {
   const requestStatusChange = (chatModel: ChatModel) =>
     setStatusChatModel(chatModel)
 
+  // "status" here is the ACTIVE/INACTIVE/PENDING/DISABLED state machine, a
+  // separate axis from the isActive soft-delete toggle above.
+  const activateChatModel = (chatModel: ChatModel) =>
+    updateChatModelStatus.mutateAsync({
+      chatModelId: chatModel.id,
+      status: "ACTIVE",
+    })
+
+  const deactivateChatModel = (chatModel: ChatModel) =>
+    updateChatModelStatus.mutateAsync({
+      chatModelId: chatModel.id,
+      status: "INACTIVE",
+    })
+
+  const reverifyChatModel = (chatModel: ChatModel) =>
+    verifyChatModel.mutateAsync(chatModel.id)
+
   const closeStatusDialog = () => setStatusChatModel(undefined)
 
   const confirmStatusChange = async () => {
@@ -163,68 +196,84 @@ export function useChatModelDashboard() {
     setStatusChatModel(undefined)
   }
 
-  // Any filter change can shrink totalPages below the page the user was on -
-  // jump back to page 1 rather than leaving them stranded past the new end.
-  const updateSearch = (value: string) => {
-    setSearch(value)
-    setPage(1)
-  }
-
-  const updateStatusFilter = (value: StatusFilter) => {
-    setStatusFilter(value)
-    setPage(1)
-  }
-
-  const updateSourceFilter = (value: SourceFilter) => {
-    setSourceFilter(value)
-    setPage(1)
+  const applyFilters = () => {
+    setParams({
+      active: draftActive,
+      modelStatus: draftModelStatus,
+      page: PARAM_DEFAULTS.page,
+      purpose: draftPurpose,
+      q: draftQ.trim(),
+      sort: draftSort,
+    })
   }
 
   const resetFilters = () => {
-    setSearch("")
-    setStatusFilter("ALL")
-    setSourceFilter("ALL")
-    setPage(1)
+    setDraftQ(PARAM_DEFAULTS.q)
+    setDraftPurpose(PARAM_DEFAULTS.purpose)
+    setDraftModelStatus(PARAM_DEFAULTS.modelStatus)
+    setDraftActive(PARAM_DEFAULTS.active)
+    setDraftSort(PARAM_DEFAULTS.sort)
+    setParams({
+      active: PARAM_DEFAULTS.active,
+      modelStatus: PARAM_DEFAULTS.modelStatus,
+      page: PARAM_DEFAULTS.page,
+      purpose: PARAM_DEFAULTS.purpose,
+      q: PARAM_DEFAULTS.q,
+      sort: PARAM_DEFAULTS.sort,
+    })
   }
 
   const isFiltered =
-    Boolean(search.trim()) || statusFilter !== "ALL" || sourceFilter !== "ALL"
+    Boolean(appliedQ.trim()) ||
+    appliedPurpose !== "ALL" ||
+    appliedModelStatus !== "ALL" ||
+    appliedActive !== "ACTIVE" ||
+    appliedSort !== "asc"
 
   return {
+    activateChatModel,
+    activeFilter: draftActive,
+    applyFilters,
     canCreate,
     canDelete,
     canRead,
     canRecover,
     canUpdate,
-    chatModels: pagedChatModels,
+    chatModels,
     closeChatModelDetail,
     closeDialog,
     closeStatusDialog,
     confirmStatusChange,
+    deactivateChatModel,
     editingChatModel,
     isDialogOpen,
     isFiltered,
     isPending: chatModelsQuery.isPending,
     isSaving: createChatModel.isPending || updateChatModel.isPending,
+    isUpdatingChatModelStatus: updateChatModelStatus.isPending,
     isUpdatingStatus: deleteChatModel.isPending || recoverChatModel.isPending,
+    isVerifying: verifyChatModel.isPending,
+    modelStatusFilter: draftModelStatus,
     openChatModelDetail,
     openCreate,
     openEdit,
-    page: currentPage,
+    page,
+    prioritySort: draftSort,
+    purposeFilter: draftPurpose,
     requestStatusChange,
     resetFilters,
+    reverifyChatModel,
     save,
-    search,
-    setPage,
-    setSearch: updateSearch,
-    setSourceFilter: updateSourceFilter,
-    setStatusFilter: updateStatusFilter,
-    sourceFilter,
-    stats,
+    search: draftQ,
+    setActiveFilter: setDraftActive,
+    setModelStatusFilter: setDraftModelStatus,
+    setPage: (value: number) => setParams({ page: String(value) }),
+    setPrioritySort: setDraftSort,
+    setPurposeFilter: setDraftPurpose,
+    setSearch: setDraftQ,
     statusChatModel,
-    statusFilter,
-    totalItems,
-    totalPages,
+    totalItems: chatModelsQuery.data?.totalItems ?? 0,
+    totalPages: chatModelsQuery.data?.totalPages ?? 1,
     viewingChatModel,
   }
 }

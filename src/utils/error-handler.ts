@@ -60,6 +60,17 @@ export function getErrorMessage(
   )
 }
 
+// The numeric `code` from the backend's `{code, message, ...}` envelope, for
+// call sites that need to react to one specific error (e.g. surface it on a
+// particular form field) rather than just displaying `getErrorMessage`.
+export function getErrorCode(error: unknown): number | undefined {
+  if (error instanceof ApiResponseError) return error.code
+  if (!axios.isAxiosError<ApiErrorResponse>(error)) return undefined
+
+  const code = error.response?.data?.code
+  return typeof code === "number" ? code : undefined
+}
+
 export function getFieldErrors(error: unknown): Record<string, string> {
   if (error instanceof ApiResponseError) return error.errors ?? {}
   if (!axios.isAxiosError<ApiErrorResponse>(error)) return {}
