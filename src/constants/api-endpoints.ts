@@ -18,6 +18,9 @@ export const API_ENDPOINTS = {
     health: "/admin/health",
     history: "/admin/health/history",
   },
+  dashboard: {
+    summary: "/admin/dashboard/summary",
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
