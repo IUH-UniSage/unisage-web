@@ -1,7 +1,8 @@
-import { Plus, Search } from "lucide-react"
+import { Plus } from "lucide-react"
+import { useSearchParams } from "react-router-dom"
 
+import { ListToolbar } from "@/components/shared/list/list-toolbar"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -10,21 +11,44 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChatModelDetailDialog } from "@/features/chat-models/components/chat-model-detail-dialog"
 import { ChatModelDialog } from "@/features/chat-models/components/chat-model-dialog"
 import { ChatModelList } from "@/features/chat-models/components/chat-model-list"
 import { ChatModelStatusDialog } from "@/features/chat-models/components/chat-model-status-dialog"
+import { VerificationJobList } from "@/features/chat-models/components/verification-job-list"
 import { useChatModelDashboard } from "@/features/chat-models/hooks/use-chat-model-dashboard"
-import type { PurposeFilter } from "@/features/chat-models/hooks/use-chat-model-dashboard"
-import { chatModelPurposeSchema } from "@/features/chat-models/schemas/chat-model-schemas"
-import { getPurposeLabel } from "@/features/chat-models/utils/chat-model-formatters"
+import type {
+  ActiveFilter,
+  ModelStatusFilter,
+  PrioritySort,
+  PurposeFilter,
+} from "@/features/chat-models/hooks/use-chat-model-dashboard"
+import {
+  chatModelPurposeSchema,
+  chatModelStatusSchema,
+} from "@/features/chat-models/schemas/chat-model-schemas"
+import {
+  getPurposeLabel,
+  getStatusLabel,
+} from "@/features/chat-models/utils/chat-model-formatters"
+
+const ALL = "ALL"
+
+const CHAT_MODEL_TABS = ["models", "jobs"] as const
+type ChatModelTab = (typeof CHAT_MODEL_TABS)[number]
+
+function isChatModelTab(value: string | null): value is ChatModelTab {
+  return (CHAT_MODEL_TABS as readonly string[]).includes(value ?? "")
+}
 
 export function ChatModelDashboard() {
   const dashboard = useChatModelDashboard()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  if (dashboard.isPending) {
-    return <ChatModelSkeleton />
-  }
+  const activeTab: ChatModelTab = isChatModelTab(searchParams.get("tab"))
+    ? (searchParams.get("tab") as ChatModelTab)
+    : "models"
 
   return (
     <>
@@ -55,64 +79,161 @@ export function ChatModelDashboard() {
           ) : null}
         </div>
 
-        {/* Search + Purpose Filter */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative max-w-md flex-1">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label="Tìm kiếm mô hình chat"
-              className="h-10 rounded-xl pl-9.5 text-sm"
-              onChange={(e) => dashboard.setSearch(e.target.value)}
-              placeholder="Tìm theo tên mô hình, nhà cung cấp hoặc URL..."
-              value={dashboard.search}
-            />
-          </div>
+        <Tabs
+          onValueChange={(value) => {
+            setSearchParams(
+              (previous) => {
+                const next = new URLSearchParams(previous)
+                if (value === "models") {
+                  next.delete("tab")
+                } else {
+                  next.set("tab", value)
+                }
+                return next
+              },
+              { replace: true }
+            )
+          }}
+          value={activeTab}
+        >
+          <TabsList>
+            <TabsTrigger value="models">Mô hình</TabsTrigger>
+            <TabsTrigger value="jobs">Jobs xác minh</TabsTrigger>
+          </TabsList>
 
-          <Select
-            onValueChange={(value) =>
-              dashboard.setPurposeFilter(value as PurposeFilter)
-            }
-            value={dashboard.purposeFilter}
-          >
-            <SelectTrigger
-              aria-label="Lọc theo mục đích sử dụng"
-              className="h-10 w-full rounded-xl sm:w-56"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Tất cả mục đích</SelectItem>
-              {chatModelPurposeSchema.options.map((purpose) => (
-                <SelectItem key={purpose} value={purpose}>
-                  {getPurposeLabel(purpose)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <TabsContent className="space-y-5" value="models">
+            <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+              <ListToolbar
+                isFiltered={dashboard.isFiltered}
+                onApplyFilters={dashboard.applyFilters}
+                onResetFilters={dashboard.resetFilters}
+                onSearchChange={dashboard.setSearch}
+                search={dashboard.search}
+                searchAriaLabel="Tìm kiếm mô hình chat"
+                searchPlaceholder="Tìm theo tên mô hình, nhà cung cấp hoặc URL..."
+              >
+                <Select
+                  onValueChange={(value) =>
+                    dashboard.setActiveFilter(value as ActiveFilter)
+                  }
+                  value={dashboard.activeFilter}
+                >
+                  <SelectTrigger
+                    aria-label="Lọc theo trạng thái hoạt động"
+                    className="w-44"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ACTIVE">Đang sử dụng</SelectItem>
+                    <SelectItem value="INACTIVE">Đã vô hiệu hoá</SelectItem>
+                    <SelectItem value={ALL}>Tất cả</SelectItem>
+                  </SelectContent>
+                </Select>
 
-        {/* Card Grid List */}
-        <ChatModelList
-          canDelete={dashboard.canDelete}
-          canRecover={dashboard.canRecover}
-          canUpdate={dashboard.canUpdate}
-          chatModels={dashboard.chatModels}
-          currentPage={dashboard.page}
-          isUpdatingStatus={dashboard.isUpdatingChatModelStatus}
-          isVerifying={dashboard.isVerifying}
-          onActivate={dashboard.activateChatModel}
-          onDeactivate={dashboard.deactivateChatModel}
-          onDetail={dashboard.openChatModelDetail}
-          onEdit={dashboard.openEdit}
-          onPageChange={dashboard.setPage}
-          onReverify={dashboard.reverifyChatModel}
-          onStatusRequest={dashboard.requestStatusChange}
-          totalItems={dashboard.totalItems}
-          totalPages={dashboard.totalPages}
-        />
+                <Select
+                  onValueChange={(value) =>
+                    dashboard.setPurposeFilter(value as PurposeFilter)
+                  }
+                  value={dashboard.purposeFilter}
+                >
+                  <SelectTrigger
+                    aria-label="Lọc theo mục đích sử dụng"
+                    className="w-44"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>Mọi mục đích</SelectItem>
+                    {chatModelPurposeSchema.options.map((purpose) => (
+                      <SelectItem key={purpose} value={purpose}>
+                        {getPurposeLabel(purpose)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  onValueChange={(value) =>
+                    dashboard.setModelStatusFilter(value as ModelStatusFilter)
+                  }
+                  value={dashboard.modelStatusFilter}
+                >
+                  <SelectTrigger
+                    aria-label="Lọc theo trạng thái"
+                    className="w-44"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>Mọi trạng thái</SelectItem>
+                    {chatModelStatusSchema.options.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {getStatusLabel(status)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  onValueChange={(value) =>
+                    dashboard.setPrioritySort(value as PrioritySort)
+                  }
+                  value={dashboard.prioritySort}
+                >
+                  <SelectTrigger
+                    aria-label="Sắp xếp theo độ ưu tiên"
+                    className="w-52"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* priority=0 is the highest priority, so ascending order
+                        (0, 1, 2, ...) reads as "cao đến thấp", not the other
+                        way around. */}
+                    <SelectItem value="asc">Ưu tiên: Cao đến thấp</SelectItem>
+                    <SelectItem value="desc">Ưu tiên: Thấp đến cao</SelectItem>
+                  </SelectContent>
+                </Select>
+              </ListToolbar>
+            </div>
+
+            {/* Card Grid List */}
+            {dashboard.isPending ? (
+              <div
+                aria-label="Đang tải danh sách mô hình chat"
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton className="h-60 rounded-2xl" key={i} />
+                ))}
+              </div>
+            ) : (
+              <ChatModelList
+                canDelete={dashboard.canDelete}
+                canRecover={dashboard.canRecover}
+                canUpdate={dashboard.canUpdate}
+                chatModels={dashboard.chatModels}
+                currentPage={dashboard.page}
+                isUpdatingStatus={dashboard.isUpdatingChatModelStatus}
+                isVerifying={dashboard.isVerifying}
+                onActivate={dashboard.activateChatModel}
+                onDeactivate={dashboard.deactivateChatModel}
+                onDetail={dashboard.openChatModelDetail}
+                onEdit={dashboard.openEdit}
+                onPageChange={dashboard.setPage}
+                onReverify={dashboard.reverifyChatModel}
+                onStatusRequest={dashboard.requestStatusChange}
+                totalItems={dashboard.totalItems}
+                totalPages={dashboard.totalPages}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="jobs">
+            <VerificationJobList />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {dashboard.viewingChatModel ? (
@@ -150,25 +271,5 @@ export function ChatModelDashboard() {
         />
       ) : null}
     </>
-  )
-}
-
-function ChatModelSkeleton() {
-  return (
-    <div aria-label="Đang tải danh sách mô hình chat" className="space-y-5">
-      <div className="space-y-3">
-        <Skeleton className="h-4 w-36" />
-        <Skeleton className="h-9 w-64 max-w-full" />
-        <Skeleton className="h-4 w-[520px] max-w-full" />
-      </div>
-
-      <Skeleton className="h-10 w-80 rounded-xl" />
-
-      <div className="grid grid-cols-1 gap-4.5 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton className="h-60 rounded-2xl" key={i} />
-        ))}
-      </div>
-    </div>
   )
 }

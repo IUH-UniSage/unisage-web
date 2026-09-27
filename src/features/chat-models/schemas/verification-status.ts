@@ -33,6 +33,26 @@ export const VERIFICATION_STATUS_LABELS: Record<VerificationStatus, string> = {
   SUPERSEDED: "Đã bị thay bằng thay đổi mới hơn",
 }
 
+const VERIFICATION_STATUS_BADGE_CLASSNAME: Record<VerificationStatus, string> =
+  {
+    CANCELLED: "border-transparent bg-muted text-muted-foreground",
+    FAILED: "border-transparent bg-destructive/10 text-destructive",
+    QUEUED: "border-transparent bg-sky/10 text-sky",
+    REINDEX_REQUIRED: "border-transparent bg-warning text-warning-foreground",
+    RUNNING: "border-transparent bg-teal/15 text-teal",
+    SUCCEEDED: "border-transparent bg-success/10 text-success",
+    SUPERSEDED: "border-transparent bg-muted text-muted-foreground",
+  }
+
+const UNKNOWN_STATUS_BADGE_CLASSNAME =
+  "border-transparent bg-muted text-muted-foreground"
+
+export function getVerificationStatusBadgeClassName(value: string): string {
+  return isVerificationStatus(value)
+    ? VERIFICATION_STATUS_BADGE_CLASSNAME[value]
+    : UNKNOWN_STATUS_BADGE_CLASSNAME
+}
+
 const UNKNOWN_STATUS_LABEL = "Không xác định"
 
 export function isVerificationStatus(

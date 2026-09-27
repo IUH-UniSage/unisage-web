@@ -4,6 +4,7 @@ import {
   type ChatModel,
   chatModelPageSchema,
   type ChatModelPage,
+  type ChatModelPurpose,
   chatModelSchema,
   type ChatModelStatus,
   chatModelStatusRequestSchema,
@@ -16,6 +17,17 @@ import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import { readApiResponse, readSuccessData } from "@/utils/api-response"
 import { httpClient } from "@/lib/axios-client"
 import type { ApiResponse } from "@/utils/api-response"
+
+export type ChatModelsParams = {
+  isActive?: boolean
+  modelPurpose?: ChatModelPurpose
+  // 1-based, like the rest of the UI; the backend page index is 0-based.
+  page: number
+  q?: string
+  size: number
+  sort?: "asc" | "desc"
+  status?: ChatModelStatus
+}
 
 export const chatModelApi = {
   async createChatModel(input: CreateChatModelRequest): Promise<ChatModel> {
@@ -36,10 +48,28 @@ export const chatModelApi = {
     readApiResponse(response.data, z.null())
   },
 
-  async getChatModels(page: number, limit: number): Promise<ChatModelPage> {
+  async getChatModels({
+    isActive,
+    modelPurpose,
+    page,
+    q,
+    size,
+    sort,
+    status,
+  }: ChatModelsParams): Promise<ChatModelPage> {
     const response = await httpClient.get<ApiResponse<ChatModelPage>>(
       API_ENDPOINTS.chatModels.chatModels,
-      { params: { page: page - 1, size: limit } }
+      {
+        params: {
+          isActive,
+          modelPurpose,
+          page: page - 1,
+          q: q || undefined,
+          size,
+          sort: sort ? `priority,${sort}` : undefined,
+          status,
+        },
+      }
     )
 
     return readSuccessData(response.data, chatModelPageSchema)

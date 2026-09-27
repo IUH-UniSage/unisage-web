@@ -58,6 +58,8 @@ export const API_ENDPOINTS = {
     chatModelVerify: (chatModelId: string) =>
       `/chat-models/${chatModelId}/verify`,
     chatModels: "/chat-models",
+    verificationJob: (jobId: string) => `/chat-models/verifications/${jobId}`,
+    verificationJobs: "/chat-models/verifications",
   },
   conversations: {
     conversation: (conversationId: string) =>
