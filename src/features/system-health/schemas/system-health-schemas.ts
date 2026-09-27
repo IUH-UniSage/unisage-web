@@ -89,13 +89,13 @@ export const COMPONENT_LABELS: Record<KnownComponentKey, string> = {
 
 // One-line explanation of what each dependency actually is, naming the real
 // technology (not just a generic role) so "Cổng API"/"Trợ lý AI" aren't
-// unexplained names on their own.
+// unexplained names on their own. Kept short enough for one line on a
+// card (UNISAGE-93).
 export const COMPONENT_DESCRIPTIONS: Record<KnownComponentKey, string> = {
-  agent: "Dịch vụ Python xử lý câu hỏi và tạo câu trả lời (RAG).",
-  db: "PostgreSQL - nơi lưu dữ liệu người dùng, tài liệu, hội thoại...",
-  gateway:
-    "Spring Cloud Gateway - định tuyến mọi yêu cầu đến các dịch vụ phía sau.",
-  minio: "MinIO - nơi lưu file tài liệu (PDF, Word...) được tải lên.",
+  agent: "Dịch vụ Python trả lời câu hỏi (RAG).",
+  db: "PostgreSQL - dữ liệu chính của hệ thống.",
+  gateway: "Spring Cloud Gateway - định tuyến API.",
+  minio: "MinIO - lưu file tài liệu tải lên.",
 }
 
 export function getComponentLabel(key: string): string {
@@ -115,6 +115,89 @@ const AGENT_SUB_COMPONENT_LABELS: Record<string, string> = {
   database: "PostgreSQL (riêng của Trợ lý AI)",
   qdrant: "Qdrant (vector database)",
   redis: "Redis",
+}
+
+export type ComponentFact = {
+  label: string
+  // Extra detail shown on hover (e.g. each agent dependency's latency).
+  title?: string
+  value: string
+}
+
+function stringAt(
+  details: Record<string, unknown> | null | undefined,
+  key: string
+) {
+  const value = details?.[key]
+  return typeof value === "string" && value.trim() ? value : null
+}
+
+function mainFact(
+  key: string,
+  details: Record<string, unknown> | null | undefined
+): ComponentFact {
+  switch (key) {
+    case "agent": {
+      const subs = getAgentSubComponents(details)
+      if (!subs) break
+      const up = subs.filter((sub) => sub.up).length
+      return {
+        label: "Phụ thuộc",
+        title: subs
+          .map(
+            (sub) =>
+              `${sub.label}: ${sub.up ? "hoạt động" : "lỗi"}` +
+              (sub.responseTimeMs !== null ? ` · ${sub.responseTimeMs}ms` : "")
+          )
+          .join("\n"),
+        value: `${up}/${subs.length} hoạt động`,
+      }
+    }
+    case "db":
+      return {
+        label: "Hệ quản trị",
+        value: stringAt(details, "database") ?? "—",
+      }
+    case "gateway":
+      return {
+        label: "Địa chỉ",
+        value: stringAt(details, "url")?.replace(/^https?:\/\//, "") ?? "—",
+      }
+    case "minio":
+      return { label: "Bucket", value: stringAt(details, "bucket") ?? "—" }
+  }
+  return { label: "Chi tiết", value: "—" }
+}
+
+/**
+ * The two rows every component card shows - its key detail and its response
+ * time - always in the same shape so the cards line up with each other
+ * instead of mixing a dependency list with label/value rows (UNISAGE-93).
+ */
+export function getComponentFacts(
+  health: {
+    details?: Record<string, unknown> | null
+    responseTimeMs?: number | null
+  },
+  key: string
+): ComponentFact[] {
+  // Actuator indicators report latency inside `details`, not in the
+  // top-level `responseTimeMs`; db reports none at all.
+  const nested = health.details?.responseTimeMs
+  const responseTimeMs =
+    typeof health.responseTimeMs === "number"
+      ? health.responseTimeMs
+      : typeof nested === "number"
+        ? nested
+        : null
+
+  return [
+    mainFact(key, health.details),
+    {
+      label: "Thời gian phản hồi",
+      value: responseTimeMs !== null ? `${responseTimeMs}ms` : "—",
+    },
+  ]
 }
 
 export type AgentSubComponent = {

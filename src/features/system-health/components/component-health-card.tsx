@@ -6,77 +6,84 @@ import {
 import { HealthStatusBadge } from "@/features/system-health/components/health-status-badge"
 import { cn } from "@/lib/utils"
 import {
-  getAgentSubComponents,
   getComponentDescription,
+  getComponentFacts,
   getComponentLabel,
+  getHealthStatusDotClassName,
+  HEALTH_STATUS_LABELS,
   type ComponentHealth,
   type KnownComponentKey,
 } from "@/features/system-health/schemas/system-health-schemas"
-import { formatDateTime } from "@/utils/date"
 
 type ComponentHealthCardProps = {
-  checkedAt: string
   componentKey: string
   health: ComponentHealth
 }
 
+// Compact layout: icon, name and status share one row and every card ends
+// with the same two-row detail box - no per-card "Cập nhật lúc" footer, the overall
+// banner above already shows the same check time (UNISAGE-93).
 export function ComponentHealthCard({
-  checkedAt,
   componentKey,
   health,
 }: ComponentHealthCardProps) {
   const Icon =
     COMPONENT_ICONS[componentKey as KnownComponentKey] ??
     FALLBACK_COMPONENT_ICON
-  const subComponents = getAgentSubComponents(health.details)
+  const description = getComponentDescription(componentKey)
+  const facts = getComponentFacts(health, componentKey)
 
   return (
-    <Card size="sm">
-      <CardContent className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <Icon
-              aria-hidden="true"
-              className="size-4.5 text-muted-foreground"
+    <Card className="h-full" size="sm">
+      <CardContent className="flex flex-col gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
+          </div>
+          <p className="min-w-0 flex-1 truncate font-medium">
+            {getComponentLabel(componentKey)}
+          </p>
+          {health.status === "UP" ? (
+            // Healthy is the normal case - a dot is enough; spelling out
+            // "Hoạt động tốt" on every card only truncated the names.
+            <span
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                getHealthStatusDotClassName(health.status)
+              )}
+              role="img"
+              aria-label={HEALTH_STATUS_LABELS[health.status]}
+              title={HEALTH_STATUS_LABELS[health.status]}
             />
-          </div>
-          <div>
-            <p className="font-medium">{getComponentLabel(componentKey)}</p>
-            {getComponentDescription(componentKey) ? (
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {getComponentDescription(componentKey)}
-              </p>
-            ) : null}
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Cập nhật lúc {formatDateTime(checkedAt)}
-              {typeof health.responseTimeMs === "number"
-                ? ` · ${health.responseTimeMs}ms`
-                : ""}
-            </p>
-            {subComponents ? (
-              <ul className="mt-1.5 space-y-0.5">
-                {subComponents.map((sub) => (
-                  <li
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                    key={sub.key}
-                  >
-                    <span
-                      className={cn(
-                        "size-1.5 shrink-0 rounded-full",
-                        sub.up ? "bg-success" : "bg-destructive"
-                      )}
-                    />
-                    <span>{sub.label}</span>
-                    {typeof sub.responseTimeMs === "number" ? (
-                      <span>· {sub.responseTimeMs}ms</span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
+          ) : (
+            <HealthStatusBadge className="shrink-0" status={health.status} />
+          )}
         </div>
-        <HealthStatusBadge status={health.status} />
+
+        {description ? (
+          // One line on every card so the detail boxes below line up; the
+          // full sentence is on hover.
+          <p
+            className="truncate text-xs text-muted-foreground"
+            title={description}
+          >
+            {description}
+          </p>
+        ) : null}
+
+        <dl className="space-y-1 rounded-lg bg-muted/50 px-2.5 py-2 text-xs">
+          {facts.map((fact) => (
+            <div className="flex items-baseline gap-2" key={fact.label}>
+              <dt className="shrink-0 text-muted-foreground">{fact.label}</dt>
+              <dd
+                className="min-w-0 flex-1 truncate text-right font-medium tabular-nums"
+                title={fact.title ?? fact.value}
+              >
+                {fact.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </CardContent>
     </Card>
   )

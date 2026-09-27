@@ -3,6 +3,7 @@ import { RefreshCcw, WifiOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { AgentDependenciesStrip } from "@/features/system-health/components/agent-dependencies-strip"
 import { ComponentHealthCard } from "@/features/system-health/components/component-health-card"
 import { OverallStatusBanner } from "@/features/system-health/components/overall-status-banner"
 import { useSystemHealthLiveQuery } from "@/features/system-health/queries/use-queries"
@@ -87,14 +88,11 @@ export function LiveHealthSection() {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {componentEntries.map(([key, health]) => (
-          <ComponentHealthCard
-            checkedAt={data.checkedAt}
-            componentKey={key}
-            health={health}
-            key={key}
-          />
+          <ComponentHealthCard componentKey={key} health={health} key={key} />
         ))}
       </div>
+
+      <AgentDependenciesStrip details={data.components.agent?.details} />
     </div>
   )
 }
