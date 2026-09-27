@@ -88,6 +88,7 @@ export const embeddingRequestSchema = z.object({
   access_level: z.number().int().nonnegative(),
   object_key: z.string().min(1).max(1024),
   chunks: z.array(chunkSchema).min(1),
+  is_public: z.boolean(),
 })
 
 export const embeddingAcceptedResponseSchema = z.object({

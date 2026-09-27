@@ -104,6 +104,7 @@ describe("round-trip through chunkingResponseSchema -> embeddingRequestSchema", 
       access_level: 2,
       object_key: "docs/handbook.pdf",
       chunks: chunkingResponse.chunks,
+      is_public: false,
     })
 
     expect(embeddingRequest.chunks[0]).toMatchObject(fullChunkFixture)
@@ -120,6 +121,7 @@ describe("round-trip through chunkingResponseSchema -> embeddingRequestSchema", 
       access_level: 2,
       object_key: "docs/handbook.pdf",
       chunks: chunkingResponse.chunks,
+      is_public: false,
     })
 
     expect(embeddingRequest.chunks).toHaveLength(1)

@@ -512,13 +512,14 @@ export function DocumentDialog({
                   Cấp độ truy cập tối thiểu
                 </Label>
                 <Select
+                  disabled={isPublic}
                   onValueChange={(value) =>
                     setValue(
                       "minAccessLevelId",
                       value === "none" ? null : value
                     )
                   }
-                  value={minAccessLevelId ?? "none"}
+                  value={isPublic ? "none" : (minAccessLevelId ?? "none")}
                 >
                   <SelectTrigger className="w-full" id="document-access-level">
                     <SelectValue placeholder="Mặc định" />
@@ -536,6 +537,11 @@ export function DocumentDialog({
                       ))}
                   </SelectContent>
                 </Select>
+                {isPublic ? (
+                  <p className="text-xs text-muted-foreground">
+                    Tài liệu công khai không cần cấp độ truy cập.
+                  </p>
+                ) : null}
               </div>
             </div>
           </CardContent>
@@ -559,7 +565,12 @@ export function DocumentDialog({
               checked={isPublic}
               description="Tài liệu công khai có thể được truy cập bởi tất cả người dùng mà không cần đăng nhập."
               label="Công khai tài liệu"
-              onCheckedChange={(value) => setValue("isPublic", value)}
+              onCheckedChange={(value) => {
+                setValue("isPublic", value)
+                if (value) {
+                  setValue("minAccessLevelId", null)
+                }
+              }}
             />
           </CardContent>
         </Card>
