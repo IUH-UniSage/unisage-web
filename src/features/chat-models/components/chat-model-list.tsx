@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   Bot,
   Check,
+  ChevronRight,
   Cloud,
   Copy,
   Cpu,
@@ -11,7 +12,6 @@ import {
   Power,
   RefreshCw,
   Server,
-  Sparkles,
   Zap,
 } from "lucide-react"
 import { useState } from "react"
@@ -35,6 +35,7 @@ import {
   getStatusLabel,
   getVerificationStatusDisplayLabel,
   getSourceTypeLabel,
+  parseVerificationErrorMessage,
 } from "@/features/chat-models/utils/chat-model-formatters"
 import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
@@ -67,6 +68,17 @@ const STATUS_BADGE_STYLES: Record<ChatModel["status"], string> = {
     "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
 }
 
+// Mirrors CHAT_MODEL_PROVIDERS' `value`s (chat-model-providers.json) - one
+// logo file per supported cloud provider, served from public/providers/.
+// Providers without a file here (self-hosted, anthropic, unrecognized) fall
+// back to a lucide icon below.
+const PROVIDER_LOGOS: Record<string, string> = {
+  google: "/providers/gemini.jpg",
+  groq: "/providers/groq.png",
+  mistral: "/providers/mistral.png",
+  openai: "/providers/openai.png",
+}
+
 function getProviderVisuals(
   provider: string | null,
   modelName: string,
@@ -75,21 +87,13 @@ function getProviderVisuals(
   const p = (provider || "").toLowerCase()
   const m = modelName.toLowerCase()
 
-  if (p.includes("openai") || m.includes("gpt")) {
+  const logoSrc = PROVIDER_LOGOS[p]
+  if (logoSrc) {
     return {
-      avatarBg:
-        "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border-emerald-500/20",
-      icon: Sparkles,
-      label: provider || "OpenAI",
-    }
-  }
-
-  if (p.includes("google") || m.includes("gemini")) {
-    return {
-      avatarBg:
-        "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border-blue-500/20",
-      icon: Zap,
-      label: provider || "Google",
+      avatarBg: "bg-muted/50 border-border/70",
+      icon: null,
+      label: provider || p,
+      logoSrc,
     }
   }
 
@@ -99,6 +103,7 @@ function getProviderVisuals(
         "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border-amber-500/20",
       icon: Cpu,
       label: provider || "Anthropic",
+      logoSrc: undefined,
     }
   }
 
@@ -112,6 +117,7 @@ function getProviderVisuals(
         "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 border-purple-500/20",
       icon: Server,
       label: provider || "Self-Hosted / Ollama",
+      logoSrc: undefined,
     }
   }
 
@@ -119,6 +125,7 @@ function getProviderVisuals(
     avatarBg: "bg-primary/10 text-primary border-primary/20",
     icon: Bot,
     label: provider || "AI Provider",
+    logoSrc: undefined,
   }
 }
 
@@ -236,6 +243,10 @@ function ChatModelCard({
       void action(chatModel)
     }
 
+  const parsedError = parseVerificationErrorMessage(
+    chatModel.latestVerification?.errorMessage
+  )
+
   return (
     <article
       className="group flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-border/70 bg-card p-4.5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md dark:border-white/10 dark:bg-card"
@@ -247,22 +258,32 @@ function ChatModelCard({
           <div className="flex min-w-0 items-center gap-3">
             <div
               className={cn(
-                "flex size-10 shrink-0 items-center justify-center rounded-xl border shadow-xs transition-transform group-hover:scale-105",
+                "flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border shadow-xs transition-transform group-hover:scale-105",
                 visuals.avatarBg
               )}
             >
-              <ProviderIcon aria-hidden="true" className="size-5" />
+              {visuals.logoSrc ? (
+                <img
+                  alt={visuals.label}
+                  className="size-full object-cover"
+                  src={visuals.logoSrc}
+                />
+              ) : ProviderIcon ? (
+                <ProviderIcon aria-hidden="true" className="size-5" />
+              ) : null}
             </div>
 
             <div className="min-w-0">
               <h3
                 className="truncate text-base font-bold text-foreground transition-colors group-hover:text-primary"
-                title={chatModel.llmModelName}
+                title={chatModel.displayName || chatModel.llmModelName}
               >
-                {chatModel.llmModelName}
+                {chatModel.displayName || chatModel.llmModelName}
               </h3>
               <p className="truncate text-xs text-muted-foreground">
-                {visuals.label}
+                {chatModel.displayName
+                  ? `${chatModel.llmModelName} · ${visuals.label}`
+                  : visuals.label}
               </p>
             </div>
           </div>
@@ -337,17 +358,44 @@ function ChatModelCard({
         ) : null}
 
         {chatModel.latestVerification?.status === "FAILED" ? (
-          <div className="flex items-start gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-xs text-destructive">
-            <AlertTriangle
-              aria-hidden="true"
-              className="mt-0.5 size-3.5 shrink-0"
-            />
-            <span>
-              Thay đổi chưa được áp dụng
-              {chatModel.latestVerification.errorMessage
-                ? ` — ${chatModel.latestVerification.errorMessage}`
-                : "."}
-            </span>
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs dark:bg-destructive/20">
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 font-semibold text-destructive">
+                <AlertTriangle
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-destructive"
+                />
+                <span>Thay đổi chưa được áp dụng</span>
+              </div>
+              {parsedError.statusCode ? (
+                <span className="shrink-0 rounded-md bg-destructive/20 px-1.5 py-0.5 font-mono text-[10.5px] font-bold text-destructive">
+                  HTTP {parsedError.statusCode}
+                </span>
+              ) : null}
+            </div>
+
+            {parsedError.cleanMessage ? (
+              <p className="dark:text-destructive-foreground/90 line-clamp-3 text-[11.5px] leading-relaxed wrap-break-word text-destructive/90">
+                {parsedError.cleanMessage}
+              </p>
+            ) : null}
+
+            <div className="mt-2 flex items-center justify-between border-t border-destructive/20 pt-2 text-[11px]">
+              <span className="dark:text-destructive-foreground/70 text-destructive/70">
+                Lỗi xác minh mô hình
+              </span>
+              <button
+                className="flex cursor-pointer items-center gap-0.5 font-medium text-destructive hover:underline"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDetail(chatModel)
+                }}
+                type="button"
+              >
+                <span>Xem chi tiết</span>
+                <ChevronRight aria-hidden="true" className="size-3" />
+              </button>
+            </div>
           </div>
         ) : null}
 

@@ -1,4 +1,5 @@
-import { CheckCircle2, XCircle } from "lucide-react"
+import { AlertTriangle, Check, CheckCircle2, Copy, XCircle } from "lucide-react"
+import { useState } from "react"
 
 import { AuditInfo } from "@/components/shared/audit-info"
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
@@ -14,7 +15,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { ChatModel } from "@/features/chat-models/schemas/chat-model-schemas"
-import { getSourceTypeLabel } from "@/features/chat-models/utils/chat-model-formatters"
+import {
+  getSourceTypeLabel,
+  getVerificationStatusDisplayLabel,
+  parseVerificationErrorMessage,
+} from "@/features/chat-models/utils/chat-model-formatters"
 import { formatAuditDate } from "@/utils/date-format"
 
 type ChatModelDetailDialogProps = {
@@ -32,7 +37,22 @@ export function ChatModelDetailDialog({
   onOpenChange,
   open,
 }: ChatModelDetailDialogProps) {
+  const [showRawError, setShowRawError] = useState(false)
+  const [copiedRawError, setCopiedRawError] = useState(false)
+
   if (!chatModel) return null
+
+  const parsedError = parseVerificationErrorMessage(
+    chatModel.latestVerification?.errorMessage
+  )
+
+  const handleCopyRawError = () => {
+    if (chatModel.latestVerification?.errorMessage) {
+      navigator.clipboard.writeText(chatModel.latestVerification.errorMessage)
+      setCopiedRawError(true)
+      setTimeout(() => setCopiedRawError(false), 2000)
+    }
+  }
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -40,11 +60,16 @@ export function ChatModelDetailDialog({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <DialogTitle className="truncate text-lg">
-              {chatModel.llmModelName}
+              {chatModel.displayName || chatModel.llmModelName}
             </DialogTitle>
             <EntityStatusBadge isActive={chatModel.isActive} />
           </div>
           <DialogDescription className="mt-0.5 flex flex-wrap items-center gap-2">
+            {chatModel.displayName ? (
+              <span className="text-xs text-muted-foreground">
+                {chatModel.llmModelName}
+              </span>
+            ) : null}
             <Badge variant="outline">
               {getSourceTypeLabel(chatModel.sourceType)}
             </Badge>
@@ -119,6 +144,92 @@ export function ChatModelDetailDialog({
               </span>
             </div>
           </div>
+
+          {chatModel.latestVerification ? (
+            <div className="space-y-2 rounded-lg border bg-muted/30 p-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-muted-foreground">
+                  Xác minh gần nhất
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {parsedError.statusCode ? (
+                    <Badge
+                      className="h-5 font-mono text-[10px] font-bold"
+                      variant="destructive"
+                    >
+                      HTTP {parsedError.statusCode}
+                    </Badge>
+                  ) : null}
+                  {chatModel.latestVerification.errorType ? (
+                    <Badge className="h-5 text-[10px]" variant="outline">
+                      {chatModel.latestVerification.errorType}
+                    </Badge>
+                  ) : null}
+                  <span className="text-xs font-medium text-foreground">
+                    {getVerificationStatusDisplayLabel(
+                      chatModel.latestVerification
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {chatModel.latestVerification.errorMessage ? (
+                <div className="mt-2 space-y-2">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs dark:bg-destructive/20">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle
+                        aria-hidden="true"
+                        className="mt-0.5 size-4 shrink-0 text-destructive"
+                      />
+                      <div className="min-w-0 space-y-1">
+                        <p className="font-semibold text-destructive">
+                          Nội dung lỗi:
+                        </p>
+                        <p className="dark:text-destructive-foreground/90 font-sans leading-relaxed wrap-break-word whitespace-pre-wrap text-destructive/90">
+                          {parsedError.cleanMessage}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <button
+                      className="cursor-pointer text-[11px] font-medium text-muted-foreground underline hover:text-foreground"
+                      onClick={() => setShowRawError(!showRawError)}
+                      type="button"
+                    >
+                      {showRawError
+                        ? "Ẩn log kỹ thuật đầy đủ"
+                        : "Xem log kỹ thuật đầy đủ (Raw Trace)"}
+                    </button>
+
+                    {showRawError ? (
+                      <Button
+                        className="h-6 cursor-pointer gap-1 text-[11px]"
+                        onClick={handleCopyRawError}
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                      >
+                        {copiedRawError ? (
+                          <Check className="size-3 text-emerald-500" />
+                        ) : (
+                          <Copy className="size-3" />
+                        )}
+                        {copiedRawError ? "Đã sao chép" : "Sao chép log"}
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {showRawError ? (
+                    <pre className="max-h-48 overflow-auto rounded-md border bg-muted/60 p-2.5 font-mono text-[11px] wrap-break-word whitespace-pre-wrap text-muted-foreground">
+                      {chatModel.latestVerification.errorMessage}
+                    </pre>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <AuditInfo
             createdAt={chatModel.createdAt}

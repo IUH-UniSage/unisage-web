@@ -44,6 +44,7 @@ export const chatModelVerificationSummarySchema = z.object({
 
 export const chatModelSchema = auditFieldsSchema.extend({
   apiBaseUrl: z.string(),
+  displayName: z.string().nullable(),
   errorCount: z.number().int(),
   hasApiKey: z.boolean(),
   hasPendingChange: z.boolean().nullish(),
@@ -80,6 +81,11 @@ const chatModelBaseFieldsSchema = z.object({
     .trim()
     .min(1, "URL API không được để trống.")
     .max(2048, "URL API không được vượt quá 2048 ký tự."),
+  displayName: z
+    .string()
+    .trim()
+    .max(100, "Tên gợi nhớ không được vượt quá 100 ký tự.")
+    .optional(),
   llmModelName: z
     .string()
     .trim()

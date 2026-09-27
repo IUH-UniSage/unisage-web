@@ -98,3 +98,127 @@ export function getActivateBlockedReason(
 
   return null
 }
+
+export type ParsedVerificationError = {
+  cleanMessage: string
+  errorStatus?: string
+  isParsed: boolean
+  modelName?: string
+  rawMessage: string
+  statusCode?: number
+}
+
+/**
+ * Parses raw verification error strings (such as Python `ModelHTTPError` exceptions,
+ * JSON responses, or raw exception messages) into clean, human-readable format.
+ */
+export function parseVerificationErrorMessage(
+  rawError?: string | null
+): ParsedVerificationError {
+  if (!rawError || !rawError.trim()) {
+    return {
+      cleanMessage: "",
+      isParsed: false,
+      rawMessage: "",
+    }
+  }
+
+  const trimmed = rawError.trim()
+
+  // 1. Python / Backend ModelHTTPError format:
+  // "ModelHTTPError: status_code: 404, model_name: gemini-2.5-flash, body: {'error': {'code': 404, 'message': '...', 'status': 'NOT_FOUND'}}"
+  const modelHttpErrorRegex =
+    /^ModelHTTPError:\s*status_code:\s*(\d+)(?:,\s*model_name:\s*([^,]+))?(?:,\s*body:\s*([\s\S]+))?$/i
+
+  const httpMatch = trimmed.match(modelHttpErrorRegex)
+  if (httpMatch) {
+    const statusCode = Number.parseInt(httpMatch[1], 10)
+    const modelName = httpMatch[2]?.trim()
+    const bodyStr = httpMatch[3]?.trim()
+
+    let cleanMessage = ""
+    let errorStatus: string | undefined
+
+    if (bodyStr) {
+      const statusMatch = bodyStr.match(
+        /['"]status['"]\s*:\s*['"]([^'"]+)['"]/i
+      )
+      if (statusMatch) {
+        errorStatus = statusMatch[1]
+      }
+
+      const messageMatch = bodyStr.match(
+        /['"]message['"]\s*:\s*['"]((?:\\['"]|[^'"])+)['"]/i
+      )
+      if (messageMatch) {
+        cleanMessage = messageMatch[1].replace(/\\'/g, "'").replace(/\\"/g, '"')
+      } else {
+        try {
+          const jsonLike = bodyStr
+            .replace(/'/g, '"')
+            .replace(/\bNone\b/g, "null")
+            .replace(/\bTrue\b/g, "true")
+            .replace(/\bFalse\b/g, "false")
+          const parsed = JSON.parse(jsonLike)
+          if (parsed?.error?.message) {
+            cleanMessage = parsed.error.message
+          } else if (parsed?.message) {
+            cleanMessage = parsed.message
+          }
+        } catch {
+          cleanMessage = bodyStr
+        }
+      }
+    }
+
+    if (!cleanMessage) {
+      cleanMessage = `Lỗi HTTP ${statusCode}`
+    }
+
+    return {
+      cleanMessage,
+      errorStatus,
+      isParsed: true,
+      modelName,
+      rawMessage: trimmed,
+      statusCode,
+    }
+  }
+
+  // 2. Direct JSON string:
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      const msg = parsed?.error?.message || parsed?.message || parsed?.detail
+      if (typeof msg === "string" && msg) {
+        return {
+          cleanMessage: msg,
+          errorStatus: parsed?.error?.status || parsed?.status,
+          isParsed: true,
+          rawMessage: trimmed,
+          statusCode: parsed?.error?.code || parsed?.code,
+        }
+      }
+    } catch {
+      // Fallthrough
+    }
+  }
+
+  // 3. Generic Exception class prefix (e.g. "ValueError: Invalid API key"):
+  const genericExceptionMatch = trimmed.match(
+    /^[A-Z][a-zA-Z0-9_]*Error:\s*(.+)$/s
+  )
+  if (genericExceptionMatch) {
+    return {
+      cleanMessage: genericExceptionMatch[1].trim(),
+      isParsed: true,
+      rawMessage: trimmed,
+    }
+  }
+
+  return {
+    cleanMessage: trimmed,
+    isParsed: false,
+    rawMessage: trimmed,
+  }
+}

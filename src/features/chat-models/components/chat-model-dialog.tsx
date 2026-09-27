@@ -21,6 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
+  CHAT_MODEL_PROVIDERS,
+  getChatModelProviderOption,
+  getChatModelSuggestions,
+} from "@/features/chat-models/constants/chat-model-providers"
+import {
   buildChatModelFormSchema,
   type ChatModel,
   type ChatModelPurpose,
@@ -69,6 +74,7 @@ export function ChatModelDialog({
     defaultValues: {
       apiBaseUrl: chatModel?.apiBaseUrl ?? "",
       apiKey: "",
+      displayName: chatModel?.displayName ?? "",
       llmModelName: chatModel?.llmModelName ?? "",
       llmProvider: chatModel?.llmProvider ?? "",
       maxRpm: chatModel?.maxRpm ?? 60,
@@ -81,7 +87,12 @@ export function ChatModelDialog({
   })
   const sourceType = watch("sourceType")
   const modelPurpose = watch("modelPurpose")
+  const llmProvider = watch("llmProvider")
   const isBusy = isSaving || isSubmitting
+  const modelNameSuggestions =
+    sourceType === "CLOUD_API"
+      ? getChatModelSuggestions(llmProvider, modelPurpose)
+      : []
 
   const submit = async (values: CreateChatModelRequest) => {
     try {
@@ -90,6 +101,7 @@ export function ChatModelDialog({
         // Blank apiKey on edit means "keep the existing key" - never send it
         // as an empty string, which the backend would treat as clearing it.
         apiKey: values.apiKey?.trim() ? values.apiKey.trim() : undefined,
+        displayName: values.displayName?.trim() || undefined,
         llmModelName: values.llmModelName.trim(),
         llmProvider:
           values.sourceType === "CLOUD_API"
@@ -198,12 +210,33 @@ export function ChatModelDialog({
                   Nhà cung cấp{" "}
                   <span className="translate-y-0.5 text-destructive">*</span>
                 </Label>
-                <Input
-                  aria-invalid={Boolean(errors.llmProvider)}
-                  id="chat-model-provider"
-                  placeholder="Ví dụ: openai, google, anthropic"
-                  {...register("llmProvider")}
-                />
+                <Select
+                  onValueChange={(value) => {
+                    setValue("llmProvider", value, { shouldDirty: true })
+                    const provider = getChatModelProviderOption(value)
+                    if (provider) {
+                      setValue("apiBaseUrl", provider.baseUrl, {
+                        shouldDirty: true,
+                      })
+                    }
+                  }}
+                  value={watch("llmProvider") || undefined}
+                >
+                  <SelectTrigger
+                    aria-invalid={Boolean(errors.llmProvider)}
+                    className="w-full"
+                    id="chat-model-provider"
+                  >
+                    <SelectValue placeholder="Chọn nhà cung cấp" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CHAT_MODEL_PROVIDERS.map((provider) => (
+                      <SelectItem key={provider.value} value={provider.value}>
+                        {provider.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.llmProvider ? (
                   <p className="text-xs text-destructive">
                     {errors.llmProvider.message}
@@ -225,6 +258,25 @@ export function ChatModelDialog({
           </div>
 
           <div className="space-y-2 rounded-xl border p-3">
+            <Label htmlFor="chat-model-display-name">Tên gợi nhớ</Label>
+            <Input
+              aria-invalid={Boolean(errors.displayName)}
+              id="chat-model-display-name"
+              placeholder="Ví dụ: Key backup #2, Tài khoản test..."
+              {...register("displayName")}
+            />
+            <p className="text-xs text-muted-foreground">
+              Chỉ để bạn phân biệt các key - không ảnh hưởng đến việc gọi mô
+              hình.
+            </p>
+            {errors.displayName ? (
+              <p className="text-xs text-destructive">
+                {errors.displayName.message}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="space-y-2 rounded-xl border p-3">
             <Label htmlFor="chat-model-name">
               Tên mô hình{" "}
               <span className="translate-y-0.5 text-destructive">*</span>
@@ -233,9 +285,17 @@ export function ChatModelDialog({
               aria-invalid={Boolean(errors.llmModelName)}
               autoFocus
               id="chat-model-name"
+              list="chat-model-name-suggestions"
               placeholder="Ví dụ: gpt-4o-mini"
               {...register("llmModelName")}
             />
+            {modelNameSuggestions.length > 0 ? (
+              <datalist id="chat-model-name-suggestions">
+                {modelNameSuggestions.map((suggestion) => (
+                  <option key={suggestion} value={suggestion} />
+                ))}
+              </datalist>
+            ) : null}
             {errors.llmModelName ? (
               <p className="text-xs text-destructive">
                 {errors.llmModelName.message}
