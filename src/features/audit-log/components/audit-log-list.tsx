@@ -32,7 +32,11 @@ import {
   type AuditLog,
 } from "@/features/audit-log/schemas/audit-log-schemas"
 import { useAuditLogsQuery } from "@/features/audit-log/queries/use-queries"
-import { parseAuditDetails } from "@/features/audit-log/utils/format-details"
+import {
+  formatAuditRow,
+  getAuditObjectLabel,
+  parseAuditDetails,
+} from "@/features/audit-log/utils/format-details"
 import {
   getResourceTypeLabel,
   RESOURCE_TYPE_LABELS,
@@ -44,6 +48,13 @@ import { Input } from "@/components/ui/input"
 
 const PAGE_SIZE = 20
 const ALL = "ALL"
+
+// VIEW/DOWNLOAD stay in the backend enum but nothing writes them any more
+// (read-path auditing was dropped, UNISAGE-92) - don't offer an always-empty
+// filter.
+const FILTERABLE_ACTIONS = auditActionSchema.options.filter(
+  (action) => action !== "VIEW" && action !== "DOWNLOAD"
+)
 
 type Filters = {
   action?: AuditAction
@@ -68,45 +79,93 @@ function AuditActionBadge({ action }: { action: AuditAction }) {
   )
 }
 
+// CREATE/DELETE act on the whole object - naming it is the whole story,
+// listing its fields as "changes" is not. Only UPDATE has a field history.
+function isWholeObjectAction(action: AuditAction) {
+  return action === "CREATE" || action === "DELETE"
+}
+
+// Sign-in events are about the actor themself - the "Người thực hiện" column
+// already says who, so repeating their user code as the object is noise.
+function isSessionAction(action: AuditAction) {
+  return action === "LOGIN" || action === "LOGOUT"
+}
+
 function AuditActorCell({ log }: { log: AuditLog }) {
   // A null actor means the mutation was made by the system itself (a
   // scheduled job, a migration, an internal service call) rather than a
   // signed-in user - mirrors the "System" fallback used for createdByName
   // elsewhere (role-list.tsx, category-list.tsx).
   if (!log.actorId) {
-    return <span className="text-muted-foreground">Hệ thống</span>
+    return <span className="text-sm text-muted-foreground">Hệ thống</span>
   }
 
   return (
-    <div className="text-sm">
-      <p className="font-medium">{log.actorName || "Không xác định"}</p>
+    <span className="text-sm whitespace-nowrap">
+      <span className="font-medium">{log.actorName || "Không xác định"}</span>
       {log.actorCode ? (
-        <p className="text-xs text-muted-foreground">{log.actorCode}</p>
+        <span className="text-muted-foreground"> · {log.actorCode}</span>
       ) : null}
-    </div>
+    </span>
   )
 }
 
-function AuditDetailsCell({ details }: { details: string | null | undefined }) {
-  const rows = parseAuditDetails(details)
+// Optional muted text after the object: for UPDATE, what changed (the single
+// diff, or just the field names when several changed - the full old → new
+// list is in the detail dialog); for events with no object name (e.g.
+// LOGIN_FAILED), the recorded facts. CREATE/DELETE need nothing more.
+function describeAuditExtra(log: AuditLog, objectLabel: string | null) {
+  if (isWholeObjectAction(log.action) || isSessionAction(log.action)) {
+    return null
+  }
+  const rows = parseAuditDetails(log.details)
+  if (!rows || rows.length === 0) return null
 
-  if (rows === null || rows.length === 0) {
-    return <span className="text-muted-foreground">{details || "—"}</span>
+  if (log.action === "UPDATE") {
+    const diffs = rows.filter((row) => row.kind === "diff")
+    if (diffs.length === 0) return null
+    if (diffs.length === 1) {
+      return formatAuditRow(diffs[0])
+    }
+    return `Đã sửa: ${diffs.map((diff) => diff.label).join(", ")}`
   }
 
-  const [first, ...rest] = rows
-  const firstLine =
-    first.kind === "diff"
-      ? `${first.label}: ${first.oldValue} → ${first.newValue}`
-      : `${first.label}: ${first.value}`
+  if (objectLabel) return null
+  return rows.map(formatAuditRow).join(" · ")
+}
+
+// "Tài liệu: 1035-QD-… · Trạng thái: PENDING → COMPLETED" on one line - the
+// object's type and name instead of a raw UUID (UNISAGE-92); the id and the
+// full change list are in the detail dialog.
+function AuditObjectCell({ log }: { log: AuditLog }) {
+  if (isSessionAction(log.action)) {
+    return <span className="text-sm text-muted-foreground">—</span>
+  }
+
+  const objectLabel = getAuditObjectLabel(log.details)
+  const extra = describeAuditExtra(log, objectLabel)
+  const typeLabel =
+    log.resourceType === "OTHER" ? null : getResourceTypeLabel(log.resourceType)
+  const text = [[typeLabel, objectLabel].filter(Boolean).join(": "), extra]
+    .filter(Boolean)
+    .join(" · ")
 
   return (
-    <div className="max-w-xs text-sm text-muted-foreground">
-      <p className="line-clamp-2 wrap-break-word">{firstLine}</p>
-      {rest.length > 0 ? (
-        <p className="mt-0.5 text-xs">+{rest.length} thay đổi khác</p>
+    <p className="line-clamp-2 text-sm wrap-break-word" title={text}>
+      {typeLabel ? (
+        <span className="text-muted-foreground">
+          {typeLabel}
+          {objectLabel ? ": " : null}
+        </span>
       ) : null}
-    </div>
+      {objectLabel ? <span className="font-medium">{objectLabel}</span> : null}
+      {extra ? (
+        <span className="text-muted-foreground">
+          {typeLabel || objectLabel ? " · " : null}
+          {extra}
+        </span>
+      ) : null}
+    </p>
   )
 }
 
@@ -140,15 +199,35 @@ function AuditLogDetailRows({
         <Fragment key={row.key}>
           <dt className="text-muted-foreground">{row.label}</dt>
           <dd className="col-span-2 wrap-break-word">
-            {row.kind === "diff" ? (
+            {row.kind === "value" ? (
+              row.value
+            ) : row.opaque ? (
+              <span className="text-muted-foreground">
+                {formatAuditRow(row)}
+              </span>
+            ) : row.change === "added" ? (
+              <>
+                <span className="font-medium">{row.newValue}</span>{" "}
+                <span className="text-xs text-muted-foreground">
+                  (thêm mới)
+                </span>
+              </>
+            ) : row.change === "cleared" ? (
+              <>
+                <span className="text-muted-foreground line-through">
+                  {row.oldValue}
+                </span>{" "}
+                <span className="text-xs text-muted-foreground">
+                  (đã bỏ trống)
+                </span>
+              </>
+            ) : (
               <>
                 <span className="text-muted-foreground line-through">
                   {row.oldValue}
                 </span>{" "}
                 → <span className="font-medium">{row.newValue}</span>
               </>
-            ) : (
-              row.value
             )}
           </dd>
         </Fragment>
@@ -159,6 +238,7 @@ function AuditLogDetailRows({
 
 function AuditLogDetailDialog({ log }: { log: AuditLog }) {
   const [open, setOpen] = useState(false)
+  const objectLabel = getAuditObjectLabel(log.details)
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
@@ -186,10 +266,18 @@ function AuditLogDetailDialog({ log }: { log: AuditLog }) {
               <CopyableId className="mt-0.5" value={log.resourceId} />
             ) : null}
           </dd>
+          {objectLabel ? (
+            <>
+              <dt className="text-muted-foreground">Tên đối tượng</dt>
+              <dd className="col-span-2 wrap-break-word">“{objectLabel}”</dd>
+            </>
+          ) : null}
         </dl>
-        <div className="max-h-80 overflow-auto rounded-lg border bg-muted/50 p-3">
-          <AuditLogDetailRows details={log.details} />
-        </div>
+        {isWholeObjectAction(log.action) || !log.details ? null : (
+          <div className="max-h-80 overflow-auto rounded-lg border bg-muted/50 p-3">
+            <AuditLogDetailRows details={log.details} />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -219,7 +307,6 @@ export function AuditLogList() {
   })
 
   const logs = useMemo(() => data?.data ?? [], [data])
-  const firstRowNumber = (page - 1) * PAGE_SIZE + 1
   const isFiltered = Boolean(
     applied.actorCode ||
     applied.action ||
@@ -231,56 +318,34 @@ export function AuditLogList() {
   const columns = useMemo<ColumnDef<AuditLog, unknown>[]>(
     () => [
       {
-        cell: ({ row }) => firstRowNumber + row.index,
-        header: "STT",
-        id: "stt",
-        meta: {
-          className: "text-sm text-muted-foreground",
-          headerClassName: "w-10",
-        },
-      },
-      {
         cell: ({ row }) => formatDateTime(row.original.createdAt),
         header: "Thời gian",
         id: "createdAt",
-        meta: { className: "text-sm whitespace-nowrap" },
+        meta: {
+          className: "text-sm whitespace-nowrap",
+          headerClassName: "w-36",
+        },
       },
       {
         cell: ({ row }) => <AuditActorCell log={row.original} />,
         header: "Người thực hiện",
         id: "actor",
+        meta: { headerClassName: "w-64" },
       },
       {
         cell: ({ row }) => <AuditActionBadge action={row.original.action} />,
-        // "Loại thao tác" (the CREATE/UPDATE/DELETE/... type), not to be
-        // confused with the "Hành động" row-actions column below - this
-        // codebase's convention (role-list.tsx, permission-list.tsx) reserves
+        // "Thao tác" (the CREATE/UPDATE/DELETE/... type), not to be confused
+        // with the "Hành động" row-actions column below - this codebase's
+        // convention (role-list.tsx, permission-list.tsx) reserves
         // "Hành động" for the row's own action buttons.
-        header: "Loại thao tác",
+        header: "Thao tác",
         id: "action",
+        meta: { headerClassName: "w-40" },
       },
       {
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-2 text-sm">
-            <span className="shrink-0">
-              {getResourceTypeLabel(row.original.resourceType)}
-            </span>
-            {row.original.resourceId ? (
-              <CopyableId
-                className="min-w-0"
-                truncate
-                value={row.original.resourceId}
-              />
-            ) : null}
-          </div>
-        ),
+        cell: ({ row }) => <AuditObjectCell log={row.original} />,
         header: "Đối tượng",
-        id: "resource",
-      },
-      {
-        cell: ({ row }) => <AuditDetailsCell details={row.original.details} />,
-        header: "Chi tiết",
-        id: "details",
+        id: "object",
       },
       {
         cell: ({ row }) => <AuditLogDetailDialog log={row.original} />,
@@ -289,7 +354,7 @@ export function AuditLogList() {
         meta: { className: "text-right", headerClassName: "text-right" },
       },
     ],
-    [firstRowNumber]
+    []
   )
 
   const applyFilters = () => {
@@ -361,7 +426,7 @@ export function AuditLogList() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Mọi hành động</SelectItem>
-              {auditActionSchema.options.map((action) => (
+              {FILTERABLE_ACTIONS.map((action) => (
                 <SelectItem key={action} value={action}>
                   {AUDIT_ACTION_LABELS[action]}
                 </SelectItem>
@@ -441,28 +506,14 @@ export function AuditLogList() {
               />
             </div>
             <div className="grid gap-3 p-3 md:hidden">
-              {logs.map((log, index) => (
+              {logs.map((log) => (
                 <article className="rounded-xl border p-4" key={log.id}>
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs text-muted-foreground">
-                        #{firstRowNumber + index}
-                      </p>
-                      <AuditActorCell log={log} />
-                    </div>
+                    <AuditActorCell log={log} />
                     <AuditActionBadge action={log.action} />
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-                    <span>{getResourceTypeLabel(log.resourceType)}</span>
-                    {log.resourceId ? (
-                      <>
-                        <span>·</span>
-                        <CopyableId value={log.resourceId} />
-                      </>
-                    ) : null}
-                  </div>
                   <div className="mt-2">
-                    <AuditDetailsCell details={log.details} />
+                    <AuditObjectCell log={log} />
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t pt-3">
                     <p className="text-xs text-muted-foreground">
