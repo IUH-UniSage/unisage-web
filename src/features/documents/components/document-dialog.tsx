@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMemo } from "react"
 import {
   FileText,
   Folder,
@@ -36,10 +37,10 @@ import { useCategoriesQuery } from "@/features/categories/queries/use-queries"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 import { flattenDepartmentTreeWithDepth } from "@/features/departments/utils/tree"
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
+import { useAllowedFileExtensions } from "@/features/documents/hooks/use-allowed-file-extensions"
 import {
-  ALLOWED_DOCUMENT_FILE_EXTENSIONS,
-  documentEditFormSchema,
-  documentFormSchema,
+  createDocumentEditFormSchema,
+  createDocumentFormSchema,
   type Document,
   type DocumentFormValues,
 } from "@/features/documents/schemas/document-schemas"
@@ -65,8 +66,16 @@ export function DocumentDialog({
   const flatDepartments = flattenDepartmentTreeWithDepth(
     departmentsQuery.data ?? []
   )
+  const allowedExtensions = useAllowedFileExtensions()
 
   const isEdit = Boolean(document)
+  const formSchema = useMemo(
+    () =>
+      isEdit
+        ? createDocumentEditFormSchema(allowedExtensions)
+        : createDocumentFormSchema(allowedExtensions),
+    [allowedExtensions, isEdit]
+  )
 
   const {
     formState: { errors, isSubmitting },
@@ -92,7 +101,7 @@ export function DocumentDialog({
       sourceUrl: "",
       title: document?.title ?? "",
     },
-    resolver: zodResolver(isEdit ? documentEditFormSchema : documentFormSchema),
+    resolver: zodResolver(formSchema),
   })
 
   const isBusy = isSaving || isSubmitting
@@ -273,7 +282,7 @@ export function DocumentDialog({
                     <UploadCloud aria-hidden="true" className="size-4" />
                     Thay thế tệp tài liệu
                     <input
-                      accept={ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(",")}
+                      accept={allowedExtensions.join(",")}
                       className="sr-only"
                       id="document-file-replace"
                       onChange={(event) => {
@@ -406,11 +415,11 @@ export function DocumentDialog({
                     <span className="text-xs text-muted-foreground">
                       Định dạng hỗ trợ:{" "}
                       <span className="font-mono">
-                        {ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(", ")}
+                        {allowedExtensions.join(", ")}
                       </span>
                     </span>
                     <input
-                      accept={ALLOWED_DOCUMENT_FILE_EXTENSIONS.join(",")}
+                      accept={allowedExtensions.join(",")}
                       className="sr-only"
                       id="document-file"
                       onChange={(event) => {
