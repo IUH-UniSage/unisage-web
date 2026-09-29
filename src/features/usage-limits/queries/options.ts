@@ -20,4 +20,10 @@ export const usageLimitOptions = {
       queryFn: () => usageLimitApi.getPlans(),
       queryKey: usageLimitKeys.plans(),
     }),
+  user: (userId: string) =>
+    queryOptions({
+      ...QUERY_POLICIES.detail,
+      queryFn: () => usageLimitApi.getUserUsage(userId),
+      queryKey: usageLimitKeys.user(userId),
+    }),
 }
