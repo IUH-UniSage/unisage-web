@@ -41,10 +41,13 @@ export type UsageLogsParams = {
   from?: string
   // 1-based, like the rest of the UI (spring.data.web.pageable.one-indexed-parameters=true).
   limit: number
+  model?: string
   page: number
+  provider?: string
   purpose?: UsagePurpose
   status?: UsageRequestStatus
   to?: string
+  userOrIp?: string
 }
 
 export type BudgetAlertsParams = {
@@ -130,10 +133,13 @@ export const costManagementApi = {
         params: {
           from: params.from || undefined,
           limit: params.limit,
+          model: params.model || undefined,
           page: params.page,
+          provider: params.provider,
           purpose: params.purpose,
           status: params.status,
           to: params.to || undefined,
+          userOrIp: params.userOrIp || undefined,
         },
       }
     )

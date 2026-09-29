@@ -42,6 +42,7 @@ export const usageLogListItemSchema = z.object({
   hasFailover: z.boolean(),
   id: z.string(),
   latencyMs: z.number().int().nonnegative(),
+  models: z.array(z.string()).default([]),
   purpose: usagePurposeSchema,
   requestId: z.string(),
   startedAt: z.string(),
@@ -49,6 +50,7 @@ export const usageLogListItemSchema = z.object({
   totalCostUsd: z.number().nullable(),
   totalInputTokens: z.number().int().nonnegative(),
   totalOutputTokens: z.number().int().nonnegative(),
+  userEmail: z.string().nullish(),
   userId: z.string().nullable(),
 })
 export type UsageLogListItem = z.infer<typeof usageLogListItemSchema>
@@ -82,9 +84,10 @@ export const usageLineSchema = z.object({
   status: usageRequestStatusSchema,
 })
 export type UsageLine = z.infer<typeof usageLineSchema>
+export type UsageCostStatus = UsageLine["costStatus"]
 
 export const usageLogDetailSchema = usageLogListItemSchema
-  .omit({ totalCostUsd: true })
+  .omit({ models: true, totalCostUsd: true })
   .extend({
     answer: z.string().nullable(),
     citations: z.array(z.record(z.string(), z.unknown())).nullable(),

@@ -1,9 +1,9 @@
 import { Bell, History, LayoutDashboard, PiggyBank, Tag } from "lucide-react"
 
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
-import { FeatureComingSoon } from "@/components/shared/feature-coming-soon"
 import { AlertsTab } from "@/features/cost-management/components/alerts/alerts-tab"
 import { BudgetsTab } from "@/features/cost-management/components/budgets/budgets-tab"
+import { UsageHistoryTab } from "@/features/cost-management/components/history/usage-history-tab"
 import { OverviewTab } from "@/features/cost-management/components/overview/overview-tab"
 import { PricingTab } from "@/features/cost-management/components/pricing/pricing-tab"
 import { useCostManagementDashboard } from "@/features/cost-management/hooks/use-cost-management-dashboard"
@@ -52,13 +52,7 @@ export function CostManagementDashboard() {
           value: "pricing",
         },
         {
-          content: (
-            <FeatureComingSoon
-              description="Danh sách và chi tiết từng request đã ghi nhận chi phí sẽ hiển thị ở đây."
-              headingLevel="h2"
-              title={TAB_LABELS.history}
-            />
-          ),
+          content: <UsageHistoryTab />,
           icon: <History aria-hidden="true" />,
           label: TAB_LABELS.history,
           value: "history",
