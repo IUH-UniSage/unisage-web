@@ -5,6 +5,7 @@ import { FeatureComingSoon } from "@/components/shared/feature-coming-soon"
 import { AlertsTab } from "@/features/cost-management/components/alerts/alerts-tab"
 import { BudgetsTab } from "@/features/cost-management/components/budgets/budgets-tab"
 import { OverviewTab } from "@/features/cost-management/components/overview/overview-tab"
+import { PricingTab } from "@/features/cost-management/components/pricing/pricing-tab"
 import { useCostManagementDashboard } from "@/features/cost-management/hooks/use-cost-management-dashboard"
 
 const TAB_LABELS = {
@@ -45,13 +46,7 @@ export function CostManagementDashboard() {
           value: "alerts",
         },
         {
-          content: (
-            <FeatureComingSoon
-              description="Bảng giá theo mô hình/nhà cung cấp hiện đang áp dụng sẽ hiển thị ở đây."
-              headingLevel="h2"
-              title={TAB_LABELS.pricing}
-            />
-          ),
+          content: <PricingTab />,
           icon: <Tag aria-hidden="true" />,
           label: TAB_LABELS.pricing,
           value: "pricing",
