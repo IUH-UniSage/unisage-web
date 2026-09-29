@@ -87,7 +87,7 @@ export type UsageLine = z.infer<typeof usageLineSchema>
 export type UsageCostStatus = UsageLine["costStatus"]
 
 export const usageLogDetailSchema = usageLogListItemSchema
-  .omit({ models: true, totalCostUsd: true })
+  .omit({ hasFailover: true, models: true, totalCostUsd: true })
   .extend({
     answer: z.string().nullable(),
     citations: z.array(z.record(z.string(), z.unknown())).nullable(),
