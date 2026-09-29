@@ -15,6 +15,7 @@ import {
   Tags,
   UploadCloud,
   Users,
+  Wallet,
 } from "lucide-react"
 import type { ReactNode } from "react"
 import { lazy } from "react"
@@ -138,6 +139,12 @@ const IngesterProcessingPage = lazy(async () => {
 const ChatModelPage = lazy(async () => {
   const { ChatModelPage } = await import("@/pages/system-admin/chat-model-page")
   return { default: ChatModelPage }
+})
+
+const CostManagementPage = lazy(async () => {
+  const { CostManagementPage } =
+    await import("@/pages/system-admin/cost-management-page")
+  return { default: CostManagementPage }
 })
 
 const SystemSettingsPage = lazy(async () => {
@@ -271,6 +278,15 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Cấu hình AI",
     requiredPermissions: PERMISSION_POLICIES.adminModels,
     segment: ROUTE_SEGMENTS.models,
+    workspaces: ["system-admin"],
+  },
+  {
+    element: <CostManagementPage />,
+    icon: Wallet,
+    key: "admin-cost-management",
+    label: "Chi phí AI",
+    requiredPermissions: PERMISSION_POLICIES.costManagement,
+    segment: ROUTE_SEGMENTS.costManagement,
     workspaces: ["system-admin"],
   },
   {

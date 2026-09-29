@@ -22,6 +22,15 @@ export const PERMISSION_POLICIES = {
   // GET /audit-logs on load, so that placeholder was removed.
   adminLogs: policy(PERMISSIONS.auditLogRead),
   adminModels: policy(PERMISSIONS.chatModelRead),
+  // Gated on the usage-log summary API's own read permission - the page's
+  // Overview/History tabs load without any budget permission at all; budget
+  // mutation controls (the Budgets tab's create/edit/delete actions) are
+  // gated separately below by costManagementBudgets.
+  costManagement: policy(PERMISSIONS.usageLogRead),
+  costManagementBudgets: policy(
+    PERMISSIONS.budgetCreate,
+    PERMISSIONS.budgetUpdate
+  ),
   adminTickets: policy(PERMISSIONS.ticketRead),
   adminUsageLimits: policy(PERMISSIONS.usageLimitPlanRead),
   // UNISAGE-63: gated strictly on the system-health API's own read
