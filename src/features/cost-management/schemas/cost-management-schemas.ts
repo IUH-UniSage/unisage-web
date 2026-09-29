@@ -140,6 +140,45 @@ export type CreateBudgetRequest = {
 }
 export type UpdateBudgetRequest = CreateBudgetRequest
 
+// A PROVIDER budget needs a provider, a PURPOSE budget needs a purpose, and a
+// THROTTLE action needs a concurrency cap - none of that is expressible by
+// the field types alone, so the cross-field rules live in superRefine.
+export const budgetFormSchema = z
+  .object({
+    action: budgetActionSchema,
+    isEnabled: z.boolean(),
+    limitUsd: z.number().positive("Giới hạn phải lớn hơn 0"),
+    period: budgetPeriodSchema,
+    scope: budgetScopeSchema,
+    scopeProvider: z.string().trim().optional(),
+    scopePurpose: usagePurposeSchema.optional(),
+    throttleMaxConcurrency: z.number().int().positive().optional(),
+  })
+  .superRefine((values, ctx) => {
+    if (values.scope === "PROVIDER" && !values.scopeProvider) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Chọn nhà cung cấp cho ngân sách theo nhà cung cấp.",
+        path: ["scopeProvider"],
+      })
+    }
+    if (values.scope === "PURPOSE" && !values.scopePurpose) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Chọn mục đích cho ngân sách theo mục đích.",
+        path: ["scopePurpose"],
+      })
+    }
+    if (values.action === "THROTTLE" && !values.throttleMaxConcurrency) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Nhập số request đồng thời tối đa.",
+        path: ["throttleMaxConcurrency"],
+      })
+    }
+  })
+export type BudgetFormValues = z.infer<typeof budgetFormSchema>
+
 // ── Budget alert settings (Alerts tab, config half) ─────────────────────────
 
 export const budgetAlertSettingSchema = z.object({
