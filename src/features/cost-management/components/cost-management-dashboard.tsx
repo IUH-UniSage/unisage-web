@@ -2,6 +2,7 @@ import { Bell, History, LayoutDashboard, PiggyBank, Tag } from "lucide-react"
 
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { FeatureComingSoon } from "@/components/shared/feature-coming-soon"
+import { OverviewTab } from "@/features/cost-management/components/overview/overview-tab"
 import { useCostManagementDashboard } from "@/features/cost-management/hooks/use-cost-management-dashboard"
 
 const TAB_LABELS = {
@@ -24,13 +25,7 @@ export function CostManagementDashboard() {
       }
       tabs={[
         {
-          content: (
-            <FeatureComingSoon
-              description="Biểu đồ chi phí theo ngày, theo mục đích/nhà cung cấp và các chỉ số tổng quan sẽ hiển thị ở đây."
-              headingLevel="h2"
-              title={TAB_LABELS.overview}
-            />
-          ),
+          content: <OverviewTab />,
           icon: <LayoutDashboard aria-hidden="true" />,
           label: TAB_LABELS.overview,
           value: "overview",

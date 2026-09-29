@@ -27,6 +27,8 @@ import { z } from "zod"
 export type UsageLogSummaryParams = {
   from: string
   groupBy: UsageLogGroupBy
+  provider?: string
+  purpose?: UsagePurpose
   to: string
 }
 
