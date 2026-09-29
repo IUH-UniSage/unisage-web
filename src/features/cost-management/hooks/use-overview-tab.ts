@@ -15,8 +15,12 @@ export type OverviewFilters = {
 
 export type OverviewBreakdownGroupBy = "provider" | "model"
 
+// Local calendar date - toISOString() would shift local midnight to the
+// previous day in UTC+7.
 function toIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10)
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${date.getFullYear()}-${month}-${day}`
 }
 
 function firstDayOfMonth(date: Date): Date {
@@ -36,8 +40,14 @@ export function defaultOverviewFilters(): OverviewFilters {
   return { fromDate: toIsoDate(firstDayOfMonth(now)), toDate: toIsoDate(now) }
 }
 
+// The API range is [from, to), so `to` is the local midnight after toDate.
 function toRangeParams(fromDate: string, toDate: string) {
-  return { from: `${fromDate}T00:00:00Z`, to: `${toDate}T23:59:59Z` }
+  const to = new Date(`${toDate}T00:00:00`)
+  to.setDate(to.getDate() + 1)
+  return {
+    from: new Date(`${fromDate}T00:00:00`).toISOString(),
+    to: to.toISOString(),
+  }
 }
 
 function sumCosts(
@@ -127,10 +137,13 @@ export function useOverviewTab() {
     (budget) => budget.scope === "SYSTEM" && budget.period === "MONTHLY"
   )
   const budgetLimit = systemMonthlyBudget?.limitUsd ?? null
+  // The budget's own spend also counts unpriced estimates, same as enforcement,
+  // so it can differ from the priced-only "this month" cost.
+  const budgetSpent = systemMonthlyBudget?.spentUsd ?? thisMonthCost
   const budgetUsedPercent =
-    budgetLimit && budgetLimit > 0 ? (thisMonthCost / budgetLimit) * 100 : null
-  const budgetRemaining =
-    budgetLimit != null ? budgetLimit - thisMonthCost : null
+    systemMonthlyBudget?.spentPercent ??
+    (budgetLimit && budgetLimit > 0 ? (budgetSpent / budgetLimit) * 100 : null)
+  const budgetRemaining = budgetLimit != null ? budgetLimit - budgetSpent : null
 
   return {
     breakdownGroupBy,
