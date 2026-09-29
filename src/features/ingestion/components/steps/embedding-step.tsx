@@ -39,7 +39,12 @@ export function EmbeddingStep({
         <ErrorAlert message="Không thể theo dõi tiến độ trực tiếp, nhưng yêu cầu embedding đã được gửi và đang xử lý trong nền." />
       ) : null}
       {state === "FAILURE" ? (
-        <ErrorAlert message="Quá trình embedding thất bại. Hãy thử lại từ bước chia đoạn." />
+        <ErrorAlert
+          message={
+            wizard.embeddingProgress.message ??
+            "Quá trình embedding thất bại. Hãy thử lại từ bước chia đoạn."
+          }
+        />
       ) : null}
       {!isTerminal ? (
         <p className="text-center text-xs font-medium text-muted-foreground">

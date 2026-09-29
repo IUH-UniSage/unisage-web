@@ -19,6 +19,7 @@ export type EmbeddingProgressState =
 export type EmbeddingProgress = {
   percent: number
   state: EmbeddingProgressState
+  message?: string
 }
 
 export const EMBEDDING_CONNECTING: EmbeddingProgress = {

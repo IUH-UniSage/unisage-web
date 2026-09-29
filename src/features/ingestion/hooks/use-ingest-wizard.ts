@@ -83,6 +83,7 @@ export function useIngestWizard(document: Document) {
           : {
               percent: 100,
               state: event.state === "FAILURE" ? "FAILURE" : "SUCCESS",
+              message: event.message,
             }
       )
     },

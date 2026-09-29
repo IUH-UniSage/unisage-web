@@ -108,6 +108,8 @@ export const ingestionJobResponseSchema = z.object({
   // progress, read server-side so the reconciliation sweep needs one call.
   task_state: z.string().nullable().optional(),
   task_percent: z.number().nullable().optional(),
+  task_error_code: z.number().nullable().optional(),
+  task_message: z.string().nullable().optional(),
 })
 
 // One frame from `WS /ingestion/events` (the broadcast progress/completion
@@ -126,6 +128,10 @@ export const ingestionEventSchema = z.discriminatedUnion("type", [
     document_id: z.string(),
     department_id: z.string(),
     state: z.string(),
+    error_code: z.number().optional(),
+    message: z.string().optional(),
+    failed_chunk_count: z.number().optional(),
+    total_chunk_count: z.number().optional(),
   }),
 ])
 
