@@ -4,6 +4,7 @@ import { QUERY_POLICIES } from "@/constants/query-policies"
 import {
   costManagementApi,
   type BudgetAlertsParams,
+  type ModelPriceHistoryParams,
   type UsageLogSummaryParams,
   type UsageLogsParams,
 } from "@/features/cost-management/api/cost-management-api"
@@ -42,6 +43,21 @@ export const costManagementOptions = {
       ...QUERY_POLICIES.list,
       queryFn: () => costManagementApi.getBudgets(),
       queryKey: costManagementKeys.budgets(),
+    }),
+
+  modelPriceHistory: (params: ModelPriceHistoryParams) =>
+    queryOptions({
+      ...QUERY_POLICIES.list,
+      placeholderData: keepPreviousData,
+      queryFn: () => costManagementApi.getModelPriceHistory(params),
+      queryKey: costManagementKeys.modelPriceHistory(params),
+    }),
+
+  modelPrices: () =>
+    queryOptions({
+      ...QUERY_POLICIES.list,
+      queryFn: () => costManagementApi.getModelPrices(),
+      queryKey: costManagementKeys.modelPrices(),
     }),
 
   usageLog: (usageLogId: string) =>

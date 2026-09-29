@@ -4,6 +4,7 @@ import { costManagementApi } from "@/features/cost-management/api/cost-managemen
 import { costManagementKeys } from "@/features/cost-management/queries/keys"
 import type {
   CreateBudgetRequest,
+  ModelPriceRequest,
   UpdateBudgetAlertSettingRequest,
   UpdateBudgetRequest,
 } from "@/features/cost-management/schemas/cost-management-schemas"
@@ -67,5 +68,50 @@ export function useDismissBudgetAlertMutation() {
     },
     mutationFn: (alertId: string) =>
       costManagementApi.dismissBudgetAlert(alertId),
+  })
+}
+
+// Every price change also writes a history row, so prices and history refresh together.
+export function useSyncModelPricesMutation() {
+  return useMutation({
+    meta: { invalidatesQuery: costManagementKeys.modelPricing() },
+    mutationFn: () => costManagementApi.syncModelPrices(),
+  })
+}
+
+export function useCreateModelPriceMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: costManagementKeys.modelPricing(),
+      successMessage: "Đã thêm giá mô hình.",
+    },
+    mutationFn: (input: ModelPriceRequest) =>
+      costManagementApi.createModelPrice(input),
+  })
+}
+
+type UpdateModelPriceVariables = {
+  input: ModelPriceRequest
+  priceId: string
+}
+
+export function useUpdateModelPriceMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: costManagementKeys.modelPricing(),
+      successMessage: "Đã cập nhật giá mô hình.",
+    },
+    mutationFn: ({ input, priceId }: UpdateModelPriceVariables) =>
+      costManagementApi.updateModelPrice(priceId, input),
+  })
+}
+
+export function useResetModelPriceMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: costManagementKeys.modelPricing(),
+      successMessage: "Đã khôi phục giá theo LiteLLM.",
+    },
+    mutationFn: (priceId: string) => costManagementApi.resetModelPrice(priceId),
   })
 }

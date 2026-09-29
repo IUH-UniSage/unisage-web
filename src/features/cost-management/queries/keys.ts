@@ -1,5 +1,6 @@
 import type {
   BudgetAlertsParams,
+  ModelPriceHistoryParams,
   UsageLogSummaryParams,
   UsageLogsParams,
 } from "@/features/cost-management/api/cost-management-api"
@@ -11,6 +12,10 @@ export const costManagementKeys = {
     [...costManagementKeys.all, "alerts", params] as const,
   all: ["cost-management"] as const,
   budgets: () => [...costManagementKeys.all, "budgets"] as const,
+  modelPriceHistory: (params: ModelPriceHistoryParams) =>
+    [...costManagementKeys.modelPricing(), "history", params] as const,
+  modelPrices: () => [...costManagementKeys.modelPricing(), "prices"] as const,
+  modelPricing: () => [...costManagementKeys.all, "model-pricing"] as const,
   usageLog: (usageLogId: string) =>
     [...costManagementKeys.all, "usage-log", usageLogId] as const,
   usageLogSummary: (params: UsageLogSummaryParams) =>

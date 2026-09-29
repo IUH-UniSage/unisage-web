@@ -84,6 +84,11 @@ export const PERMISSIONS = {
   budgetAlertSettingUpdate: "BUDGET_ALERT_SETTING_UPDATE",
   budgetAlertRead: "BUDGET_ALERT_READ",
   budgetAlertDismiss: "BUDGET_ALERT_DISMISS",
+  modelPricingAll: "MODEL_PRICING_ALL",
+  modelPricingRead: "MODEL_PRICING_READ",
+  modelPricingCreate: "MODEL_PRICING_CREATE",
+  modelPricingUpdate: "MODEL_PRICING_UPDATE",
+  modelPricingDelete: "MODEL_PRICING_DELETE",
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -109,6 +114,7 @@ export type ResourceName =
   | "system_health"
   | "budget"
   | "budget_alert"
+  | "model_pricing"
   | "super_admin"
 
 export type PermissionRequirement =

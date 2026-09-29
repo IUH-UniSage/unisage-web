@@ -271,3 +271,96 @@ export const budgetAlertLogPageSchema = z.object({
   totalPages: z.number().int().nonnegative(),
 })
 export type BudgetAlertLogPage = z.infer<typeof budgetAlertLogPageSchema>
+
+// ── Model prices (Pricing tab) ──────────────────────────────────────────────
+
+export const modelPriceSourceSchema = z.enum(["LITELLM", "MANUAL"])
+export type ModelPriceSource = z.infer<typeof modelPriceSourceSchema>
+
+// USD per 1M tokens; timestamps carry an explicit UTC offset.
+export const modelPriceSchema = z.object({
+  cachedInputPerMillion: z.number().nullable(),
+  id: z.string(),
+  inputPerMillion: z.number(),
+  modelName: z.string(),
+  outputPerMillion: z.number().nullable(),
+  provider: z.string(),
+  source: modelPriceSourceSchema,
+  syncedAt: z.string().nullable(),
+  updatedAt: z.string(),
+  updatedByEmail: z.string().nullable(),
+})
+export type ModelPrice = z.infer<typeof modelPriceSchema>
+
+export const modelPricingSyncResultSchema = z.object({
+  created: z.number().int().nonnegative(),
+  rejected: z.number().int().nonnegative(),
+  skippedManual: z.number().int().nonnegative(),
+  syncedAt: z.string(),
+  unchanged: z.number().int().nonnegative(),
+  updated: z.number().int().nonnegative(),
+})
+export type ModelPricingSyncResult = z.infer<
+  typeof modelPricingSyncResultSchema
+>
+
+export type ModelPriceRequest = {
+  cachedInputPerMillion?: number
+  inputPerMillion: number
+  modelName?: string
+  outputPerMillion?: number
+  provider?: string
+}
+
+// Mirrors ErrorCode.MODEL_PRICE_INVALID: 0-1000 USD per 1M tokens.
+const pricePerMillion = z
+  .number({ error: "Nhập giá hợp lệ" })
+  .min(0, "Giá không được âm")
+  .max(1000, "Giá tối đa 1000 USD mỗi 1 triệu token")
+const optionalPricePerMillion = pricePerMillion
+  .optional()
+  .or(z.nan().transform(() => undefined))
+
+export const modelPriceFormSchema = z.object({
+  cachedInputPerMillion: optionalPricePerMillion,
+  inputPerMillion: pricePerMillion,
+  modelName: z.string().trim().min(1, "Nhập tên mô hình"),
+  outputPerMillion: optionalPricePerMillion,
+  provider: z.string().min(1, "Chọn nhà cung cấp"),
+})
+export type ModelPriceFormValues = z.input<typeof modelPriceFormSchema>
+export type ModelPriceFormOutput = z.output<typeof modelPriceFormSchema>
+
+export const modelPriceChangeTypeSchema = z.enum([
+  "SYNC_CREATE",
+  "SYNC_UPDATE",
+  "MANUAL_CREATE",
+  "MANUAL_UPDATE",
+  "MANUAL_RESET",
+])
+export type ModelPriceChangeType = z.infer<typeof modelPriceChangeTypeSchema>
+
+export const modelPriceChangeSchema = z.object({
+  changeType: modelPriceChangeTypeSchema,
+  changedAt: z.string(),
+  changedByEmail: z.string().nullable(),
+  id: z.string(),
+  modelName: z.string(),
+  newCachedInputPerMillion: z.number().nullable(),
+  newInputPerMillion: z.number().nullable(),
+  newOutputPerMillion: z.number().nullable(),
+  oldCachedInputPerMillion: z.number().nullable(),
+  oldInputPerMillion: z.number().nullable(),
+  oldOutputPerMillion: z.number().nullable(),
+  provider: z.string(),
+})
+export type ModelPriceChange = z.infer<typeof modelPriceChangeSchema>
+
+export const modelPriceChangePageSchema = z.object({
+  data: z.array(modelPriceChangeSchema),
+  limit: z.number().int().nonnegative(),
+  page: z.number().int().nonnegative(),
+  totalItems: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
+})
+export type ModelPriceChangePage = z.infer<typeof modelPriceChangePageSchema>

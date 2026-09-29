@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import type {
   BudgetAlertsParams,
+  ModelPriceHistoryParams,
   UsageLogSummaryParams,
   UsageLogsParams,
 } from "@/features/cost-management/api/cost-management-api"
@@ -33,4 +34,18 @@ export function useUsageLogSummaryQuery(params: UsageLogSummaryParams) {
 
 export function useUsageLogsQuery(params: UsageLogsParams) {
   return useQuery(costManagementOptions.usageLogs(params))
+}
+
+export function useModelPricesQuery(enabled = true) {
+  return useQuery({ ...costManagementOptions.modelPrices(), enabled })
+}
+
+export function useModelPriceHistoryQuery(
+  params: ModelPriceHistoryParams,
+  enabled = true
+) {
+  return useQuery({
+    ...costManagementOptions.modelPriceHistory(params),
+    enabled,
+  })
 }

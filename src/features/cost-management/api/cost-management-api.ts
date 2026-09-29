@@ -4,6 +4,9 @@ import {
   budgetAlertLogSchema,
   budgetAlertSettingSchema,
   budgetSchema,
+  modelPriceChangePageSchema,
+  modelPriceSchema,
+  modelPricingSyncResultSchema,
   usageLogDetailSchema,
   usageLogPageSchema,
   usageLogSummarySchema,
@@ -15,6 +18,11 @@ import {
   type BudgetAlertLogPage,
   type BudgetAlertSetting,
   type CreateBudgetRequest,
+  type ModelPrice,
+  type ModelPriceChangePage,
+  type ModelPriceChangeType,
+  type ModelPriceRequest,
+  type ModelPricingSyncResult,
   type UpdateBudgetAlertSettingRequest,
   type UpdateBudgetRequest,
   type UsageLogDetail,
@@ -57,6 +65,18 @@ export type BudgetAlertsParams = {
   limit: number
   page: number
   status?: AlertStatus
+}
+
+export type ModelPriceHistoryParams = {
+  changeType?: ModelPriceChangeType
+  from?: string
+  // 1-based, like the rest of the UI (spring.data.web.pageable.one-indexed-parameters=true).
+  limit: number
+  model?: string
+  page: number
+  provider?: string
+  q?: string
+  to?: string
 }
 
 export const costManagementApi = {
@@ -165,5 +185,63 @@ export const costManagementApi = {
       input
     )
     return readSuccessData(response.data, budgetAlertSettingSchema)
+  },
+
+  async createModelPrice(input: ModelPriceRequest): Promise<ModelPrice> {
+    const response = await httpClient.post<ApiResponse<ModelPrice>>(
+      API_ENDPOINTS.costManagement.modelPrices,
+      input
+    )
+    return readSuccessData(response.data, modelPriceSchema)
+  },
+
+  async getModelPriceHistory(
+    params: ModelPriceHistoryParams
+  ): Promise<ModelPriceChangePage> {
+    const response = await httpClient.get<ApiResponse<ModelPriceChangePage>>(
+      API_ENDPOINTS.costManagement.modelPriceHistory,
+      {
+        params: {
+          changeType: params.changeType,
+          from: params.from || undefined,
+          limit: params.limit,
+          model: params.model || undefined,
+          page: params.page,
+          provider: params.provider,
+          q: params.q || undefined,
+          to: params.to || undefined,
+        },
+      }
+    )
+    return readSuccessData(response.data, modelPriceChangePageSchema)
+  },
+
+  async getModelPrices(): Promise<ModelPrice[]> {
+    const response = await httpClient.get<ApiResponse<ModelPrice[]>>(
+      API_ENDPOINTS.costManagement.modelPrices
+    )
+    return readSuccessData(response.data, z.array(modelPriceSchema))
+  },
+
+  async resetModelPrice(priceId: string): Promise<void> {
+    await httpClient.delete(API_ENDPOINTS.costManagement.modelPrice(priceId))
+  },
+
+  async syncModelPrices(): Promise<ModelPricingSyncResult> {
+    const response = await httpClient.post<ApiResponse<ModelPricingSyncResult>>(
+      API_ENDPOINTS.costManagement.modelPricesSync
+    )
+    return readSuccessData(response.data, modelPricingSyncResultSchema)
+  },
+
+  async updateModelPrice(
+    priceId: string,
+    input: ModelPriceRequest
+  ): Promise<ModelPrice> {
+    const response = await httpClient.put<ApiResponse<ModelPrice>>(
+      API_ENDPOINTS.costManagement.modelPrice(priceId),
+      input
+    )
+    return readSuccessData(response.data, modelPriceSchema)
   },
 }
