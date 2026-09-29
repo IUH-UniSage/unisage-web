@@ -4,6 +4,8 @@ const PURPOSE_LABELS = {
   CHAT: "Chat",
   EMBEDDING: "Embedding",
   EXTRACTION: "Trích xuất",
+  INGEST: "Ingest tài liệu",
+  SEMANTIC_CHUNKING: "Chia đoạn (semantic)",
 } as const satisfies Record<UsagePurpose, string>
 
 export function getUsagePurposeLabel(purpose: UsagePurpose): string {

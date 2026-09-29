@@ -29,7 +29,13 @@ export type UsageLogSummary = z.infer<typeof usageLogSummarySchema>
 
 // ── Usage log list/detail (History tab) ─────────────────────────────────────
 
-export const usagePurposeSchema = z.enum(["CHAT", "EMBEDDING", "EXTRACTION"])
+export const usagePurposeSchema = z.enum([
+  "CHAT",
+  "EMBEDDING",
+  "EXTRACTION",
+  "INGEST",
+  "SEMANTIC_CHUNKING",
+])
 export type UsagePurpose = z.infer<typeof usagePurposeSchema>
 
 export const usageRequestStatusSchema = z.enum(["SUCCESS", "PARTIAL", "ERROR"])
@@ -91,6 +97,7 @@ export const usageLogDetailSchema = usageLogListItemSchema
   .extend({
     answer: z.string().nullable(),
     citations: z.array(z.record(z.string(), z.unknown())).nullable(),
+    documentId: z.string().nullish(),
     lineCount: z.number().int().nonnegative(),
     lines: z.array(usageLineSchema),
     query: z.string().nullable(),

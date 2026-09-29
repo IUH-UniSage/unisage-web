@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ReactNode } from "react"
+import { Link } from "react-router-dom"
 
 import { DataTable } from "@/components/shared/list/data-table"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
+import { adminDocumentDetailPath } from "@/constants/paths"
 import {
   citationSchema,
   type Citation,
@@ -210,6 +212,16 @@ function UsageLogDetailBody({ detail }: { detail: UsageLogDetail }) {
           {formatTokens(detail.totalOutputTokens)} /{" "}
           {formatTokens(detail.totalCachedTokens)}
         </Field>
+        {detail.documentId ? (
+          <Field label="Tài liệu">
+            <Link
+              className="font-mono text-xs text-primary underline-offset-2 hover:underline"
+              to={adminDocumentDetailPath(detail.documentId)}
+            >
+              {detail.documentId}
+            </Link>
+          </Field>
+        ) : null}
         <div className="col-span-2">
           <Field label="Request ID">
             <span className="font-mono text-xs">{detail.requestId}</span>
