@@ -1,4 +1,5 @@
 import { Bell, Menu } from "lucide-react"
+import type { ReactNode } from "react"
 import { Outlet } from "react-router-dom"
 
 import {
@@ -18,10 +19,14 @@ import {
 } from "@/components/ui/sheet"
 
 type StaffWorkspaceLayoutProps = {
+  banner?: ReactNode
   workspace: StaffWorkspace
 }
 
-export function StaffWorkspaceLayout({ workspace }: StaffWorkspaceLayoutProps) {
+export function StaffWorkspaceLayout({
+  banner,
+  workspace,
+}: StaffWorkspaceLayoutProps) {
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
 
@@ -77,6 +82,7 @@ export function StaffWorkspaceLayout({ workspace }: StaffWorkspaceLayoutProps) {
         </header>
 
         <main className="mx-auto w-full max-w-[1440px] p-4 md:px-6 md:py-4">
+          {banner}
           <Outlet />
         </main>
       </div>

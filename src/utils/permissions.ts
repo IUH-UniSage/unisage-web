@@ -108,6 +108,7 @@ export type ResourceName =
   | "system_config"
   | "system_health"
   | "budget"
+  | "budget_alert"
   | "super_admin"
 
 export type PermissionRequirement =

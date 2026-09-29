@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 
 import type {
+  BudgetAlertsParams,
   UsageLogSummaryParams,
   UsageLogsParams,
 } from "@/features/cost-management/api/cost-management-api"
@@ -14,8 +15,8 @@ export function useBudgetAlertSettingsQuery() {
   return useQuery(costManagementOptions.alertSettings())
 }
 
-export function useBudgetAlertsQuery() {
-  return useQuery(costManagementOptions.alerts())
+export function useBudgetAlertsQuery(params: BudgetAlertsParams) {
+  return useQuery(costManagementOptions.alerts(params))
 }
 
 export function useBudgetsQuery() {

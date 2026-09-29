@@ -1,13 +1,18 @@
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
+  budgetAlertLogPageSchema,
   budgetAlertLogSchema,
   budgetAlertSettingSchema,
   budgetSchema,
   usageLogDetailSchema,
   usageLogPageSchema,
   usageLogSummarySchema,
+  type AlertChannel,
+  type AlertStatus,
+  type AlertType,
   type Budget,
   type BudgetAlertLog,
+  type BudgetAlertLogPage,
   type BudgetAlertSetting,
   type CreateBudgetRequest,
   type UpdateBudgetAlertSettingRequest,
@@ -40,6 +45,15 @@ export type UsageLogsParams = {
   purpose?: UsagePurpose
   status?: UsageRequestStatus
   to?: string
+}
+
+export type BudgetAlertsParams = {
+  alertType?: AlertType
+  channel?: AlertChannel
+  // 1-based, like the rest of the UI (spring.data.web.pageable.one-indexed-parameters=true).
+  limit: number
+  page: number
+  status?: AlertStatus
 }
 
 export const costManagementApi = {
@@ -75,11 +89,14 @@ export const costManagementApi = {
     return readSuccessData(response.data, budgetAlertSettingSchema)
   },
 
-  async getBudgetAlerts(): Promise<BudgetAlertLog[]> {
-    const response = await httpClient.get<ApiResponse<BudgetAlertLog[]>>(
-      API_ENDPOINTS.costManagement.budgetAlerts
+  async getBudgetAlerts(
+    params: BudgetAlertsParams
+  ): Promise<BudgetAlertLogPage> {
+    const response = await httpClient.get<ApiResponse<BudgetAlertLogPage>>(
+      API_ENDPOINTS.costManagement.budgetAlerts,
+      { params }
     )
-    return readSuccessData(response.data, z.array(budgetAlertLogSchema))
+    return readSuccessData(response.data, budgetAlertLogPageSchema)
   },
 
   async getBudgets(): Promise<Budget[]> {

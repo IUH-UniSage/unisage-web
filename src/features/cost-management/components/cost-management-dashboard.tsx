@@ -2,6 +2,7 @@ import { Bell, History, LayoutDashboard, PiggyBank, Tag } from "lucide-react"
 
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { FeatureComingSoon } from "@/components/shared/feature-coming-soon"
+import { AlertsTab } from "@/features/cost-management/components/alerts/alerts-tab"
 import { BudgetsTab } from "@/features/cost-management/components/budgets/budgets-tab"
 import { OverviewTab } from "@/features/cost-management/components/overview/overview-tab"
 import { useCostManagementDashboard } from "@/features/cost-management/hooks/use-cost-management-dashboard"
@@ -38,13 +39,7 @@ export function CostManagementDashboard() {
           value: "budgets",
         },
         {
-          content: (
-            <FeatureComingSoon
-              description="Cấu hình kênh cảnh báo và lịch sử các lần gửi cảnh báo sẽ hiển thị ở đây."
-              headingLevel="h2"
-              title={TAB_LABELS.alerts}
-            />
-          ),
+          content: <AlertsTab />,
           icon: <Bell aria-hidden="true" />,
           label: TAB_LABELS.alerts,
           value: "alerts",

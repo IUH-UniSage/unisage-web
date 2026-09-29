@@ -1,4 +1,5 @@
 import type {
+  BudgetAlertsParams,
   UsageLogSummaryParams,
   UsageLogsParams,
 } from "@/features/cost-management/api/cost-management-api"
@@ -6,7 +7,8 @@ import type {
 export const costManagementKeys = {
   activeAlerts: () => [...costManagementKeys.all, "active-alerts"] as const,
   alertSettings: () => [...costManagementKeys.all, "alert-settings"] as const,
-  alerts: () => [...costManagementKeys.all, "alerts"] as const,
+  alerts: (params: BudgetAlertsParams) =>
+    [...costManagementKeys.all, "alerts", params] as const,
   all: ["cost-management"] as const,
   budgets: () => [...costManagementKeys.all, "budgets"] as const,
   usageLog: (usageLogId: string) =>

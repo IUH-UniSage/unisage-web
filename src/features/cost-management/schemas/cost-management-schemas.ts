@@ -205,6 +205,23 @@ export type UpdateBudgetAlertSettingRequest = {
   thresholdsPercent: number[]
 }
 
+// Mirrors ErrorCode.BUDGET_ALERT_SETTING_INVALID: thresholds 1-200, emails
+// well-formed.
+export const updateBudgetAlertSettingRequestSchema = z.object({
+  emailEnabled: z.boolean(),
+  emailRecipients: z.array(z.string().email("Email không đúng định dạng")),
+  inAppEnabled: z.boolean(),
+  slackEnabled: z.boolean(),
+  spikeDetectionEnabled: z.boolean(),
+  spikeThresholdPercent: z.number().int().min(1).max(200),
+  thresholdsPercent: z
+    .array(z.number().int().min(1).max(200))
+    .min(1, "Cần ít nhất một ngưỡng cảnh báo"),
+})
+export type UpdateBudgetAlertSettingFormValues = z.infer<
+  typeof updateBudgetAlertSettingRequestSchema
+>
+
 // ── Budget alert log (Alerts tab, history half) ─────────────────────────────
 
 export const alertTypeSchema = z.enum(["THRESHOLD", "SPIKE"])
@@ -242,3 +259,12 @@ export const budgetAlertLogSchema = z.object({
   thresholdPercent: z.number().int().nullable(),
 })
 export type BudgetAlertLog = z.infer<typeof budgetAlertLogSchema>
+
+export const budgetAlertLogPageSchema = z.object({
+  data: z.array(budgetAlertLogSchema),
+  limit: z.number().int().nonnegative(),
+  page: z.number().int().nonnegative(),
+  totalItems: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
+})
+export type BudgetAlertLogPage = z.infer<typeof budgetAlertLogPageSchema>

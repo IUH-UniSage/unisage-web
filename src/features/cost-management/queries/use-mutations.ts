@@ -59,7 +59,10 @@ export function useUpdateBudgetAlertSettingsMutation() {
 export function useDismissBudgetAlertMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: costManagementKeys.alerts(),
+      // Both the history table (alerts()) and the banner (activeAlerts())
+      // need to refresh after a dismiss - invalidate the whole feature
+      // namespace rather than picking one key and missing the other.
+      invalidatesQuery: costManagementKeys.all,
       successMessage: "Đã tắt cảnh báo.",
     },
     mutationFn: (alertId: string) =>
