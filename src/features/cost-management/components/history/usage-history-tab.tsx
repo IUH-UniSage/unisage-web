@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UsageHistoryFiltersBar } from "@/features/cost-management/components/history/usage-history-filters"
+import { UsageLogDrawer } from "@/features/cost-management/components/history/usage-log-drawer"
 import { useUsageHistoryTab } from "@/features/cost-management/hooks/use-usage-history-tab"
 import type { UsageLogListItem } from "@/features/cost-management/schemas/cost-management-schemas"
 import { formatUsdPrecise } from "@/features/cost-management/utils/format-cost"
@@ -191,6 +192,13 @@ export function UsageHistoryTab() {
           )}
         </CardContent>
       </Card>
+
+      <UsageLogDrawer
+        onOpenChange={(open) => {
+          if (!open) history.setSelectedUsageLogId(undefined)
+        }}
+        usageLogId={history.selectedUsageLogId}
+      />
     </div>
   )
 }
