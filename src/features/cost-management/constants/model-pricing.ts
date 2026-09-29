@@ -31,17 +31,6 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
     inputPerMillion: 0.15,
     outputPerMillion: 0.6,
   },
-  "mistral-embed": { inputPerMillion: 0.1 },
-  "mistral-large-latest": {
-    cachedInputPerMillion: 0.05,
-    inputPerMillion: 0.5,
-    outputPerMillion: 1.5,
-  },
-  "mistral-small-latest": {
-    cachedInputPerMillion: 0.015,
-    inputPerMillion: 0.15,
-    outputPerMillion: 0.6,
-  },
   "text-embedding-3-large": { inputPerMillion: 0.13 },
   "text-embedding-3-small": { inputPerMillion: 0.02 },
 }

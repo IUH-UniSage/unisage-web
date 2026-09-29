@@ -74,8 +74,6 @@ const STATUS_BADGE_STYLES: Record<ChatModel["status"], string> = {
 // back to a lucide icon below.
 const PROVIDER_LOGOS: Record<string, string> = {
   google: "/providers/gemini.jpg",
-  groq: "/providers/groq.png",
-  mistral: "/providers/mistral.png",
   openai: "/providers/openai.png",
 }
 
