@@ -25,6 +25,7 @@ import { getUsagePurposeLabel } from "@/features/cost-management/utils/purpose-l
 import {
   formatLatency,
   formatTokens,
+  formatUtcDateTime,
   getUsageRequesterLabel,
   getUsageTotalCost,
 } from "@/features/cost-management/utils/usage-display"
@@ -33,7 +34,6 @@ import {
   getUsageRequestStatusBadgeClassName,
   getUsageRequestStatusLabel,
 } from "@/features/cost-management/utils/usage-labels"
-import { formatDateTime } from "@/utils/date"
 import { getErrorMessage } from "@/utils/error-handler"
 
 const DELETED_CONTENT = "Nội dung đã bị xoá"
@@ -47,14 +47,22 @@ const LINE_COLUMNS: ColumnDef<UsageLine, unknown>[] = [
   },
   {
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.nodeName}</span>
+      <div className="text-xs">
+        <p className="font-mono">{row.original.nodeName}</p>
+        {row.original.status !== "SUCCESS" ? (
+          <p className="break-all text-destructive">
+            {row.original.errorCode ??
+              getUsageRequestStatusLabel(row.original.status)}
+          </p>
+        ) : null}
+      </div>
     ),
-    header: "Node",
+    header: "Node / lỗi",
     id: "node",
   },
   {
     cell: ({ row }) => (
-      <div className="text-xs">
+      <div className="text-xs whitespace-nowrap">
         <p>{row.original.modelName ?? "-"}</p>
         <p className="text-muted-foreground">{row.original.provider ?? "-"}</p>
       </div>
@@ -116,19 +124,6 @@ const LINE_COLUMNS: ColumnDef<UsageLine, unknown>[] = [
       headerClassName: "text-right",
     },
   },
-  {
-    cell: ({ row }) =>
-      row.original.status === "SUCCESS" ? (
-        <span className="text-xs text-success">OK</span>
-      ) : (
-        <span className="text-xs text-destructive">
-          {row.original.errorCode ??
-            getUsageRequestStatusLabel(row.original.status)}
-        </span>
-      ),
-    header: "Lỗi",
-    id: "error",
-  },
 ]
 
 // Citations are stored as free-form JSON on the message; skip entries that
@@ -189,7 +184,7 @@ function UsageLogDetailBody({ detail }: { detail: UsageLogDetail }) {
   return (
     <div className="space-y-6">
       <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Field label="Thời điểm">{formatDateTime(detail.startedAt)}</Field>
+        <Field label="Thời điểm">{formatUtcDateTime(detail.startedAt)}</Field>
         <Field label="Người dùng / IP">{getUsageRequesterLabel(detail)}</Field>
         <Field label="Mục đích">{getUsagePurposeLabel(detail.purpose)}</Field>
         <Field label="Trạng thái">
