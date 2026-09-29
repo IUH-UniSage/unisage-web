@@ -1,6 +1,9 @@
-import { AlertTriangle, X } from "lucide-react"
+import { AlertTriangle, ArrowRight, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
+import { ROUTES } from "@/constants/paths"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import { useDismissBudgetAlertMutation } from "@/features/cost-management/queries/use-mutations"
@@ -17,6 +20,28 @@ function describeAlert(alert: BudgetAlertLog): string {
   return `Đã dùng ${formatUsd(alert.spentUsd)} / ${limit} (ngưỡng ${alert.thresholdPercent}%).`
 }
 
+const AUTO_HIDE_MS = 3_000
+const HIDDEN_STORAGE_KEY = "budget-alert-banner:hidden"
+
+// Auto-hiding is per browser session only - the alert stays active (and in the
+// Alerts tab history) until someone dismisses it with the X button.
+function readHiddenIds(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(HIDDEN_STORAGE_KEY)
+    return new Set(raw ? (JSON.parse(raw) as string[]) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function writeHiddenIds(ids: Set<string>) {
+  try {
+    sessionStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify([...ids]))
+  } catch {
+    // Storage unavailable (private mode): banners just reappear next session.
+  }
+}
+
 // Polled every 60s (see costManagementOptions.activeAlerts) so a new alert
 // or another admin's dismiss shows up without a manual refresh.
 export function BudgetAlertBanner() {
@@ -25,11 +50,27 @@ export function BudgetAlertBanner() {
   const canDismiss = can("BUDGET_ALERT_DISMISS")
   const activeAlertsQuery = useActiveBudgetAlertsQuery()
   const dismissAlert = useDismissBudgetAlertMutation()
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(readHiddenIds)
 
-  if (!canRead) return null
+  const alerts = (activeAlertsQuery.data ?? []).filter(
+    (alert) => !hiddenIds.has(alert.id)
+  )
+  const visibleKey = alerts.map((alert) => alert.id).join(",")
 
-  const alerts = activeAlertsQuery.data ?? []
-  if (alerts.length === 0) return null
+  useEffect(() => {
+    if (!visibleKey) return
+    const timer = window.setTimeout(() => {
+      setHiddenIds((previous) => {
+        const next = new Set(previous)
+        visibleKey.split(",").forEach((id) => next.add(id))
+        writeHiddenIds(next)
+        return next
+      })
+    }, AUTO_HIDE_MS)
+    return () => window.clearTimeout(timer)
+  }, [visibleKey])
+
+  if (!canRead || alerts.length === 0) return null
 
   return (
     <div className="mx-auto mb-4 w-full max-w-[1440px] space-y-2">
@@ -44,6 +85,12 @@ export function BudgetAlertBanner() {
             className="mt-0.5 size-4 shrink-0"
           />
           <p className="min-w-0 flex-1">{describeAlert(alert)}</p>
+          <Button asChild size="sm" type="button" variant="ghost">
+            <Link to={`${ROUTES.adminCostManagement}?tab=alerts`}>
+              Xem chi tiết
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </Button>
           {canDismiss ? (
             <Button
               aria-label="Tắt cảnh báo"

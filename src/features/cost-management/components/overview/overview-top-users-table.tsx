@@ -10,6 +10,8 @@ import { formatUsd } from "@/features/cost-management/utils/format-cost"
 import { getErrorMessage } from "@/utils/error-handler"
 
 const TOP_N = 10
+// Backend bucket for requests with neither a user nor a guest IP (ingestion jobs).
+const UNATTRIBUTED_KEY = "unknown"
 
 export function OverviewTopUsersTable({
   query,
@@ -26,7 +28,14 @@ export function OverviewTopUsersTable({
   const columns = useMemo<ColumnDef<UsageLogSummaryBucket, unknown>[]>(
     () => [
       {
-        cell: ({ row }) => row.original.key,
+        cell: ({ row }) =>
+          row.original.key === UNATTRIBUTED_KEY ? (
+            <span className="text-muted-foreground">
+              Hệ thống (ingest tài liệu, không gắn người dùng)
+            </span>
+          ) : (
+            row.original.key
+          ),
         header: "Người dùng / IP",
         id: "key",
       },
