@@ -17,6 +17,7 @@ import { getUsagePurposeLabel } from "@/features/cost-management/utils/purpose-l
 import {
   formatLatency,
   formatTokens,
+  formatUtcDateTime,
   getUsageRequesterLabel,
   getUsageTotalCost,
 } from "@/features/cost-management/utils/usage-display"
@@ -24,7 +25,6 @@ import {
   getUsageRequestStatusBadgeClassName,
   getUsageRequestStatusLabel,
 } from "@/features/cost-management/utils/usage-labels"
-import { formatDateTime } from "@/utils/date"
 import { getErrorMessage } from "@/utils/error-handler"
 
 function buildColumns(
@@ -32,7 +32,7 @@ function buildColumns(
 ): ColumnDef<UsageLogListItem, unknown>[] {
   return [
     {
-      cell: ({ row }) => formatDateTime(row.original.startedAt),
+      cell: ({ row }) => formatUtcDateTime(row.original.startedAt),
       header: "Thời điểm",
       id: "startedAt",
       meta: { className: "text-sm whitespace-nowrap" },

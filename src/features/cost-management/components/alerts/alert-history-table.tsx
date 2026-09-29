@@ -31,7 +31,7 @@ import {
   getAlertTypeLabel,
 } from "@/features/cost-management/utils/alert-labels"
 import { formatUsd } from "@/features/cost-management/utils/format-cost"
-import { formatDateTime } from "@/utils/date"
+import { formatUtcDateTime } from "@/features/cost-management/utils/usage-display"
 import { getErrorMessage } from "@/utils/error-handler"
 
 const PAGE_SIZE = 10
@@ -68,7 +68,7 @@ export function AlertHistoryTable() {
 
   const columns: ColumnDef<BudgetAlertLog, unknown>[] = [
     {
-      cell: ({ row }) => formatDateTime(row.original.createdAt),
+      cell: ({ row }) => formatUtcDateTime(row.original.createdAt),
       header: "Thời điểm",
       id: "createdAt",
       meta: { className: "text-sm whitespace-nowrap" },

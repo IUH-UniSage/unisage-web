@@ -1,3 +1,5 @@
+import { formatDateTime } from "@/utils/date"
+
 type UsageRequester = {
   guestIp: string | null
   userEmail?: string | null
@@ -31,4 +33,11 @@ export function formatLatency(ms: number): string {
   return ms >= 1000
     ? `${(ms / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} s`
     : `${ms} ms`
+}
+
+// Usage and alert timestamps are UTC LocalDateTime on the backend (no offset
+// in the JSON), unlike the rest of the app which stores Vietnam local time.
+export function formatUtcDateTime(value: string): string {
+  const hasOffset = /(?:Z|[+-]\d{2}:?\d{2})$/.test(value)
+  return formatDateTime(hasOffset ? value : `${value}Z`)
 }
