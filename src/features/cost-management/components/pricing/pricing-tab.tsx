@@ -8,7 +8,7 @@ import {
   RefreshCw,
   RotateCcw,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { DataTable } from "@/components/shared/list/data-table"
@@ -32,6 +32,10 @@ import { chatModelOptions } from "@/features/chat-models/queries/options"
 import type { ChatModelSourceType } from "@/features/chat-models/schemas/chat-model-schemas"
 import { getPurposeLabel } from "@/features/chat-models/utils/chat-model-formatters"
 import { PriceDialog } from "@/features/cost-management/components/pricing/price-dialog"
+import {
+  PriceHistoryTable,
+  type PriceHistoryPreset,
+} from "@/features/cost-management/components/pricing/price-history-table"
 import {
   useCreateModelPriceMutation,
   useResetModelPriceMutation,
@@ -73,10 +77,6 @@ type DialogTarget =
   | { kind: "edit"; price: ModelPrice }
   | { kind: "new"; model?: { modelName: string; provider: string } }
 
-type PricingTabProps = {
-  onShowHistory?: (filter: { model: string; provider: string }) => void
-}
-
 function PriceCell({
   row,
   value,
@@ -103,7 +103,7 @@ function describeSync(result: ModelPricingSyncResult): string {
   )
 }
 
-export function PricingTab({ onShowHistory }: PricingTabProps) {
+export function PricingTab() {
   const pricing = useResourcePermissions("model_pricing")
   const chatModels = useResourcePermissions("chat_model")
   const [view, setView] = useState<PricingView>(
@@ -113,6 +113,7 @@ export function PricingTab({ onShowHistory }: PricingTabProps) {
   const [dialogTarget, setDialogTarget] = useState<DialogTarget>()
   const [resetTarget, setResetTarget] = useState<ModelPrice>()
   const [syncMessage, setSyncMessage] = useState<string>()
+  const [historyPreset, setHistoryPreset] = useState<PriceHistoryPreset>()
 
   const pricesQuery = useModelPricesQuery(pricing.canRead)
   const modelsQuery = useQuery({
@@ -201,6 +202,13 @@ export function PricingTab({ onShowHistory }: PricingTabProps) {
       await runSync().catch(() => undefined)
     }
   }
+
+  const showHistory = useCallback((provider: string, model: string) => {
+    setHistoryPreset({ model, nonce: Date.now(), provider })
+    document
+      .getElementById("price-history")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [])
 
   const columns = useMemo<ColumnDef<PricingRow, unknown>[]>(
     () => [
@@ -356,9 +364,9 @@ export function PricingTab({ onShowHistory }: PricingTabProps) {
                   <span>Khôi phục giá LiteLLM</span>
                 </DropdownMenuItem>
               ) : null}
-              {onShowHistory && provider ? (
+              {provider ? (
                 <DropdownMenuItem
-                  onClick={() => onShowHistory({ model: modelName, provider })}
+                  onClick={() => showHistory(provider, modelName)}
                 >
                   <History aria-hidden="true" className="size-4" />
                   <span>Lịch sử giá</span>
@@ -372,7 +380,7 @@ export function PricingTab({ onShowHistory }: PricingTabProps) {
         meta: { className: "w-12 text-right", headerClassName: "w-12" },
       },
     ],
-    [pricing.canCreate, pricing.canDelete, pricing.canUpdate, onShowHistory]
+    [pricing.canCreate, pricing.canDelete, pricing.canUpdate, showHistory]
   )
 
   const activeQuery = view === "registered" ? modelsQuery : pricesQuery
@@ -500,6 +508,11 @@ export function PricingTab({ onShowHistory }: PricingTabProps) {
           )}
         </CardContent>
       </Card>
+
+      <PriceHistoryTable
+        key={historyPreset?.nonce ?? 0}
+        preset={historyPreset}
+      />
 
       {dialogTarget ? (
         <PriceDialog
