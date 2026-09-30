@@ -9,3 +9,10 @@ export function useMyUsageQuery() {
 export function useUsageLimitPlansQuery(options?: { enabled?: boolean }) {
   return useQuery({ ...usageLimitOptions.plans(), enabled: options?.enabled })
 }
+
+export function useUserUsageQuery(userId: string | undefined) {
+  return useQuery({
+    ...usageLimitOptions.user(userId ?? ""),
+    enabled: Boolean(userId),
+  })
+}

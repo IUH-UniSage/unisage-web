@@ -29,6 +29,7 @@ import {
   flattenDepartmentTreeWithDepth,
   getDepthLevelStyle,
 } from "@/features/departments/utils/tree"
+import { AdminUserUsageCard } from "@/features/usage-limits/components/admin-user-usage-card"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
@@ -344,6 +345,9 @@ export function UserDetailDialog({
           )}
         </CardContent>
       </Card>
+
+      {/* Usage Limit Card */}
+      <AdminUserUsageCard userId={user.id} />
 
       {/* Audit History Card */}
       <Card className="border bg-card shadow-none">

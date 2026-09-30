@@ -50,6 +50,14 @@ export const usageLimitApi = {
     return readSuccessData(response.data, usageLimitPlanListSchema)
   },
 
+  async getUserUsage(userId: string): Promise<MyUsage> {
+    const response = await httpClient.get<ApiResponse<MyUsage>>(
+      API_ENDPOINTS.users.userUsageLimit(userId)
+    )
+
+    return readSuccessData(response.data, myUsageSchema)
+  },
+
   async updatePlan(
     planId: string,
     input: UsageLimitPlanRequest

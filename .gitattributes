@@ -1,0 +1,5 @@
+# Normalize all text files to LF on checkin and checkout, regardless of the
+# checking-out machine's core.autocrlf setting - this repo's files are
+# authored and stored as LF, so a Windows checkout with autocrlf=true was
+# making git report every text file as "modified" with zero real diff.
+* text=auto eol=lf

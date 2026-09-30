@@ -21,6 +21,22 @@ export const API_ENDPOINTS = {
   dashboard: {
     summary: "/admin/dashboard/summary",
   },
+  costManagement: {
+    budget: (budgetId: string) => `/budgets/${budgetId}`,
+    budgetAlertDismiss: (alertId: string) =>
+      `/budget-alerts/${alertId}/dismiss`,
+    budgetAlertSettings: "/budget-alert-settings",
+    budgetAlerts: "/budget-alerts",
+    budgetAlertsActive: "/budget-alerts/active",
+    budgets: "/budgets",
+    modelPrice: (priceId: string) => `/model-pricing/${priceId}`,
+    modelPriceHistory: "/model-pricing/history",
+    modelPrices: "/model-pricing",
+    modelPricesSync: "/model-pricing/sync",
+    usageLog: (usageLogId: string) => `/usage-logs/${usageLogId}`,
+    usageLogSummary: "/usage-logs/summary",
+    usageLogs: "/usage-logs",
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
@@ -120,6 +136,7 @@ export const API_ENDPOINTS = {
     myPassword: "/users/me/password",
     user: (userId: string) => `/users/${userId}`,
     userRecover: (userId: string) => `/users/${userId}/recover`,
+    userUsageLimit: (userId: string) => `/users/${userId}/usage-limit`,
     users: "/users",
     usersBulkDelete: "/users/bulk",
     usersBulkRecover: "/users/bulk/recover",
