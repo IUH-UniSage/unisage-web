@@ -82,11 +82,30 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   4041: "Không tìm thấy file gốc của tài liệu này.",
   4042: "Tài liệu này chưa được chia đoạn.",
   4043: "Không tìm thấy bản nháp nạp liệu cho tài liệu này.",
+  4222: "Không đọc được nội dung file (file hỏng, sai định dạng, có mật khẩu hoặc không phải UTF-8).",
   4221: "Không trích xuất được văn bản từ tài liệu này (có thể là bản scan). Hãy dùng bản có thể chọn chữ hoặc chạy OCR trước khi nạp.",
   5000: "Có lỗi xảy ra, bạn thử lại sau nhé.",
   5001: "Hệ thống AI phản hồi quá lâu, thử lại sau nhé.",
   5002: "Hệ thống AI đang gặp sự cố, thử lại sau nhé.",
-  5003: "Có lỗi xảy ra, bạn thử lại sau nhé.",
+  5003: "Không truy cập được cơ sở dữ liệu của dịch vụ AI, thử lại sau nhé.",
+  5004: "Không kết nối được hệ thống quản lý hội thoại, thử lại sau nhé.",
+  5005: "Nạp liệu (embedding) thất bại — kiểm tra Cấu hình AI rồi thử nạp lại.",
+  5006: "Nhà cung cấp Embedding đang gặp sự cố. Kiểm tra Cấu hình AI rồi thử lại.",
+  // Lỗi mô hình AI cụ thể - backend gửi kèm message chi tiết (mục đích
+  // Chat/Embedding/Extraction + nguyên nhân); các câu dưới chỉ là fallback.
+  5007: "Chưa cấu hình mô hình AI cho chức năng này. Thêm credential trong trang Cấu hình AI.",
+  5008: "API key của mô hình AI không hợp lệ hoặc không có quyền. Kiểm tra trang Cấu hình AI.",
+  5009: "Tài khoản nhà cung cấp mô hình AI đã hết hạn mức/credit. Kiểm tra trang Cấu hình AI.",
+  5010: "Nhà cung cấp mô hình AI đang giới hạn tốc độ gọi, thử lại sau ít phút.",
+  5011: "Nhà cung cấp không tìm thấy mô hình AI đã cấu hình (sai tên model hoặc base URL).",
+  5012: "Nhà cung cấp mô hình AI từ chối yêu cầu (sai tham số, xung đột hoặc nội dung quá dài).",
+  5013: "Không kết nối được tới nhà cung cấp mô hình AI. Kiểm tra base URL và mạng.",
+  5014: "Đã đạt giới hạn ngân sách sử dụng mô hình AI. Vui lòng thử lại sau.",
+  5015: "Nhà cung cấp/địa chỉ của mô hình AI đã cấu hình không được hệ thống hỗ trợ.",
+  5016: "Mọi credential của mô hình AI đang bị tạm ngưng do lỗi gần đây. Kiểm tra trang Cấu hình AI.",
+  5017: "Không truy cập được kho vector (Qdrant), thử lại sau nhé.",
+  5018: "Không truy cập được kho lưu trữ file (MinIO), thử lại sau nhé.",
+  5019: "Không kết nối được hàng đợi xử lý nền (Redis/Celery), thử lại sau nhé.",
 }
 
 export function getErrorMessage(code: number, fallback: string): string {
