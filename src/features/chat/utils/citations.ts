@@ -7,6 +7,21 @@ export type CitationGroup = {
   indexes: number[]
   key: string
   pages: string | null
+  // Host of a web-page source ("pdt.iuh.edu.vn"), null for a document.
+  site: string | null
+}
+
+export const WEB_SOURCE_TYPE = "WEB"
+
+// The page to open for a web-search source, or null for an uploaded document.
+export function webCitationUrl(citation: Citation): string | null {
+  return citation.sourceType === WEB_SOURCE_TYPE && citation.url
+    ? citation.url
+    : null
+}
+
+function siteOf(url: string): string {
+  return new URL(url).hostname.replace(/^www\./, "")
 }
 
 type PageRange = { label: string; start: number }
@@ -31,7 +46,10 @@ export function groupCitationsByDocument(
   >()
 
   for (const citation of citations) {
-    const key = citation.documentId ?? `title:${citation.title}`
+    const url = webCitationUrl(citation)
+    const key = url
+      ? `url:${url}`
+      : (citation.documentId ?? `title:${citation.title}`)
     const page = toPageRange(citation)
     const group = groups.get(key)
 
@@ -50,17 +68,21 @@ export function groupCitationsByDocument(
     }
   }
 
-  return [...groups.entries()].map(([key, group]) => ({
-    first: group.first,
-    indexes: [...group.indexes].sort((a, b) => a - b),
-    key,
-    pages: group.pages.length
-      ? `tr. ${[...group.pages]
-          .sort((a, b) => a.start - b.start)
-          .map((page) => page.label)
-          .join(", ")}`
-      : null,
-  }))
+  return [...groups.entries()].map(([key, group]) => {
+    const url = webCitationUrl(group.first)
+    return {
+      first: group.first,
+      indexes: [...group.indexes].sort((a, b) => a - b),
+      key,
+      pages: group.pages.length
+        ? `tr. ${[...group.pages]
+            .sort((a, b) => a.start - b.start)
+            .map((page) => page.label)
+            .join(", ")}`
+        : null,
+      site: url ? siteOf(url) : null,
+    }
+  })
 }
 
 // What the reader sees for each `[n]`: the position of its document in the source

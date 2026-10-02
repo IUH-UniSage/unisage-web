@@ -84,4 +84,31 @@ describe("chat schemas", () => {
       messageSchema.parse({ ...base, citations: "oops" }).citations
     ).toBeNull()
   })
+
+  it("keeps the url of a web-search citation", () => {
+    const citation = citationSchema.parse({
+      documentId: null,
+      index: 3,
+      pageEnd: null,
+      pageStart: null,
+      section: null,
+      sourceType: "WEB",
+      title: "Lịch thi HK1",
+      url: "https://pdt.iuh.edu.vn/lich-thi",
+    })
+
+    expect(citation.url).toBe("https://pdt.iuh.edu.vn/lich-thi")
+  })
+
+  it("drops a non-http url instead of the whole citation", () => {
+    const citation = citationSchema.parse({
+      index: 1,
+      sourceType: "WEB",
+      title: "x",
+      url: "javascript:alert(1)",
+    })
+
+    expect(citation.title).toBe("x")
+    expect(citation.url).toBeNull()
+  })
 })

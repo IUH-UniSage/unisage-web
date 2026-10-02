@@ -17,7 +17,8 @@ export const conversationSchema = z.object({
 
 // One cited source of an assistant reply, written by unisage-agent. Never carries
 // the storage object key (the history API is public) - a file is opened by
-// `documentId` through the citation endpoint instead.
+// `documentId` through the citation endpoint instead. A web page found by the
+// agent's web search has `sourceType: "WEB"` and its `url` instead of a document.
 export const citationSchema = z.object({
   documentId: z.string().nullish(),
   index: z.number().int().positive(),
@@ -26,6 +27,12 @@ export const citationSchema = z.object({
   section: z.string().nullish(),
   sourceType: z.string().nullish(),
   title: z.string(),
+  // Only http(s) - it becomes a link target. A bad value drops just the url,
+  // not every citation of the message.
+  url: z
+    .url({ protocol: /^https?$/ })
+    .nullish()
+    .catch(null),
 })
 
 export const citationDocumentSchema = z.object({

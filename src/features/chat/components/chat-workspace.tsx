@@ -23,6 +23,7 @@ import type { Citation } from "@/features/chat/schemas/chat-schemas"
 import {
   groupCitationsByDocument,
   latestCitations,
+  webCitationUrl,
 } from "@/features/chat/utils/citations"
 import { cn } from "@/lib/utils"
 
@@ -32,6 +33,12 @@ export function ChatPage() {
   const [isResizing, setIsResizing] = useState(false)
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
   const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
+  // A web-search source opens its page in a new tab; a document opens the drawer.
+  const openCitation = (citation: Citation) => {
+    const url = webCitationUrl(citation)
+    if (url) window.open(url, "_blank", "noopener,noreferrer")
+    else setActiveCitation(citation)
+  }
   const sourceCitations = latestCitations(workspace.messages)
   // Closing the low-usage warning lasts until the page is reloaded.
   const [isUsageWarningDismissed, setIsUsageWarningDismissed] = useState(false)
@@ -181,7 +188,7 @@ export function ChatPage() {
                 isSending={workspace.isSendingMessage}
                 isStreaming={workspace.isStreaming}
                 messages={workspace.messages}
-                onOpenCitation={setActiveCitation}
+                onOpenCitation={openCitation}
                 onSendMessage={workspace.sendMessage}
                 onStopGenerating={workspace.stopGenerating}
                 usageWarning={usageWarning}
@@ -201,7 +208,7 @@ export function ChatPage() {
           <SourcePanel
             citations={sourceCitations}
             onClose={() => workspace.setIsSourcesOpen(false)}
-            onOpenCitation={setActiveCitation}
+            onOpenCitation={openCitation}
             width={sidebarWidth}
           />
         ) : null}
