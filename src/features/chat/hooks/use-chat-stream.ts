@@ -11,6 +11,14 @@ export type ChatStreamErrorPayload = {
   retryable: boolean
 }
 
+// `event: warning` - something an AI admin should fix that did not stop the
+// turn (e.g. web search failed, so the answer went on without the university
+// website). The agent only sends it to AI admins.
+export type ChatStreamWarningPayload = {
+  code: string
+  message: string
+}
+
 type ChatStreamCallbacks = {
   onChunk?: (token: string, fullText: string) => void
   onDone?: (fullText: string) => void
@@ -24,6 +32,7 @@ type ChatStreamCallbacks = {
    * discarded.
    */
   onStreamError?: (payload: ChatStreamErrorPayload, fullText: string) => void
+  onWarning?: (payload: ChatStreamWarningPayload) => void
 }
 
 type ChatStreamInput = {
@@ -162,6 +171,8 @@ export function useChatStream() {
             sawError = true
             const payload = JSON.parse(data) as ChatStreamErrorPayload
             callbacks.onStreamError?.(payload, fullText)
+          } else if (event === "warning" && data !== undefined) {
+            callbacks.onWarning?.(JSON.parse(data) as ChatStreamWarningPayload)
           } else if (event === "done") {
             if (!sawError) callbacks.onDone?.(fullText)
           }
