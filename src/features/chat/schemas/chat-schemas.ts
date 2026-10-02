@@ -50,6 +50,10 @@ export const messageSchema = z.object({
   status: msgStatusSchema,
   // Set once the user has reported this answer as a support ticket.
   ticketId: z.uuid().nullish(),
+  // Client-only: why this turn failed (the agent's message for this caller),
+  // shown in the error bubble. Never sent by backend-java, so a reloaded
+  // ERROR message falls back to the generic text.
+  errorMessage: z.string().optional(),
 })
 
 export const createConversationRequestSchema = z.object({

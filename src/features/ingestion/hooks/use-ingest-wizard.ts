@@ -149,6 +149,16 @@ export function useIngestWizard(document: Document) {
       if (job.current_step === "embedding" && job.task_id) {
         setEmbeddingTaskId(job.task_id)
         setStep("embedding")
+        // A task that already finished won't send another WebSocket frame -
+        // show its outcome (and the backend's specific failure reason) from
+        // the job response instead of waiting on "connecting" forever.
+        if (job.task_state && isTerminalTaskState(job.task_state)) {
+          setEmbeddingProgress({
+            percent: job.task_percent ?? 100,
+            state: job.task_state === "FAILURE" ? "FAILURE" : "SUCCESS",
+            message: job.task_message ?? undefined,
+          })
+        }
       } else {
         setStep("review")
       }

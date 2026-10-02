@@ -68,9 +68,18 @@ export function ActiveConversation({
                     <span className="animate-pulse">Đang suy nghĩ...</span>
                   </div>
                 ) : message.status === "ERROR" ? (
-                  <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                    Không thể tạo câu trả lời. Vui lòng thử lại.
-                  </div>
+                  <>
+                    {/* What streamed before the failure stays readable. */}
+                    {message.content ? (
+                      <p className="text-sm whitespace-pre-wrap text-muted-foreground">
+                        {message.content}
+                      </p>
+                    ) : null}
+                    <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                      {message.errorMessage ??
+                        "Không thể tạo câu trả lời. Vui lòng thử lại."}
+                    </div>
+                  </>
                 ) : !message.content ? (
                   <p className="text-sm text-muted-foreground italic">
                     Đã dừng tạo câu trả lời.

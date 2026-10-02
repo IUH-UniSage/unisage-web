@@ -60,7 +60,16 @@ async function readStreamErrorMessage(response: Response): Promise<Error> {
       "code" in body &&
       "message" in body
     ) {
-      return new ApiResponseError(body as { code: number; message: string })
+      const payload = body as { code: number; message: string }
+      const error = new ApiResponseError(payload)
+      // Keep the backend's own message rather than ApiResponseError's generic
+      // per-code text: the agent already tailors it to the caller (a plain
+      // message plus a reference code for students/guests, the technical
+      // cause for AI admins).
+      if (typeof payload.message === "string" && payload.message) {
+        error.message = payload.message
+      }
+      return error
     }
   } catch {
     // Response body wasn't the usual {code, message} envelope - fall through.

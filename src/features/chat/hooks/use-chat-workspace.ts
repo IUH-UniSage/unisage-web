@@ -17,9 +17,11 @@ import type { Message } from "@/features/chat/schemas/chat-schemas"
 import { usageLimitKeys } from "@/features/usage-limits/queries/keys"
 import { describeUsageLimitExceeded } from "@/features/usage-limits/utils/usage-format"
 import { ApiResponseError } from "@/utils/api-response"
+import { getErrorMessage } from "@/utils/error-handler"
 
 // Backend ErrorCode.USAGE_LIMIT_EXCEEDED
 const USAGE_LIMIT_EXCEEDED_CODE = 2130
+const STREAM_FAILED_FALLBACK = "Không thể tạo câu trả lời. Vui lòng thử lại."
 
 const CONVERSATION_TITLE_MAX_LENGTH = 80
 
@@ -85,6 +87,22 @@ export function useChatWorkspace() {
     queryClient.setQueryData(
       chatKeys.messages(conversationId),
       (current: Message[] | undefined) => updater(current ?? [])
+    )
+  }
+
+  // Content that already streamed is kept; the bubble shows `errorMessage`
+  // (the backend's message for this caller) below it.
+  const markFailed = (
+    conversationId: string,
+    assistantMessageId: string,
+    errorMessage: string
+  ) => {
+    setMessages(conversationId, (current) =>
+      current.map((message) =>
+        message.id === assistantMessageId
+          ? { ...message, errorMessage, status: "ERROR" }
+          : message
+      )
     )
   }
 
@@ -176,24 +194,22 @@ export function useChatWorkspace() {
           toast.error(payload.message)
           setIsStreaming(false)
           inFlightRef.current = null
-          setMessages(conversationIdForStream, (current) =>
-            current.map((message) =>
-              message.id === assistantMessageId
-                ? { ...message, status: "ERROR" }
-                : message
-            )
+          markFailed(
+            conversationIdForStream,
+            assistantMessageId,
+            payload.message
           )
         },
         onError: (error) => {
           void queryClient.invalidateQueries({
             queryKey: usageLimitKeys.mine(),
           })
-          if (
+          const errorMessage =
             error instanceof ApiResponseError &&
             error.code === USAGE_LIMIT_EXCEEDED_CODE
-          ) {
-            toast.error(describeUsageLimitExceeded(error.errors))
-          }
+              ? describeUsageLimitExceeded(error.errors)
+              : getErrorMessage(error, STREAM_FAILED_FALLBACK)
+          toast.error(errorMessage)
           // Deliberately not invalidating here: backend-java may not have
           // persisted anything past the USER message (or may be left
           // holding an orphaned STREAMING placeholder) for a failed stream,
@@ -203,13 +219,7 @@ export function useChatWorkspace() {
           // usual.
           setIsStreaming(false)
           inFlightRef.current = null
-          setMessages(conversationIdForStream, (current) =>
-            current.map((message) =>
-              message.id === assistantMessageId
-                ? { ...message, status: "ERROR" }
-                : message
-            )
-          )
+          markFailed(conversationIdForStream, assistantMessageId, errorMessage)
         },
       }
     )
