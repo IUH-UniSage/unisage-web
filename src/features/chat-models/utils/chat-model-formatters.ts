@@ -41,6 +41,9 @@ export function getStatusLabel(status: ChatModelStatus): string {
   return STATUS_LABELS[status]
 }
 
+// Matches a free-tier Gemini key's 15 requests/minute - the add dialog's starting value.
+export const DEFAULT_MAX_RPM = 15
+
 const QUEUED_STALE_AFTER_MS = 5 * 60 * 1000
 
 /**

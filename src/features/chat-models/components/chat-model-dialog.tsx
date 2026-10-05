@@ -33,6 +33,7 @@ import {
   type CreateChatModelRequest,
 } from "@/features/chat-models/schemas/chat-model-schemas"
 import {
+  DEFAULT_MAX_RPM,
   getPurposeLabel,
   getSourceTypeLabel,
 } from "@/features/chat-models/utils/chat-model-formatters"
@@ -77,7 +78,7 @@ export function ChatModelDialog({
       displayName: chatModel?.displayName ?? "",
       llmModelName: chatModel?.llmModelName ?? "",
       llmProvider: chatModel?.llmProvider ?? "",
-      maxRpm: chatModel?.maxRpm ?? 60,
+      maxRpm: chatModel?.maxRpm ?? DEFAULT_MAX_RPM,
       modelPurpose: chatModel?.modelPurpose ?? "CHAT",
       modelSourceRef: chatModel?.modelSourceRef ?? "",
       priority: chatModel?.priority ?? null,
