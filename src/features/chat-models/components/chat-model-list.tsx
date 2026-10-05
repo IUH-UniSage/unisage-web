@@ -134,7 +134,7 @@ export function ChatModelList({
   return (
     <div className="space-y-4">
       {chatModels.length ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {chatModels.map((chatModel) => (
             <ChatModelCard
               canDelete={canDelete}

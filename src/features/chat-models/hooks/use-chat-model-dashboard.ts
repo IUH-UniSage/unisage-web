@@ -20,7 +20,7 @@ import type {
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { PERMISSIONS } from "@/utils/permissions"
 
-export const CHAT_MODEL_PAGE_SIZE = 10
+export const CHAT_MODEL_PAGE_SIZE = 12
 
 // Soft-delete axis (BaseEntity.isActive) - "ACTIVE" (the default) sends
 // isActive=true to the backend so a fresh page load only shows
