@@ -6,6 +6,7 @@ import type {
   ChatModelVerificationSummary,
 } from "@/features/chat-models/schemas/chat-model-schemas"
 import { getVerificationStatusLabel } from "@/features/chat-models/schemas/verification-status"
+import { parseApiDate } from "@/utils/date"
 
 // Mirrors com.unisage.backend.entity.enums.ChatModelSourceType — keep in
 // sync with the backend enum (name + displayName) when it changes.
@@ -68,9 +69,9 @@ export function getVerificationStatusDisplayLabel(
   now: Date = new Date()
 ): string {
   if (verification.status === "QUEUED" && verification.createdAt) {
-    const createdAt = new Date(verification.createdAt).getTime()
+    const createdAt = parseApiDate(verification.createdAt)?.getTime()
     if (
-      !Number.isNaN(createdAt) &&
+      createdAt !== undefined &&
       now.getTime() - createdAt > QUEUED_STALE_AFTER_MS
     ) {
       return "Đang chờ agent"
