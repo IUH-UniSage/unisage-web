@@ -44,6 +44,7 @@ export type StaffWorkspace = "ingester" | "system-admin"
 
 export type NavigationItem = {
   icon: LucideIcon
+  key: string
   label: string
   requiredPermissions?: readonly PermissionRequirement[]
   requiredStrategy?: "all" | "any"
@@ -355,6 +356,7 @@ export function getWorkspaceNavItems(
 
   return getWorkspaceFeatures(workspace).map((entry) => ({
     icon: entry.icon,
+    key: entry.key,
     label: entry.label,
     requiredPermissions: entry.requiredPermissions,
     requiredStrategy: entry.requiredStrategy,

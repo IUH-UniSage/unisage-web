@@ -1,14 +1,15 @@
-import { Bell, Menu } from "lucide-react"
+import { Bell, Menu, Search, X } from "lucide-react"
 import type { ReactNode } from "react"
+import { useState } from "react"
 import { Outlet } from "react-router-dom"
 
 import {
   StaffSidebar,
   type StaffWorkspace,
 } from "@/components/shared/navigation/staff-sidebar"
-import { SearchAndActions } from "@/components/shared/list/search-and-actions"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
 import { UserAccountMenu } from "@/components/shared/navigation/user-account-menu"
+import { WorkspaceSearch } from "@/components/shared/navigation/workspace-search"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -27,6 +28,7 @@ export function StaffWorkspaceLayout({
   banner,
   workspace,
 }: StaffWorkspaceLayoutProps) {
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
 
@@ -68,17 +70,39 @@ export function StaffWorkspaceLayout({
               </p>
             </div>
 
-            <SearchAndActions
-              className="hidden w-full max-w-xs md:flex"
-              inputClassName="bg-background"
-              placeholder="Tìm trong không gian làm việc"
+            <WorkspaceSearch
+              className="hidden w-full max-w-xs md:block"
+              workspace={workspace}
             />
+            <Button
+              aria-expanded={isMobileSearchOpen}
+              aria-label={isMobileSearchOpen ? "Đóng tìm kiếm" : "Tìm kiếm"}
+              className="md:hidden"
+              onClick={() => setIsMobileSearchOpen((open) => !open)}
+              size="icon"
+              variant="ghost"
+            >
+              {isMobileSearchOpen ? (
+                <X aria-hidden="true" />
+              ) : (
+                <Search aria-hidden="true" />
+              )}
+            </Button>
             <ThemeToggle />
             <Button aria-label="Thông báo" size="icon" variant="ghost">
               <Bell aria-hidden="true" />
             </Button>
             <UserAccountMenu />
           </div>
+          {isMobileSearchOpen ? (
+            <div className="px-4 pb-3 md:hidden">
+              <WorkspaceSearch
+                autoFocus
+                onNavigate={() => setIsMobileSearchOpen(false)}
+                workspace={workspace}
+              />
+            </div>
+          ) : null}
         </header>
 
         <main className="mx-auto w-full max-w-[1440px] p-4 md:px-6 md:py-4">

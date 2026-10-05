@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import type { ColumnDef } from "@tanstack/react-table"
 import {
+  Eye,
   ExternalLink,
   History,
   Info,
@@ -13,6 +14,7 @@ import { useCallback, useMemo, useState } from "react"
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { DataTable } from "@/components/shared/list/data-table"
 import { EntityActionsMenu } from "@/components/shared/list/entity-actions-menu"
+import { Pagination } from "@/components/shared/list/pagination"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,13 +31,16 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { getChatModelProviderOption } from "@/features/chat-models/constants/chat-model-providers"
 import { chatModelOptions } from "@/features/chat-models/queries/options"
-import type { ChatModelSourceType } from "@/features/chat-models/schemas/chat-model-schemas"
-import { getPurposeLabel } from "@/features/chat-models/utils/chat-model-formatters"
+import type {
+  ChatModel,
+  ChatModelSourceType,
+} from "@/features/chat-models/schemas/chat-model-schemas"
 import { PriceDialog } from "@/features/cost-management/components/pricing/price-dialog"
 import {
   PriceHistoryTable,
   type PriceHistoryPreset,
 } from "@/features/cost-management/components/pricing/price-history-table"
+import { RegisteredModelsDialog } from "@/features/cost-management/components/pricing/registered-models-dialog"
 import {
   useCreateModelPriceMutation,
   useResetModelPriceMutation,
@@ -60,16 +65,17 @@ import { getErrorMessage } from "@/utils/error-handler"
 
 // Registry size is bounded by providers x purposes, so one page covers it.
 const REGISTRY_PAGE_SIZE = 200
+const PAGE_SIZE = 20
 
 type PricingView = "registered" | "all"
 
 type PricingRow = {
-  displayName?: string | null
   key: string
   modelName: string
+  /** Registered chat models sharing this provider + model name ("registered" view only). */
+  models?: ChatModel[]
   price?: ModelPrice
   provider: string
-  purpose?: string
   sourceType: ChatModelSourceType
 }
 
@@ -110,6 +116,8 @@ export function PricingTab() {
     chatModels.canRead ? "registered" : "all"
   )
   const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [detailRow, setDetailRow] = useState<PricingRow>()
   const [dialogTarget, setDialogTarget] = useState<DialogTarget>()
   const [resetTarget, setResetTarget] = useState<ModelPrice>()
   const [syncMessage, setSyncMessage] = useState<string>()
@@ -148,35 +156,61 @@ export function PricingTab() {
 
   const rows = useMemo<PricingRow[]>(() => {
     const term = search.trim().toLowerCase()
-    const all: PricingRow[] =
-      view === "registered"
-        ? (modelsQuery.data?.data ?? []).map((model) => {
-            const provider = model.llmProvider ?? ""
-            return {
-              displayName: model.displayName,
-              key: model.id,
-              modelName: model.llmModelName,
-              price: pricesByKey.get(priceKey(provider, model.llmModelName)),
-              provider,
-              purpose: getPurposeLabel(model.modelPurpose),
-              sourceType: model.sourceType,
-            }
-          })
-        : (pricesQuery.data ?? []).map((price) => ({
-            key: price.id,
-            modelName: price.modelName,
-            price,
-            provider: price.provider,
-            sourceType: "CLOUD_API",
-          }))
+    let all: PricingRow[]
+    if (view === "registered") {
+      const groups = new Map<string, PricingRow>()
+      for (const model of modelsQuery.data?.data ?? []) {
+        const provider = model.llmProvider ?? ""
+        const key = priceKey(provider, model.llmModelName)
+        const group = groups.get(key)
+        if (group) {
+          group.models?.push(model)
+          // A model name billed through any cloud config is priced like one.
+          if (model.sourceType === "CLOUD_API") group.sourceType = "CLOUD_API"
+          continue
+        }
+        groups.set(key, {
+          key,
+          modelName: model.llmModelName,
+          models: [model],
+          price: pricesByKey.get(key),
+          provider,
+          sourceType: model.sourceType,
+        })
+      }
+      all = [...groups.values()]
+    } else {
+      all = (pricesQuery.data ?? []).map((price) => ({
+        key: price.id,
+        modelName: price.modelName,
+        price,
+        provider: price.provider,
+        sourceType: "CLOUD_API",
+      }))
+    }
     return all
-      .filter((row) => !term || row.modelName.toLowerCase().includes(term))
+      .filter(
+        (row) =>
+          !term ||
+          row.modelName.toLowerCase().includes(term) ||
+          row.models?.some((model) =>
+            model.displayName?.toLowerCase().includes(term)
+          )
+      )
       .sort(
         (a, b) =>
           a.provider.localeCompare(b.provider) ||
           a.modelName.localeCompare(b.modelName)
       )
   }, [view, search, modelsQuery.data, pricesQuery.data, pricesByKey])
+
+  const totalPages = Math.ceil(rows.length / PAGE_SIZE)
+  // Rows can shrink under the current page (sync, filter), so clamp instead of resetting.
+  const currentPage = Math.min(page, Math.max(totalPages, 1))
+  const pageRows = useMemo(
+    () => rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [rows, currentPage]
+  )
 
   const runSync = async () => {
     setSyncMessage(undefined)
@@ -238,18 +272,25 @@ export function PricingTab() {
         meta: { className: "text-sm" },
       },
       {
-        cell: ({ row }) => (
-          <div className="min-w-0">
-            <p className="font-medium">{row.original.modelName}</p>
-            {row.original.displayName || row.original.purpose ? (
-              <p className="text-xs text-muted-foreground">
-                {[row.original.purpose, row.original.displayName]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            ) : null}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { models } = row.original
+          return (
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="font-medium">{row.original.modelName}</p>
+              {models ? (
+                <Button
+                  className="h-7 px-2 text-xs text-muted-foreground"
+                  onClick={() => setDetailRow(row.original)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  <Eye aria-hidden="true" className="size-3.5" />
+                  Xem chi tiết ({models.length})
+                </Button>
+              ) : null}
+            </div>
+          )
+        },
         header: "Mô hình",
         id: "model",
       },
@@ -402,7 +443,7 @@ export function PricingTab() {
         <p className="flex max-w-3xl items-start gap-2 text-sm text-muted-foreground">
           <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           <span>
-            Giá openai/google được đồng bộ mỗi ngày từ bảng giá LiteLLM (chỉ
+            Giá openai/google/zai được đồng bộ mỗi ngày từ bảng giá LiteLLM (chỉ
             tier Standard); giá chỉnh tay không bị ghi đè. Giá mới áp dụng cho
             các lượt gọi sau, không tính lại chi phí đã ghi. Mô hình chưa có giá
             được ghi là "chưa định giá" và chỉ cộng chi phí ước tính.
@@ -460,7 +501,10 @@ export function PricingTab() {
           <div className="flex flex-wrap gap-2">
             {chatModels.canRead ? (
               <Select
-                onValueChange={(value) => setView(value as PricingView)}
+                onValueChange={(value) => {
+                  setView(value as PricingView)
+                  setPage(1)
+                }}
                 value={view}
               >
                 <SelectTrigger aria-label="Chọn danh sách" className="w-52">
@@ -477,8 +521,15 @@ export function PricingTab() {
             <Input
               aria-label="Tìm mô hình"
               className="w-56"
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm mô hình..."
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(1)
+              }}
+              placeholder={
+                view === "registered"
+                  ? "Tìm mô hình hoặc tên gợi nhớ..."
+                  : "Tìm mô hình..."
+              }
               value={search}
             />
           </div>
@@ -504,7 +555,23 @@ export function PricingTab() {
               title="Không có mô hình nào"
             />
           ) : (
-            <DataTable columns={columns} data={rows} getRowId={(r) => r.key} />
+            <>
+              <DataTable
+                columns={columns}
+                data={pageRows}
+                getRowId={(r) => r.key}
+              />
+              {totalPages > 1 ? (
+                <Pagination
+                  className="rounded-none border-x-0 border-b-0 shadow-none"
+                  currentPage={currentPage}
+                  onPageChange={setPage}
+                  pageSize={PAGE_SIZE}
+                  totalItems={rows.length}
+                  totalPages={totalPages}
+                />
+              ) : null}
+            </>
           )}
         </CardContent>
       </Card>
@@ -525,6 +592,17 @@ export function PricingTab() {
           }}
           onSubmit={save}
           price={dialogTarget.kind === "edit" ? dialogTarget.price : undefined}
+        />
+      ) : null}
+
+      {detailRow?.models ? (
+        <RegisteredModelsDialog
+          modelName={detailRow.modelName}
+          models={detailRow.models}
+          onOpenChange={(open) => {
+            if (!open) setDetailRow(undefined)
+          }}
+          provider={detailRow.provider}
         />
       ) : null}
 
