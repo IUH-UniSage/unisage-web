@@ -55,7 +55,7 @@ export const ticketApi = {
   }: MyTicketsParams): Promise<TicketPage> {
     const response = await httpClient.get<ApiResponse<TicketPage>>(
       API_ENDPOINTS.tickets.myTickets,
-      { params: { page: page - 1, size, status } }
+      { params: { page, size, status } }
     )
 
     return readSuccessData(response.data, ticketPageSchema)
@@ -78,7 +78,7 @@ export const ticketApi = {
   }: AdminTicketsParams): Promise<TicketPage> {
     const response = await httpClient.get<ApiResponse<TicketPage>>(
       API_ENDPOINTS.tickets.tickets,
-      { params: { page: page - 1, q: q || undefined, size, status, type } }
+      { params: { page, q: q || undefined, size, status, type } }
     )
 
     return readSuccessData(response.data, ticketPageSchema)
