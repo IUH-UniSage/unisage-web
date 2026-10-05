@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { X } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { DataTable } from "@/components/shared/list/data-table"
 import { Pagination } from "@/components/shared/list/pagination"
@@ -18,8 +18,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CHAT_MODEL_PROVIDERS } from "@/features/chat-models/constants/chat-model-providers"
-import { useModelPriceHistoryQuery } from "@/features/cost-management/queries/use-queries"
+import { getChatModelProviderOption } from "@/features/chat-models/constants/chat-model-providers"
+import {
+  useModelPriceHistoryQuery,
+  useModelPricesQuery,
+} from "@/features/cost-management/queries/use-queries"
 import {
   modelPriceChangeTypeSchema,
   type ModelPriceChange,
@@ -27,6 +30,7 @@ import {
 } from "@/features/cost-management/schemas/cost-management-schemas"
 import { formatUsdPrecise } from "@/features/cost-management/utils/format-cost"
 import { getPriceChangeTypeLabel } from "@/features/cost-management/utils/pricing-labels"
+import { getProviderFilterOptions } from "@/features/cost-management/utils/provider-support"
 import { formatUtcDateTime } from "@/features/cost-management/utils/usage-display"
 import { useDebounce } from "@/hooks/use-debounce"
 import { getErrorMessage } from "@/utils/error-handler"
@@ -182,6 +186,15 @@ export function PriceHistoryTable({ preset }: { preset?: PriceHistoryPreset }) {
       : EMPTY_FILTERS
   )
   const [page, setPage] = useState(1)
+  // Same cached query as the pricing table.
+  const pricesQuery = useModelPricesQuery()
+  const providerOptions = useMemo(
+    () =>
+      getProviderFilterOptions(
+        (pricesQuery.data ?? []).map((price) => price.provider)
+      ),
+    [pricesQuery.data]
+  )
   const query = useDebounce(filters.query.trim(), 400)
 
   const change = (next: Partial<Filters>) => {
@@ -224,9 +237,9 @@ export function PriceHistoryTable({ preset }: { preset?: PriceHistoryPreset }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Mọi nhà cung cấp</SelectItem>
-              {CHAT_MODEL_PROVIDERS.map((provider) => (
-                <SelectItem key={provider.value} value={provider.value}>
-                  {provider.label}
+              {providerOptions.map((provider) => (
+                <SelectItem key={provider} value={provider}>
+                  {getChatModelProviderOption(provider)?.label ?? provider}
                 </SelectItem>
               ))}
             </SelectContent>

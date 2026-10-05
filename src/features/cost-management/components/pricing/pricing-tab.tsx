@@ -59,6 +59,12 @@ import {
   getProviderPricingUrl,
   priceKey,
 } from "@/features/cost-management/utils/pricing-labels"
+import {
+  getModelSupport,
+  getProviderFilterOptions,
+  matchesProviderFilter,
+  type ModelSupport,
+} from "@/features/cost-management/utils/provider-support"
 import { formatUtcDateTime } from "@/features/cost-management/utils/usage-display"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { getErrorMessage } from "@/utils/error-handler"
@@ -66,6 +72,12 @@ import { getErrorMessage } from "@/utils/error-handler"
 // Registry size is bounded by providers x purposes, so one page covers it.
 const REGISTRY_PAGE_SIZE = 200
 const PAGE_SIZE = 20
+const ALL_PROVIDERS = "ALL"
+// Fixed widths for the narrow columns leave the rest to "Mô hình" and the support badges.
+const PRICE_COLUMN_META = {
+  className: "w-28 text-right text-sm",
+  headerClassName: "w-28 text-right",
+}
 
 type PricingView = "registered" | "all"
 
@@ -99,6 +111,74 @@ function PriceCell({
   return value == null ? "-" : formatUsdPrecise(value)
 }
 
+// "2026-07-23" -> "23/07/2026"; a calendar day, so no timezone conversion.
+function formatIsoDate(value: string): string {
+  const [year, month, day] = value.split("-")
+  return `${day}/${month}/${year}`
+}
+
+function providerLabel(provider: string): string {
+  return getChatModelProviderOption(provider)?.label ?? provider
+}
+
+// Shown under the badges; tested models need no caption.
+const SUPPORT_CAPTIONS: Partial<Record<ModelSupport["status"], string>> = {
+  inferred: "Suy theo nhà cung cấp, chưa test",
+  paid: "Cần gói trả phí, chưa test",
+}
+
+function SupportedProvidersCell({
+  price,
+  provider,
+}: {
+  price?: ModelPrice
+  provider: string
+}) {
+  const support = getModelSupport(provider, price)
+  if (support.providers.length === 0) {
+    return (
+      <div className="text-xs">
+        <p
+          className={
+            support.status === "restricted"
+              ? "text-warning-foreground"
+              : "text-muted-foreground"
+          }
+        >
+          {support.status === "restricted" ? "Cần duyệt quyền" : "Chưa hỗ trợ"}
+        </p>
+        {support.note ? (
+          <p className="text-muted-foreground">{support.note}</p>
+        ) : null}
+      </div>
+    )
+  }
+  const caption = SUPPORT_CAPTIONS[support.status]
+  return (
+    <div className="space-y-1">
+      <div className="flex flex-wrap gap-1">
+        {support.providers.map((item) => (
+          <Badge
+            key={item.provider}
+            title={
+              item.compatible
+                ? `Thêm mô hình với nhà cung cấp ${providerLabel(item.provider)} và API Base URL của ${provider}`
+                : `Thêm mô hình với nhà cung cấp ${providerLabel(item.provider)}`
+            }
+            variant={item.compatible ? "outline" : "secondary"}
+          >
+            {providerLabel(item.provider)}
+            {item.compatible ? " (tương thích)" : null}
+          </Badge>
+        ))}
+      </div>
+      {caption ? (
+        <p className="text-xs text-muted-foreground">{caption}</p>
+      ) : null}
+    </div>
+  )
+}
+
 function describeSync(result: ModelPricingSyncResult): string {
   return (
     `Đã đồng bộ: ${result.created} giá mới, ${result.updated} giá thay đổi, ` +
@@ -112,10 +192,9 @@ function describeSync(result: ModelPricingSyncResult): string {
 export function PricingTab() {
   const pricing = useResourcePermissions("model_pricing")
   const chatModels = useResourcePermissions("chat_model")
-  const [view, setView] = useState<PricingView>(
-    chatModels.canRead ? "registered" : "all"
-  )
+  const [view, setView] = useState<PricingView>("all")
   const [search, setSearch] = useState("")
+  const [providerFilter, setProviderFilter] = useState(ALL_PROVIDERS)
   const [page, setPage] = useState(1)
   const [detailRow, setDetailRow] = useState<PricingRow>()
   const [dialogTarget, setDialogTarget] = useState<DialogTarget>()
@@ -191,6 +270,11 @@ export function PricingTab() {
     return all
       .filter(
         (row) =>
+          providerFilter === ALL_PROVIDERS ||
+          matchesProviderFilter(row.provider, row.price, providerFilter)
+      )
+      .filter(
+        (row) =>
           !term ||
           row.modelName.toLowerCase().includes(term) ||
           row.models?.some((model) =>
@@ -202,7 +286,23 @@ export function PricingTab() {
           a.provider.localeCompare(b.provider) ||
           a.modelName.localeCompare(b.modelName)
       )
-  }, [view, search, modelsQuery.data, pricesQuery.data, pricesByKey])
+  }, [
+    view,
+    search,
+    providerFilter,
+    modelsQuery.data,
+    pricesQuery.data,
+    pricesByKey,
+  ])
+
+  // Our own providers first; they also match the models callable through them.
+  const providerOptions = useMemo(
+    () =>
+      getProviderFilterOptions(
+        (pricesQuery.data ?? []).map((price) => price.provider)
+      ),
+    [pricesQuery.data]
+  )
 
   const totalPages = Math.ceil(rows.length / PAGE_SIZE)
   // Rows can shrink under the current page (sync, filter), so clamp instead of resetting.
@@ -251,7 +351,7 @@ export function PricingTab() {
           const provider = row.original.provider
           if (!provider) return "-"
           const url = getProviderPricingUrl(provider)
-          const label = getChatModelProviderOption(provider)?.label ?? provider
+          const label = providerLabel(provider)
           return url ? (
             <a
               className="inline-flex items-center gap-1 hover:underline"
@@ -269,14 +369,26 @@ export function PricingTab() {
         },
         header: "Nhà cung cấp",
         id: "provider",
-        meta: { className: "text-sm" },
+        meta: { className: "w-40 text-sm break-all", headerClassName: "w-40" },
       },
       {
         cell: ({ row }) => {
           const { models } = row.original
           return (
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-              <p className="font-medium">{row.original.modelName}</p>
+              <p className="font-medium break-all">{row.original.modelName}</p>
+              {row.original.price?.deprecated ? (
+                <Badge
+                  title={
+                    row.original.price.deprecationDate
+                      ? `Ngừng hỗ trợ từ ${formatIsoDate(row.original.price.deprecationDate)} (theo LiteLLM)`
+                      : "API của nhà cung cấp báo mô hình đã ngừng"
+                  }
+                  variant="destructive"
+                >
+                  Ngừng hỗ trợ
+                </Badge>
+              ) : null}
               {models ? (
                 <Button
                   className="h-7 px-2 text-xs text-muted-foreground"
@@ -296,6 +408,16 @@ export function PricingTab() {
       },
       {
         cell: ({ row }) => (
+          <SupportedProvidersCell
+            price={row.original.price}
+            provider={row.original.provider}
+          />
+        ),
+        header: "Provider dùng khi thêm mô hình",
+        id: "supportedProviders",
+      },
+      {
+        cell: ({ row }) => (
           <PriceCell
             row={row.original}
             value={row.original.price?.inputPerMillion}
@@ -303,10 +425,7 @@ export function PricingTab() {
         ),
         header: "Input / 1M",
         id: "input",
-        meta: {
-          className: "text-right text-sm",
-          headerClassName: "text-right",
-        },
+        meta: PRICE_COLUMN_META,
       },
       {
         cell: ({ row }) => (
@@ -320,10 +439,7 @@ export function PricingTab() {
         ),
         header: "Input cache / 1M",
         id: "cachedInput",
-        meta: {
-          className: "text-right text-sm",
-          headerClassName: "text-right",
-        },
+        meta: PRICE_COLUMN_META,
       },
       {
         cell: ({ row }) => (
@@ -334,10 +450,7 @@ export function PricingTab() {
         ),
         header: "Output / 1M",
         id: "output",
-        meta: {
-          className: "text-right text-sm",
-          headerClassName: "text-right",
-        },
+        meta: PRICE_COLUMN_META,
       },
       {
         cell: ({ row }) => {
@@ -365,6 +478,7 @@ export function PricingTab() {
         },
         header: "Nguồn",
         id: "source",
+        meta: { className: "w-28", headerClassName: "w-28" },
       },
       {
         cell: ({ row }) => {
@@ -437,14 +551,20 @@ export function PricingTab() {
 
   return (
     <div className="space-y-4">
-      <h2 className="sr-only">Bảng giá</h2>
+      <h2 className="sr-only">Mô hình và Bảng giá</h2>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <p className="flex max-w-3xl items-start gap-2 text-sm text-muted-foreground">
           <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           <span>
-            Giá openai/google/zai được đồng bộ mỗi ngày từ bảng giá LiteLLM (chỉ
-            tier Standard); giá chỉnh tay không bị ghi đè. Giá mới áp dụng cho
+            Giá của mọi mô hình trong bảng giá LiteLLM được đồng bộ mỗi ngày
+            (chỉ tier Standard); giá chỉnh tay không bị ghi đè. Cột "Provider
+            dùng khi thêm mô hình" cho biết chọn nhà cung cấp nào lúc thêm mô
+            hình ở trang Cấu hình AI; "tương thích" nghĩa là chọn OpenAI rồi đổi
+            API Base URL sang nhà cung cấp gốc. Mô hình của OpenAI, Google và
+            Z.ai đã được gọi thử ngày 05/10/2026; nhà cung cấp khác là suy luận,
+            chưa test. Badge "Ngừng hỗ trợ" lấy theo ngày ngừng của LiteLLM hoặc
+            khi API của nhà cung cấp báo mô hình đã ngừng. Giá mới áp dụng cho
             các lượt gọi sau, không tính lại chi phí đã ghi. Mô hình chưa có giá
             được ghi là "chưa định giá" và chỉ cộng chi phí ước tính.
             {lastSyncedAt
@@ -518,6 +638,28 @@ export function PricingTab() {
                 </SelectContent>
               </Select>
             ) : null}
+            <Select
+              onValueChange={(value) => {
+                setProviderFilter(value)
+                setPage(1)
+              }}
+              value={providerFilter}
+            >
+              <SelectTrigger
+                aria-label="Lọc theo nhà cung cấp"
+                className="w-52"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_PROVIDERS}>Mọi nhà cung cấp</SelectItem>
+                {providerOptions.map((provider) => (
+                  <SelectItem key={provider} value={provider}>
+                    {providerLabel(provider)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               aria-label="Tìm mô hình"
               className="w-56"

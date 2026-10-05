@@ -284,15 +284,33 @@ export type BudgetAlertLogPage = z.infer<typeof budgetAlertLogPageSchema>
 export const modelPriceSourceSchema = z.enum(["LITELLM", "MANUAL"])
 export type ModelPriceSource = z.infer<typeof modelPriceSourceSchema>
 
+// tested | paid | restricted | unsupported come from the backend's model-provider-support.yml;
+// inferred = not probed, derived from the provider alone.
+export const modelSupportStatusSchema = z.enum([
+  "inferred",
+  "paid",
+  "restricted",
+  "tested",
+  "unsupported",
+])
+export type ModelSupportStatus = z.infer<typeof modelSupportStatusSchema>
+
 // USD per 1M tokens; timestamps carry an explicit UTC offset.
 export const modelPriceSchema = z.object({
   cachedInputPerMillion: z.number().nullable(),
+  /** Past `deprecationDate`, or reported retired by the provider API. */
+  deprecated: z.boolean().default(false),
+  deprecationDate: z.string().nullable().default(null),
   id: z.string(),
   inputPerMillion: z.number(),
   modelName: z.string(),
   outputPerMillion: z.number().nullable(),
   provider: z.string(),
   source: modelPriceSourceSchema,
+  /** Chat-model providers that can call this model. */
+  supportedProviders: z.array(z.string()).default([]),
+  supportNote: z.string().nullable().default(null),
+  supportStatus: modelSupportStatusSchema.default("unsupported"),
   syncedAt: z.string().nullable(),
   updatedAt: z.string(),
   updatedByEmail: z.string().nullable(),

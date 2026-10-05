@@ -288,6 +288,7 @@ export const WORKSPACE_SEARCH_KEYWORDS: Record<string, WorkspaceSearchEntry> = {
       {
         keywords: [
           "bảng giá",
+          "mô hình",
           "giá",
           "đơn giá",
           "giá token",
@@ -295,7 +296,7 @@ export const WORKSPACE_SEARCH_KEYWORDS: Record<string, WorkspaceSearchEntry> = {
           "price",
           "rate",
         ],
-        label: "Bảng giá",
+        label: "Mô hình và Bảng giá",
         value: "pricing",
       },
       {
