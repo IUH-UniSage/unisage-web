@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -22,6 +24,7 @@ import { getUsageRequestStatusLabel } from "@/features/cost-management/utils/usa
 const ALL = "ALL"
 
 type UsageHistoryFiltersBarProps = {
+  actions?: ReactNode
   filters: UsageHistoryFilters
   hasFilters: boolean
   onChange: (filters: UsageHistoryFilters) => void
@@ -29,6 +32,7 @@ type UsageHistoryFiltersBarProps = {
 }
 
 export function UsageHistoryFiltersBar({
+  actions,
   filters,
   hasFilters,
   onChange,
@@ -158,6 +162,7 @@ export function UsageHistoryFiltersBar({
           Xoá bộ lọc
         </Button>
       ) : null}
+      {actions ? <div className="ml-auto flex gap-2">{actions}</div> : null}
     </div>
   )
 }

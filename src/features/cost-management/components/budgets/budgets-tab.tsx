@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react"
 import { useState } from "react"
 
+import { RefreshButton } from "@/components/shared/refresh-button"
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -11,6 +12,7 @@ import {
   useDeleteBudgetMutation,
   useUpdateBudgetMutation,
 } from "@/features/cost-management/queries/use-mutations"
+import { costManagementKeys } from "@/features/cost-management/queries/keys"
 import { useBudgetsQuery } from "@/features/cost-management/queries/use-queries"
 import type {
   Budget,
@@ -57,12 +59,18 @@ export function BudgetsTab() {
           sang nhà cung cấp khác, hết ngân sách hệ thống hoặc theo mục đích sẽ
           từ chối request mới.
         </p>
-        {canCreate ? (
-          <Button onClick={() => setDialogTarget("new")}>
-            <Plus aria-hidden="true" />
-            Thêm ngân sách
-          </Button>
-        ) : null}
+        <div className="flex shrink-0 gap-2">
+          <RefreshButton
+            label="Làm mới ngân sách"
+            queryKeys={[costManagementKeys.budgets()]}
+          />
+          {canCreate ? (
+            <Button onClick={() => setDialogTarget("new")}>
+              <Plus aria-hidden="true" />
+              Thêm ngân sách
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {budgetsQuery.isPending ? (

@@ -18,8 +18,11 @@ export const costManagementKeys = {
   modelPricing: () => [...costManagementKeys.all, "model-pricing"] as const,
   usageLog: (usageLogId: string) =>
     [...costManagementKeys.all, "usage-log", usageLogId] as const,
+  usageLogSummaries: () =>
+    [...costManagementKeys.all, "usage-log-summary"] as const,
   usageLogSummary: (params: UsageLogSummaryParams) =>
-    [...costManagementKeys.all, "usage-log-summary", params] as const,
+    [...costManagementKeys.usageLogSummaries(), params] as const,
   usageLogs: (params: UsageLogsParams) =>
-    [...costManagementKeys.all, "usage-logs", params] as const,
+    [...costManagementKeys.usageLogsAll(), params] as const,
+  usageLogsAll: () => [...costManagementKeys.all, "usage-logs"] as const,
 }

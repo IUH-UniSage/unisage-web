@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Eye } from "lucide-react"
 
 import { DataTable } from "@/components/shared/list/data-table"
+import { RefreshButton } from "@/components/shared/refresh-button"
 import { Pagination } from "@/components/shared/list/pagination"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { UsageHistoryFiltersBar } from "@/features/cost-management/components/history/usage-history-filters"
 import { UsageLogDrawer } from "@/features/cost-management/components/history/usage-log-drawer"
 import { useUsageHistoryTab } from "@/features/cost-management/hooks/use-usage-history-tab"
+import { costManagementKeys } from "@/features/cost-management/queries/keys"
 import type { UsageLogListItem } from "@/features/cost-management/schemas/cost-management-schemas"
 import { formatUsdPrecise } from "@/features/cost-management/utils/format-cost"
 import { getUsagePurposeLabel } from "@/features/cost-management/utils/purpose-labels"
@@ -154,6 +156,12 @@ export function UsageHistoryTab() {
       <h2 className="sr-only">Lịch sử sử dụng</h2>
 
       <UsageHistoryFiltersBar
+        actions={
+          <RefreshButton
+            label="Làm mới lịch sử"
+            queryKeys={[costManagementKeys.usageLogsAll()]}
+          />
+        }
         filters={history.filters}
         hasFilters={history.hasFilters}
         onChange={history.changeFilters}

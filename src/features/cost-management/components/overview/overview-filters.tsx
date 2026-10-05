@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import { CHAT_MODEL_PROVIDERS } from "@/features/chat-models/constants/chat-model-providers"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,11 +20,13 @@ import { getUsagePurposeLabel } from "@/features/cost-management/utils/purpose-l
 const ALL = "ALL"
 
 type OverviewFiltersBarProps = {
+  actions?: ReactNode
   filters: OverviewFilters
   onChange: (filters: OverviewFilters) => void
 }
 
 export function OverviewFiltersBar({
+  actions,
   filters,
   onChange,
 }: OverviewFiltersBarProps) {
@@ -109,6 +113,7 @@ export function OverviewFiltersBar({
           ))}
         </SelectContent>
       </Select>
+      {actions ? <div className="ml-auto flex gap-2">{actions}</div> : null}
     </div>
   )
 }

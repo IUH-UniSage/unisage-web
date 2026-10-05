@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { useMemo, useState } from "react"
 
+import { RefreshButton } from "@/components/shared/refresh-button"
 import { CopyableId } from "@/components/shared/copyable-id"
 import { DataTable } from "@/components/shared/list/data-table"
 import { EntityActionsMenu } from "@/components/shared/list/entity-actions-menu"
@@ -22,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { verificationJobKeys } from "@/features/chat-models/queries/keys"
 import { useVerificationJobsQuery } from "@/features/chat-models/queries/use-queries"
 import type { VerificationJob } from "@/features/chat-models/schemas/verification-job-schemas"
 import { VERIFICATION_STATUSES } from "@/features/chat-models/schemas/verification-status"
@@ -166,7 +168,7 @@ function VerificationJobDetailDialog({ job }: { job: VerificationJob }) {
 
 // Read-only queue monitor over chat_model_verifications, mirroring
 // AuditLogList's shape (server-filtered list, no create/edit/delete). No
-// realtime polling on purpose - SA reloads the page to see new state.
+// realtime polling on purpose - SA hits the refresh button to see new state.
 export function VerificationJobList() {
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<string | undefined>(undefined)
@@ -235,30 +237,36 @@ export function VerificationJobList() {
         <div className="flex items-center justify-between gap-2 border-b p-3">
           <p className="text-sm text-muted-foreground">
             Danh sách job xác minh credential (verify-before-active). Không tự
-            cập nhật realtime — tải lại trang để xem trạng thái mới nhất.
+            cập nhật realtime — bấm làm mới để xem trạng thái mới nhất.
           </p>
-          <Select
-            onValueChange={(value) => {
-              setStatus(value === ALL ? undefined : value)
-              setPage(1)
-            }}
-            value={status ?? ALL}
-          >
-            <SelectTrigger
-              aria-label="Lọc theo trạng thái"
-              className="w-48 shrink-0"
+          <div className="flex shrink-0 gap-2">
+            <Select
+              onValueChange={(value) => {
+                setStatus(value === ALL ? undefined : value)
+                setPage(1)
+              }}
+              value={status ?? ALL}
             >
-              <SelectValue placeholder="Mọi trạng thái" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Mọi trạng thái</SelectItem>
-              {VERIFICATION_STATUSES.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {getVerificationStatusLabel(value)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                aria-label="Lọc theo trạng thái"
+                className="w-48 shrink-0"
+              >
+                <SelectValue placeholder="Mọi trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Mọi trạng thái</SelectItem>
+                {VERIFICATION_STATUSES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {getVerificationStatusLabel(value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <RefreshButton
+              label="Làm mới danh sách job xác minh"
+              queryKeys={[verificationJobKeys.all]}
+            />
+          </div>
         </div>
 
         {isPending ? (
