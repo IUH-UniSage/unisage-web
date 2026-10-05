@@ -88,4 +88,32 @@ describe("useChatStream", () => {
     expect(onDone).toHaveBeenCalledWith("xy")
     expect(onStreamError).not.toHaveBeenCalled()
   })
+
+  it("forwards event: warning and still finishes the turn normally", async () => {
+    const events = [
+      'event: token\ndata: "x"\n\n',
+      'event: warning\ndata: {"code":"WEB_SEARCH_CREDITS_EXHAUSTED","message":"Tavily hết credit"}\n\n',
+      "event: done\ndata: {}\n\n",
+    ]
+    const fetchMock = vi.fn().mockResolvedValue(sseResponse(events))
+    vi.stubGlobal("fetch", fetchMock)
+
+    const { result } = renderHook(() => useChatStream())
+
+    const onDone = vi.fn()
+    const onStreamError = vi.fn()
+    const onWarning = vi.fn()
+
+    await result.current.stream(
+      { conversationId: "conv-1", message: "hi" },
+      { onDone, onStreamError, onWarning }
+    )
+
+    expect(onWarning).toHaveBeenCalledWith({
+      code: "WEB_SEARCH_CREDITS_EXHAUSTED",
+      message: "Tavily hết credit",
+    })
+    expect(onDone).toHaveBeenCalledWith("x")
+    expect(onStreamError).not.toHaveBeenCalled()
+  })
 })

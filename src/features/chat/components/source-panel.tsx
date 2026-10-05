@@ -1,4 +1,12 @@
-import { BookOpen, Bookmark, ChevronRight, FileText, X } from "lucide-react"
+import {
+  BookOpen,
+  Bookmark,
+  ChevronRight,
+  ExternalLink,
+  FileText,
+  Globe,
+  X,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -82,10 +90,17 @@ export function SourcePanel({
                     {group.first.title}
                   </p>
                 </div>
-                <ChevronRight
-                  aria-hidden="true"
-                  className="size-4 shrink-0 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary"
-                />
+                {group.site ? (
+                  <ExternalLink
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-muted-foreground transition-colors duration-200 group-hover:text-primary"
+                  />
+                ) : (
+                  <ChevronRight
+                    aria-hidden="true"
+                    className="size-4 shrink-0 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-primary"
+                  />
+                )}
               </div>
 
               {/* Section quote indicator */}
@@ -96,12 +111,16 @@ export function SourcePanel({
                 </div>
               ) : null}
 
-              {/* Pages metadata pill */}
-              {group.pages ? (
+              {/* Pages (document) or site (web page) metadata pill */}
+              {group.pages || group.site ? (
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                    <FileText className="size-3 shrink-0" />
-                    {group.pages}
+                    {group.site ? (
+                      <Globe className="size-3 shrink-0" />
+                    ) : (
+                      <FileText className="size-3 shrink-0" />
+                    )}
+                    {group.pages ?? group.site}
                   </span>
                 </div>
               ) : null}

@@ -184,6 +184,10 @@ export function useChatWorkspace() {
             queryKey: usageLimitKeys.mine(),
           })
         },
+        onWarning: (payload) => {
+          // The answer itself is fine - only an AI admin is told what to fix.
+          toast.warning(payload.message, { duration: 10_000 })
+        },
         onStreamError: (payload) => {
           // Content up to this point already landed via `onChunk` above -
           // kept as-is, never discarded. `event: done` (already suppressed

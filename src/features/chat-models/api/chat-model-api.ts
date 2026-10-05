@@ -21,7 +21,7 @@ import type { ApiResponse } from "@/utils/api-response"
 export type ChatModelsParams = {
   isActive?: boolean
   modelPurpose?: ChatModelPurpose
-  // 1-based, like the rest of the UI; the backend page index is 0-based.
+  // 1-based; the backend uses spring.data.web.pageable.one-indexed-parameters=true.
   page: number
   q?: string
   size: number
@@ -63,7 +63,7 @@ export const chatModelApi = {
         params: {
           isActive,
           modelPurpose,
-          page: page - 1,
+          page,
           q: q || undefined,
           size,
           sort: sort ? `priority,${sort}` : undefined,

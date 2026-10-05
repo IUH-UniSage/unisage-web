@@ -5,6 +5,7 @@ import {
   groupCitationsByDocument,
   markerNumbers,
   latestCitations,
+  webCitationUrl,
 } from "@/features/chat/utils/citations"
 
 const citation = (overrides: Partial<Citation>): Citation => ({
@@ -99,5 +100,47 @@ describe("latestCitations", () => {
 
   it("is empty when nothing cites a source", () => {
     expect(latestCitations([message("ASSISTANT", null)])).toEqual([])
+  })
+})
+
+const webCitation = (overrides: Partial<Citation>): Citation => ({
+  documentId: null,
+  index: 3,
+  pageEnd: null,
+  pageStart: null,
+  section: null,
+  sourceType: "WEB",
+  title: "Lịch thi HK1",
+  url: "https://www.pdt.iuh.edu.vn/lich-thi",
+  ...overrides,
+})
+
+describe("web-search citations", () => {
+  it("groups by url, shows the site and numbers after the documents", () => {
+    const groups = groupCitationsByDocument([
+      citation({ index: 1 }),
+      webCitation({ index: 3 }),
+      webCitation({ index: 4 }),
+      webCitation({ index: 5, url: "https://ctsv.iuh.edu.vn/hoc-bong" }),
+    ])
+
+    expect(groups.map((group) => group.indexes)).toEqual([[1], [3, 4], [5]])
+    expect(groups.map((group) => group.site)).toEqual([
+      null,
+      "pdt.iuh.edu.vn",
+      "ctsv.iuh.edu.vn",
+    ])
+    expect(groups[1].pages).toBeNull()
+    expect(markerNumbers(groups)).toEqual({ 1: 1, 3: 2, 4: 2, 5: 3 })
+  })
+
+  it("only treats a WEB citation with a url as a link", () => {
+    expect(webCitationUrl(webCitation({}))).toBe(
+      "https://www.pdt.iuh.edu.vn/lich-thi"
+    )
+    expect(webCitationUrl(webCitation({ url: null }))).toBeNull()
+    expect(
+      webCitationUrl(citation({ url: "https://pdt.iuh.edu.vn/x" }))
+    ).toBeNull()
   })
 })
