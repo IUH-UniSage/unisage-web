@@ -27,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { getChatModelProviderLogo } from "@/features/chat-models/constants/chat-model-providers"
 import { CHAT_MODEL_PAGE_SIZE } from "@/features/chat-models/hooks/use-chat-model-dashboard"
 import type { ChatModel } from "@/features/chat-models/schemas/chat-model-schemas"
 import {
@@ -60,15 +61,6 @@ type ChatModelListProps = {
   totalPages: number
 }
 
-// Mirrors CHAT_MODEL_PROVIDERS' `value`s (chat-model-providers.json) - one
-// logo file per supported cloud provider, served from public/providers/.
-// Providers without a file here (self-hosted, anthropic, unrecognized) fall
-// back to a lucide icon below.
-const PROVIDER_LOGOS: Record<string, string> = {
-  google: "/providers/gemini.jpg",
-  openai: "/providers/openai.png",
-}
-
 function getProviderVisuals(
   provider: string | null,
   modelName: string,
@@ -77,7 +69,9 @@ function getProviderVisuals(
   const p = (provider || "").toLowerCase()
   const m = modelName.toLowerCase()
 
-  const logoSrc = PROVIDER_LOGOS[p]
+  // Supported cloud providers carry a logo (chat-model-providers.json); the rest
+  // (self-hosted, anthropic, unrecognized) fall back to a lucide icon below.
+  const logoSrc = getChatModelProviderLogo(p)
   if (logoSrc) {
     return {
       avatarBg: "bg-muted/50 border-border/70",

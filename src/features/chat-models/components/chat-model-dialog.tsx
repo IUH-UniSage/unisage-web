@@ -242,6 +242,12 @@ export function ChatModelDialog({
                   <SelectContent>
                     {CHAT_MODEL_PROVIDERS.map((provider) => (
                       <SelectItem key={provider.value} value={provider.value}>
+                        <img
+                          alt=""
+                          aria-hidden="true"
+                          className="size-4 shrink-0 rounded-sm object-contain"
+                          src={provider.logo}
+                        />
                         {provider.label}
                       </SelectItem>
                     ))}
