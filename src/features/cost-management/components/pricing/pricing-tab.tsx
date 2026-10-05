@@ -554,21 +554,16 @@ export function PricingTab() {
       <h2 className="sr-only">Mô hình và Bảng giá</h2>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <p className="flex max-w-3xl items-start gap-2 text-sm text-muted-foreground">
+        <p className="flex max-w-5xl items-start gap-2 text-sm text-muted-foreground">
           <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           <span>
-            Giá của mọi mô hình trong bảng giá LiteLLM được đồng bộ mỗi ngày
-            (chỉ tier Standard); giá chỉnh tay không bị ghi đè. Cột "Provider
-            dùng khi thêm mô hình" cho biết chọn nhà cung cấp nào lúc thêm mô
-            hình ở trang Cấu hình AI; "tương thích" nghĩa là chọn OpenAI rồi đổi
-            API Base URL sang nhà cung cấp gốc. Mô hình của OpenAI, Google và
-            Z.ai đã được gọi thử ngày 05/10/2026; nhà cung cấp khác là suy luận,
-            chưa test. Badge "Ngừng hỗ trợ" lấy theo ngày ngừng của LiteLLM hoặc
-            khi API của nhà cung cấp báo mô hình đã ngừng. Giá mới áp dụng cho
-            các lượt gọi sau, không tính lại chi phí đã ghi. Mô hình chưa có giá
-            được ghi là "chưa định giá" và chỉ cộng chi phí ước tính.
+            Giá LiteLLM (tier Standard) được đồng bộ mỗi ngày, giá chỉnh tay
+            không bị ghi đè; giá mới chỉ áp dụng cho các lượt gọi sau. Cột
+            "Provider" là nhà cung cấp chọn khi thêm mô hình ("tương thích" =
+            chọn OpenAI rồi đổi API Base URL). Chỉ OpenAI, Google, Z.ai đã gọi
+            thử; mô hình chưa có giá là "chưa định giá".
             {lastSyncedAt
-              ? ` Lần đồng bộ gần nhất: ${formatUtcDateTime(lastSyncedAt)}.`
+              ? ` Đồng bộ gần nhất: ${formatUtcDateTime(lastSyncedAt)}.`
               : ""}
           </span>
         </p>
