@@ -1,4 +1,11 @@
-import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react"
+import {
+  Activity,
+  CheckCircle2,
+  ShieldAlert,
+  ShieldCheck,
+  SlidersHorizontal,
+  XCircle,
+} from "lucide-react"
 import type { ReactNode } from "react"
 
 import { AuditInfo } from "@/components/shared/audit-info"
@@ -37,14 +44,19 @@ type ChatModelDetailDialogProps = {
 
 function DetailSection({
   children,
+  icon: Icon,
   title,
 }: {
   children: ReactNode
+  icon?: typeof SlidersHorizontal
   title: string
 }) {
   return (
-    <section className="space-y-3 rounded-lg border bg-muted/30 p-3.5">
-      <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+    <section className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10">
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        {Icon ? (
+          <Icon aria-hidden="true" className="size-3.5 text-primary" />
+        ) : null}
         {title}
       </h3>
       {children}
@@ -62,9 +74,9 @@ function DetailField({
   label: string
 }) {
   return (
-    <div className={cn("min-w-0", className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium wrap-break-word text-foreground">
+    <div className={cn("min-w-0 space-y-1", className)}>
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="text-sm font-semibold wrap-break-word text-foreground">
         {children}
       </dd>
     </div>
@@ -72,7 +84,8 @@ function DetailField({
 }
 
 function DateWithRelative({ value }: { value?: string | null }) {
-  if (!value) return <span className="text-muted-foreground">—</span>
+  if (!value)
+    return <span className="font-normal text-muted-foreground">—</span>
 
   return (
     <span>
@@ -100,41 +113,50 @@ export function ChatModelDetailDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl lg:max-w-5xl">
-        <DialogHeader>
-          <div className="flex flex-wrap items-center gap-2 pr-6">
-            <DialogTitle className="min-w-0 truncate text-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+        <DialogHeader className="space-y-2 border-b pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
+            <DialogTitle className="min-w-0 truncate text-xl font-bold">
               {chatModel.displayName || chatModel.llmModelName}
             </DialogTitle>
-            <Badge
-              className={STATUS_BADGE_STYLES[chatModel.status]}
-              variant="outline"
-            >
-              {getStatusLabel(chatModel.status)}
-            </Badge>
-            <EntityStatusBadge isActive={chatModel.isActive} />
+            <div className="flex shrink-0 items-center gap-2">
+              <Badge
+                className={STATUS_BADGE_STYLES[chatModel.status]}
+                variant="outline"
+              >
+                {getStatusLabel(chatModel.status)}
+              </Badge>
+              <EntityStatusBadge isActive={chatModel.isActive} />
+            </div>
           </div>
-          <DialogDescription className="mt-0.5 flex flex-wrap items-center gap-2">
+          <DialogDescription className="flex flex-wrap items-center gap-2 text-xs">
             {chatModel.displayName ? (
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-muted-foreground">
                 {chatModel.llmModelName}
               </span>
             ) : null}
-            <Badge variant="outline">
+            <Badge variant="secondary" className="text-[11px] font-normal">
               {getPurposeLabel(chatModel.modelPurpose)}
             </Badge>
-            <Badge variant="outline">
+            <Badge variant="outline" className="text-[11px] font-normal">
               {getSourceTypeLabel(chatModel.sourceType)}
             </Badge>
+            {chatModel.llmProvider ? (
+              <Badge variant="outline" className="text-[11px] font-normal">
+                {chatModel.llmProvider}
+              </Badge>
+            ) : null}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <DetailSection title="Cấu hình">
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+          <DetailSection icon={SlidersHorizontal} title="Cấu hình mô hình">
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
               <DetailField label="Tên gợi nhớ">
                 {chatModel.displayName || (
-                  <span className="text-muted-foreground">Chưa đặt</span>
+                  <span className="font-normal text-muted-foreground">
+                    Chưa đặt
+                  </span>
                 )}
               </DetailField>
               <DetailField label="Tên mô hình">
@@ -144,11 +166,27 @@ export function ChatModelDetailDialog({
               </DetailField>
               <DetailField label="Nhà cung cấp">
                 {chatModel.llmProvider || (
-                  <span className="text-muted-foreground">—</span>
+                  <span className="font-normal text-muted-foreground">—</span>
                 )}
               </DetailField>
               <DetailField label="Mục đích">
                 {getPurposeLabel(chatModel.modelPurpose)}
+              </DetailField>
+              <DetailField label="API key">
+                {chatModel.hasApiKey ? (
+                  <span className="flex items-center gap-1 text-success">
+                    <CheckCircle2 aria-hidden="true" className="size-3.5" />
+                    Đã cấu hình
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 font-normal text-muted-foreground">
+                    <XCircle aria-hidden="true" className="size-3.5" />
+                    Chưa cấu hình
+                  </span>
+                )}
+              </DetailField>
+              <DetailField label="ID mô hình">
+                <CopyableId value={chatModel.id} />
               </DetailField>
               <DetailField
                 className="sm:col-span-2 lg:col-span-3"
@@ -167,36 +205,29 @@ export function ChatModelDetailDialog({
                   {chatModel.modelSourceRef}
                 </DetailField>
               ) : null}
-              <DetailField label="API key">
-                {chatModel.hasApiKey ? (
-                  <span className="flex items-center gap-1 text-success">
-                    <CheckCircle2 aria-hidden="true" className="size-3.5" />
-                    Đã cấu hình
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <XCircle aria-hidden="true" className="size-3.5" />
-                    Chưa cấu hình
-                  </span>
-                )}
-              </DetailField>
               <DetailField label="Giới hạn RPM">
                 {chatModel.maxRpm != null ? (
                   `${chatModel.maxRpm} lượt/phút`
                 ) : (
-                  <span className="text-muted-foreground">Không giới hạn</span>
+                  <span className="font-normal text-muted-foreground">
+                    Không giới hạn
+                  </span>
                 )}
               </DetailField>
               <DetailField label="Giới hạn đồng thời">
                 {chatModel.maxConcurrency != null ? (
-                  `${chatModel.maxConcurrency} yêu cầu cùng lúc`
+                  `${chatModel.maxConcurrency} yêu cầu`
                 ) : (
-                  <span className="text-muted-foreground">Không giới hạn</span>
+                  <span className="font-normal text-muted-foreground">
+                    Không giới hạn
+                  </span>
                 )}
               </DetailField>
               <DetailField label="Độ ưu tiên">
                 {chatModel.priority ?? (
-                  <span className="text-muted-foreground">Không đặt</span>
+                  <span className="font-normal text-muted-foreground">
+                    Không đặt
+                  </span>
                 )}
               </DetailField>
               <DetailField label="Revision">
@@ -208,16 +239,13 @@ export function ChatModelDetailDialog({
               <DetailField label="Thay đổi chờ xác minh">
                 {chatModel.hasPendingChange ? "Có" : "Không"}
               </DetailField>
-              <DetailField className="sm:col-span-2 lg:col-span-3" label="ID">
-                <CopyableId value={chatModel.id} />
-              </DetailField>
             </dl>
           </DetailSection>
 
-          <DetailSection title="Lỗi gần đây khi gọi mô hình">
+          <DetailSection icon={ShieldAlert} title="Lỗi gần đây khi gọi mô hình">
             {hasRecentError ? (
-              <div className="space-y-3">
-                <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-3">
+              <div className="space-y-4">
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
                   <DetailField label="Tổng số lỗi đã ghi nhận">
                     {chatModel.errorCount}
                   </DetailField>
@@ -230,7 +258,9 @@ export function ChatModelDetailDialog({
                         {chatModel.lastErrorCode}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="font-normal text-muted-foreground">
+                        —
+                      </span>
                     )}
                   </DetailField>
                 </dl>
@@ -243,7 +273,7 @@ export function ChatModelDetailDialog({
                 )}
               </div>
             ) : (
-              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                 <ShieldCheck
                   aria-hidden="true"
                   className="size-4 text-success"
@@ -254,8 +284,8 @@ export function ChatModelDetailDialog({
           </DetailSection>
 
           {verification ? (
-            <DetailSection title="Xác minh gần nhất">
-              <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-3">
+            <DetailSection icon={Activity} title="Xác minh gần nhất">
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
                 <DetailField label="Trạng thái">
                   {getVerificationStatusDisplayLabel(verification)}
                 </DetailField>
@@ -268,7 +298,7 @@ export function ChatModelDetailDialog({
                       {verification.errorType}
                     </span>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <span className="font-normal text-muted-foreground">—</span>
                   )}
                 </DetailField>
                 <DetailField label="Tạo lúc">
@@ -283,7 +313,7 @@ export function ChatModelDetailDialog({
                       {verification.errorCode}
                     </span>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <span className="font-normal text-muted-foreground">—</span>
                   )}
                 </DetailField>
               </dl>
@@ -299,7 +329,7 @@ export function ChatModelDetailDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="gap-2 pt-2 sm:gap-2">
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Đóng
