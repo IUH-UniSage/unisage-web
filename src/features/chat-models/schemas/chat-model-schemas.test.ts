@@ -10,6 +10,7 @@ const chatModel = {
   apiBaseUrl: "https://api.openai.com/v1",
   createdAt: "2026-07-28T08:00:00",
   createdBy: "system",
+  displayName: null,
   errorCount: 0,
   hasApiKey: true,
   hasPendingChange: false,
