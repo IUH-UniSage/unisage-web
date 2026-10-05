@@ -398,9 +398,18 @@ function ChatModelCard({
             />
             <span className="truncate">
               <strong className="font-semibold text-foreground">
-                {chatModel.maxRpm}
+                {chatModel.maxRpm ?? "∞"}
               </strong>{" "}
               RPM
+              {chatModel.maxConcurrency != null ? (
+                <>
+                  {" · "}
+                  <strong className="font-semibold text-foreground">
+                    {chatModel.maxConcurrency}
+                  </strong>{" "}
+                  đồng thời
+                </>
+              ) : null}
             </span>
           </div>
 

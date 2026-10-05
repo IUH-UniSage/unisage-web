@@ -57,6 +57,12 @@ type ChatModelDialogProps = {
   open: boolean
 }
 
+// Blank number inputs mean "not set" (no limit / no priority), never 0.
+function toOptionalNumber(value: string | number | null): number | null {
+  if (value === "" || value === null) return null
+  return Number(value)
+}
+
 export function ChatModelDialog({
   chatModel,
   isSaving,
@@ -78,7 +84,10 @@ export function ChatModelDialog({
       displayName: chatModel?.displayName ?? "",
       llmModelName: chatModel?.llmModelName ?? "",
       llmProvider: chatModel?.llmProvider ?? "",
-      maxRpm: chatModel?.maxRpm ?? DEFAULT_MAX_RPM,
+      maxConcurrency: chatModel?.maxConcurrency ?? null,
+      // A new credential starts at the free-tier Gemini limit; an existing one keeps its own
+      // value, blank included (= no limit).
+      maxRpm: chatModel ? (chatModel.maxRpm ?? null) : DEFAULT_MAX_RPM,
       modelPurpose: chatModel?.modelPurpose ?? "CHAT",
       modelSourceRef: chatModel?.modelSourceRef ?? "",
       priority: chatModel?.priority ?? null,
@@ -349,22 +358,40 @@ export function ChatModelDialog({
             ) : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 rounded-xl border p-3">
+          <div className="grid grid-cols-1 gap-3 rounded-xl border p-3 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="chat-model-max-rpm">
-                Giới hạn RPM{" "}
-                <span className="translate-y-0.5 text-destructive">*</span>
-              </Label>
+              <Label htmlFor="chat-model-max-rpm">Giới hạn RPM</Label>
               <Input
                 aria-invalid={Boolean(errors.maxRpm)}
                 id="chat-model-max-rpm"
                 min={1}
+                placeholder="Không giới hạn"
                 type="number"
-                {...register("maxRpm", { valueAsNumber: true })}
+                {...register("maxRpm", { setValueAs: toOptionalNumber })}
               />
               {errors.maxRpm ? (
                 <p className="text-xs text-destructive">
                   {errors.maxRpm.message}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="chat-model-max-concurrency">
+                Giới hạn đồng thời
+              </Label>
+              <Input
+                aria-invalid={Boolean(errors.maxConcurrency)}
+                id="chat-model-max-concurrency"
+                min={1}
+                placeholder="Không giới hạn"
+                type="number"
+                {...register("maxConcurrency", {
+                  setValueAs: toOptionalNumber,
+                })}
+              />
+              {errors.maxConcurrency ? (
+                <p className="text-xs text-destructive">
+                  {errors.maxConcurrency.message}
                 </p>
               ) : null}
             </div>
@@ -374,10 +401,7 @@ export function ChatModelDialog({
                 id="chat-model-priority"
                 min={0}
                 type="number"
-                {...register("priority", {
-                  setValueAs: (value: string) =>
-                    value === "" ? null : Number(value),
-                })}
+                {...register("priority", { setValueAs: toOptionalNumber })}
               />
             </div>
           </div>

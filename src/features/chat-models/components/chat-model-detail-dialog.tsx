@@ -100,7 +100,7 @@ export function ChatModelDetailDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl lg:max-w-5xl">
         <DialogHeader>
           <div className="flex flex-wrap items-center gap-2 pr-6">
             <DialogTitle className="min-w-0 truncate text-lg">
@@ -131,7 +131,7 @@ export function ChatModelDetailDialog({
 
         <div className="space-y-4 py-1">
           <DetailSection title="Cấu hình">
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
               <DetailField label="Tên gợi nhớ">
                 {chatModel.displayName || (
                   <span className="text-muted-foreground">Chưa đặt</span>
@@ -150,14 +150,20 @@ export function ChatModelDetailDialog({
               <DetailField label="Mục đích">
                 {getPurposeLabel(chatModel.modelPurpose)}
               </DetailField>
-              <DetailField className="sm:col-span-2" label="API Base URL">
+              <DetailField
+                className="sm:col-span-2 lg:col-span-3"
+                label="API Base URL"
+              >
                 <span className="font-mono text-xs break-all">
                   {chatModel.apiBaseUrl}
                 </span>
               </DetailField>
               {chatModel.sourceType === "SELF_HOSTED" &&
               chatModel.modelSourceRef ? (
-                <DetailField className="sm:col-span-2" label="Tham chiếu nguồn">
+                <DetailField
+                  className="sm:col-span-2 lg:col-span-3"
+                  label="Tham chiếu nguồn"
+                >
                   {chatModel.modelSourceRef}
                 </DetailField>
               ) : null}
@@ -175,7 +181,18 @@ export function ChatModelDetailDialog({
                 )}
               </DetailField>
               <DetailField label="Giới hạn RPM">
-                {chatModel.maxRpm} lượt/phút
+                {chatModel.maxRpm != null ? (
+                  `${chatModel.maxRpm} lượt/phút`
+                ) : (
+                  <span className="text-muted-foreground">Không giới hạn</span>
+                )}
+              </DetailField>
+              <DetailField label="Giới hạn đồng thời">
+                {chatModel.maxConcurrency != null ? (
+                  `${chatModel.maxConcurrency} yêu cầu cùng lúc`
+                ) : (
+                  <span className="text-muted-foreground">Không giới hạn</span>
+                )}
               </DetailField>
               <DetailField label="Độ ưu tiên">
                 {chatModel.priority ?? (
@@ -191,7 +208,7 @@ export function ChatModelDetailDialog({
               <DetailField label="Thay đổi chờ xác minh">
                 {chatModel.hasPendingChange ? "Có" : "Không"}
               </DetailField>
-              <DetailField className="sm:col-span-2" label="ID">
+              <DetailField className="sm:col-span-2 lg:col-span-3" label="ID">
                 <CopyableId value={chatModel.id} />
               </DetailField>
             </dl>

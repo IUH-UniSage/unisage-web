@@ -56,7 +56,8 @@ export const chatModelSchema = auditFieldsSchema.extend({
   latestVerification: chatModelVerificationSummarySchema.nullish(),
   llmModelName: z.string(),
   llmProvider: z.string().nullable(),
-  maxRpm: z.number().int(),
+  maxConcurrency: z.number().int().nullish(),
+  maxRpm: z.number().int().nullish(),
   modelPurpose: chatModelPurposeSchema,
   modelSourceRef: z.string().nullable(),
   priority: z.number().int().nullable(),
@@ -93,10 +94,19 @@ const chatModelBaseFieldsSchema = z.object({
     .min(1, "Tên mô hình không được để trống.")
     .max(255, "Tên mô hình không được vượt quá 255 ký tự."),
   llmProvider: z.string().trim().max(100).optional(),
+  // Both limits are optional: blank (null) means no limit for that credential.
+  maxConcurrency: z
+    .number()
+    .int("Giới hạn đồng thời phải là số nguyên.")
+    .positive("Giới hạn đồng thời phải lớn hơn 0.")
+    .nullable()
+    .optional(),
   maxRpm: z
     .number()
     .int("Giới hạn RPM phải là số nguyên.")
-    .positive("Giới hạn RPM phải lớn hơn 0."),
+    .positive("Giới hạn RPM phải lớn hơn 0.")
+    .nullable()
+    .optional(),
   modelSourceRef: z.string().trim().max(255).optional(),
   priority: z.number().int().nullable().optional(),
   sourceType: chatModelSourceTypeSchema,

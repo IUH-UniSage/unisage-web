@@ -124,4 +124,47 @@ describe("chat-model schemas", () => {
     expect(request.apiKey).toBeUndefined()
     expect("modelPurpose" in request).toBe(false)
   })
+
+  it("treats blank rate limits as no limit and rejects non-positive ones", () => {
+    const base = {
+      apiBaseUrl: "https://api.z.ai/api/paas/v4",
+      apiKey: "zai-key",
+      llmModelName: "glm-4.7-flash",
+      llmProvider: "zai",
+      modelPurpose: "EXTRACTION" as const,
+      sourceType: "CLOUD_API" as const,
+    }
+
+    const unlimited = createChatModelRequestSchema.parse({
+      ...base,
+      maxConcurrency: null,
+      maxRpm: null,
+    })
+    expect(unlimited.maxRpm).toBeNull()
+    expect(unlimited.maxConcurrency).toBeNull()
+
+    expect(
+      createChatModelRequestSchema.parse({ ...base, maxConcurrency: 1 })
+        .maxConcurrency
+    ).toBe(1)
+    expect(() =>
+      createChatModelRequestSchema.parse({ ...base, maxConcurrency: 0 })
+    ).toThrow()
+    expect(() =>
+      createChatModelRequestSchema.parse({ ...base, maxRpm: 0 })
+    ).toThrow()
+  })
+
+  it("parses a model row without limits", () => {
+    const page = chatModelPageSchema.parse({
+      data: [{ ...chatModel, maxConcurrency: null, maxRpm: null }],
+      limit: 10,
+      page: 1,
+      totalItems: 1,
+      totalPages: 1,
+    })
+
+    expect(page.data[0].maxRpm).toBeNull()
+    expect(page.data[0].maxConcurrency).toBeNull()
+  })
 })
