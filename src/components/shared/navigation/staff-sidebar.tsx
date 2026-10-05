@@ -5,9 +5,8 @@ import { BrandLogo } from "@/components/shared/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/constants/paths"
 import { LogoutButton } from "@/features/auth/components/logout-button"
-import { usePermissions } from "@/features/auth/hooks/use-permissions"
+import { useVisibleNavItems } from "@/components/shared/navigation/use-visible-nav-items"
 import type { StaffWorkspace } from "@/routes/feature-registry"
-import { getWorkspaceNavItems } from "@/routes/feature-registry"
 import { cn } from "@/lib/utils"
 
 export type { StaffWorkspace }
@@ -23,16 +22,9 @@ export function StaffSidebar({
   onNavigate,
   workspace,
 }: StaffSidebarProps) {
-  const { canAny, canEvery } = usePermissions()
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
-  const visibleNavigation = getWorkspaceNavItems(workspace).filter(
-    ({ requiredPermissions, requiredStrategy = "any" }) =>
-      !requiredPermissions ||
-      (requiredStrategy === "all"
-        ? canEvery(requiredPermissions)
-        : canAny(requiredPermissions))
-  )
+  const visibleNavigation = useVisibleNavItems(workspace)
 
   return (
     <aside

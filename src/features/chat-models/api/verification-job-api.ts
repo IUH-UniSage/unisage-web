@@ -29,7 +29,7 @@ export const verificationJobApi = {
         params: {
           chatModelId: filters?.chatModelId,
           page,
-          size: limit,
+          limit,
           status: filters?.status,
         },
       }

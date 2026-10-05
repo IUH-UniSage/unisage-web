@@ -1,7 +1,15 @@
-import { AlertTriangle, Check, CheckCircle2, Copy, XCircle } from "lucide-react"
-import { useState } from "react"
+import {
+  Activity,
+  CheckCircle2,
+  ShieldAlert,
+  ShieldCheck,
+  SlidersHorizontal,
+  XCircle,
+} from "lucide-react"
+import type { ReactNode } from "react"
 
 import { AuditInfo } from "@/components/shared/audit-info"
+import { CopyableId } from "@/components/shared/copyable-id"
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,13 +22,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { FailureMessagePanel } from "@/features/chat-models/components/failure-message-panel"
 import type { ChatModel } from "@/features/chat-models/schemas/chat-model-schemas"
 import {
+  getPurposeLabel,
   getSourceTypeLabel,
+  getStatusLabel,
   getVerificationStatusDisplayLabel,
-  parseVerificationErrorMessage,
+  STATUS_BADGE_STYLES,
 } from "@/features/chat-models/utils/chat-model-formatters"
-import { formatAuditDate } from "@/utils/date-format"
+import { cn } from "@/lib/utils"
+import { formatDateTime, formatRelativeTime } from "@/utils/date"
 
 type ChatModelDetailDialogProps = {
   canUpdate: boolean
@@ -30,6 +42,61 @@ type ChatModelDetailDialogProps = {
   open: boolean
 }
 
+function DetailSection({
+  children,
+  icon: Icon,
+  title,
+}: {
+  children: ReactNode
+  icon?: typeof SlidersHorizontal
+  title: string
+}) {
+  return (
+    <section className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10">
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        {Icon ? (
+          <Icon aria-hidden="true" className="size-3.5 text-primary" />
+        ) : null}
+        {title}
+      </h3>
+      {children}
+    </section>
+  )
+}
+
+function DetailField({
+  children,
+  className,
+  label,
+}: {
+  children: ReactNode
+  className?: string
+  label: string
+}) {
+  return (
+    <div className={cn("min-w-0 space-y-1", className)}>
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="text-sm font-semibold wrap-break-word text-foreground">
+        {children}
+      </dd>
+    </div>
+  )
+}
+
+function DateWithRelative({ value }: { value?: string | null }) {
+  if (!value)
+    return <span className="font-normal text-muted-foreground">—</span>
+
+  return (
+    <span>
+      {formatDateTime(value)}
+      <span className="ml-1 text-xs font-normal text-muted-foreground">
+        ({formatRelativeTime(value)})
+      </span>
+    </span>
+  )
+}
+
 export function ChatModelDetailDialog({
   canUpdate,
   chatModel,
@@ -37,198 +104,221 @@ export function ChatModelDetailDialog({
   onOpenChange,
   open,
 }: ChatModelDetailDialogProps) {
-  const [showRawError, setShowRawError] = useState(false)
-  const [copiedRawError, setCopiedRawError] = useState(false)
-
   if (!chatModel) return null
 
-  const parsedError = parseVerificationErrorMessage(
-    chatModel.latestVerification?.errorMessage
-  )
-
-  const handleCopyRawError = () => {
-    if (chatModel.latestVerification?.errorMessage) {
-      navigator.clipboard.writeText(chatModel.latestVerification.errorMessage)
-      setCopiedRawError(true)
-      setTimeout(() => setCopiedRawError(false), 2000)
-    }
-  }
+  const verification = chatModel.latestVerification
+  const hasRecentError =
+    chatModel.errorCount > 0 ||
+    Boolean(chatModel.lastErrorAt || chatModel.lastErrorMessage)
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <DialogTitle className="truncate text-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+        <DialogHeader className="space-y-2 border-b pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
+            <DialogTitle className="min-w-0 truncate text-xl font-bold">
               {chatModel.displayName || chatModel.llmModelName}
             </DialogTitle>
-            <EntityStatusBadge isActive={chatModel.isActive} />
+            <div className="flex shrink-0 items-center gap-2">
+              <Badge
+                className={STATUS_BADGE_STYLES[chatModel.status]}
+                variant="outline"
+              >
+                {getStatusLabel(chatModel.status)}
+              </Badge>
+              <EntityStatusBadge isActive={chatModel.isActive} />
+            </div>
           </div>
-          <DialogDescription className="mt-0.5 flex flex-wrap items-center gap-2">
+          <DialogDescription className="flex flex-wrap items-center gap-2 text-xs">
             {chatModel.displayName ? (
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-muted-foreground">
                 {chatModel.llmModelName}
               </span>
             ) : null}
-            <Badge variant="outline">
+            <Badge variant="secondary" className="text-[11px] font-normal">
+              {getPurposeLabel(chatModel.modelPurpose)}
+            </Badge>
+            <Badge variant="outline" className="text-[11px] font-normal">
               {getSourceTypeLabel(chatModel.sourceType)}
             </Badge>
-            {chatModel.sourceType === "CLOUD_API" && chatModel.llmProvider ? (
-              <span className="text-xs text-muted-foreground">
+            {chatModel.llmProvider ? (
+              <Badge variant="outline" className="text-[11px] font-normal">
                 {chatModel.llmProvider}
-              </span>
+              </Badge>
             ) : null}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <div className="space-y-2 rounded-lg border bg-muted/30 p-3.5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold text-muted-foreground">
-                API Base URL
-              </span>
-              <span className="truncate text-xs">{chatModel.apiBaseUrl}</span>
-            </div>
-            {chatModel.sourceType === "SELF_HOSTED" &&
-            chatModel.modelSourceRef ? (
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-muted-foreground">
-                  Tham chiếu nguồn
-                </span>
-                <span className="truncate text-xs">
-                  {chatModel.modelSourceRef}
-                </span>
-              </div>
-            ) : null}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold text-muted-foreground">
-                API key
-              </span>
-              {chatModel.hasApiKey ? (
-                <span className="flex items-center gap-1 text-xs text-success">
-                  <CheckCircle2 aria-hidden="true" className="size-3.5" />
-                  Đã cấu hình
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <XCircle aria-hidden="true" className="size-3.5" />
-                  Chưa cấu hình
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3.5 text-xs">
-            <div>
-              <span className="block text-muted-foreground">Giới hạn RPM</span>
-              <span className="font-medium text-foreground">
-                {chatModel.maxRpm}
-              </span>
-            </div>
-            <div>
-              <span className="block text-muted-foreground">Độ ưu tiên</span>
-              <span className="font-medium text-foreground">
-                {chatModel.priority ?? "Không đặt"}
-              </span>
-            </div>
-            <div>
-              <span className="block text-muted-foreground">Số lỗi</span>
-              <span className="font-medium text-foreground">
-                {chatModel.errorCount}
-              </span>
-            </div>
-            <div>
-              <span className="block text-muted-foreground">Lỗi gần nhất</span>
-              <span className="font-medium text-foreground">
-                {formatAuditDate(chatModel.lastErrorAt)}
-              </span>
-            </div>
-          </div>
-
-          {chatModel.latestVerification ? (
-            <div className="space-y-2 rounded-lg border bg-muted/30 p-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-muted-foreground">
-                  Xác minh gần nhất
-                </span>
-                <div className="flex items-center gap-1.5">
-                  {parsedError.statusCode ? (
-                    <Badge
-                      className="h-5 font-mono text-[10px] font-bold"
-                      variant="destructive"
-                    >
-                      HTTP {parsedError.statusCode}
-                    </Badge>
-                  ) : null}
-                  {chatModel.latestVerification.errorType ? (
-                    <Badge className="h-5 text-[10px]" variant="outline">
-                      {chatModel.latestVerification.errorType}
-                    </Badge>
-                  ) : null}
-                  <span className="text-xs font-medium text-foreground">
-                    {getVerificationStatusDisplayLabel(
-                      chatModel.latestVerification
-                    )}
+          <DetailSection icon={SlidersHorizontal} title="Cấu hình mô hình">
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+              <DetailField label="Tên gợi nhớ">
+                {chatModel.displayName || (
+                  <span className="font-normal text-muted-foreground">
+                    Chưa đặt
                   </span>
-                </div>
-              </div>
-
-              {chatModel.latestVerification.errorMessage ? (
-                <div className="mt-2 space-y-2">
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs dark:bg-destructive/20">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle
-                        aria-hidden="true"
-                        className="mt-0.5 size-4 shrink-0 text-destructive"
-                      />
-                      <div className="min-w-0 space-y-1">
-                        <p className="font-semibold text-destructive">
-                          Nội dung lỗi:
-                        </p>
-                        <p className="dark:text-destructive-foreground/90 font-sans leading-relaxed wrap-break-word whitespace-pre-wrap text-destructive/90">
-                          {parsedError.cleanMessage}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <button
-                      className="cursor-pointer text-[11px] font-medium text-muted-foreground underline hover:text-foreground"
-                      onClick={() => setShowRawError(!showRawError)}
-                      type="button"
-                    >
-                      {showRawError
-                        ? "Ẩn log kỹ thuật đầy đủ"
-                        : "Xem log kỹ thuật đầy đủ (Raw Trace)"}
-                    </button>
-
-                    {showRawError ? (
-                      <Button
-                        className="h-6 cursor-pointer gap-1 text-[11px]"
-                        onClick={handleCopyRawError}
-                        size="sm"
-                        type="button"
-                        variant="ghost"
-                      >
-                        {copiedRawError ? (
-                          <Check className="size-3 text-emerald-500" />
-                        ) : (
-                          <Copy className="size-3" />
-                        )}
-                        {copiedRawError ? "Đã sao chép" : "Sao chép log"}
-                      </Button>
-                    ) : null}
-                  </div>
-
-                  {showRawError ? (
-                    <pre className="max-h-48 overflow-auto rounded-md border bg-muted/60 p-2.5 font-mono text-[11px] wrap-break-word whitespace-pre-wrap text-muted-foreground">
-                      {chatModel.latestVerification.errorMessage}
-                    </pre>
-                  ) : null}
-                </div>
+                )}
+              </DetailField>
+              <DetailField label="Tên mô hình">
+                <span className="font-mono text-xs">
+                  {chatModel.llmModelName}
+                </span>
+              </DetailField>
+              <DetailField label="Nhà cung cấp">
+                {chatModel.llmProvider || (
+                  <span className="font-normal text-muted-foreground">—</span>
+                )}
+              </DetailField>
+              <DetailField label="Mục đích">
+                {getPurposeLabel(chatModel.modelPurpose)}
+              </DetailField>
+              <DetailField label="API key">
+                {chatModel.hasApiKey ? (
+                  <span className="flex items-center gap-1 text-success">
+                    <CheckCircle2 aria-hidden="true" className="size-3.5" />
+                    Đã cấu hình
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 font-normal text-muted-foreground">
+                    <XCircle aria-hidden="true" className="size-3.5" />
+                    Chưa cấu hình
+                  </span>
+                )}
+              </DetailField>
+              <DetailField label="ID mô hình">
+                <CopyableId value={chatModel.id} />
+              </DetailField>
+              <DetailField
+                className="sm:col-span-2 lg:col-span-3"
+                label="API Base URL"
+              >
+                <span className="font-mono text-xs break-all">
+                  {chatModel.apiBaseUrl}
+                </span>
+              </DetailField>
+              {chatModel.sourceType === "SELF_HOSTED" &&
+              chatModel.modelSourceRef ? (
+                <DetailField
+                  className="sm:col-span-2 lg:col-span-3"
+                  label="Tham chiếu nguồn"
+                >
+                  {chatModel.modelSourceRef}
+                </DetailField>
               ) : null}
-            </div>
+              <DetailField label="Giới hạn RPM">
+                {chatModel.maxRpm != null ? (
+                  `${chatModel.maxRpm} lượt/phút`
+                ) : (
+                  <span className="font-normal text-muted-foreground">
+                    Không giới hạn
+                  </span>
+                )}
+              </DetailField>
+              <DetailField label="Giới hạn đồng thời">
+                {chatModel.maxConcurrency != null ? (
+                  `${chatModel.maxConcurrency} yêu cầu`
+                ) : (
+                  <span className="font-normal text-muted-foreground">
+                    Không giới hạn
+                  </span>
+                )}
+              </DetailField>
+              <DetailField label="Độ ưu tiên">
+                {chatModel.priority ?? (
+                  <span className="font-normal text-muted-foreground">
+                    Không đặt
+                  </span>
+                )}
+              </DetailField>
+              <DetailField label="Revision">
+                {chatModel.revision ?? "—"}
+              </DetailField>
+              <DetailField label="Xác minh thành công lúc">
+                <DateWithRelative value={chatModel.verifiedAt} />
+              </DetailField>
+              <DetailField label="Thay đổi chờ xác minh">
+                {chatModel.hasPendingChange ? "Có" : "Không"}
+              </DetailField>
+            </dl>
+          </DetailSection>
+
+          <DetailSection icon={ShieldAlert} title="Lỗi gần đây khi gọi mô hình">
+            {hasRecentError ? (
+              <div className="space-y-4">
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
+                  <DetailField label="Tổng số lỗi đã ghi nhận">
+                    {chatModel.errorCount}
+                  </DetailField>
+                  <DetailField label="Lần gần nhất">
+                    <DateWithRelative value={chatModel.lastErrorAt} />
+                  </DetailField>
+                  <DetailField label="Mã lỗi">
+                    {chatModel.lastErrorCode ? (
+                      <span className="font-mono text-xs">
+                        {chatModel.lastErrorCode}
+                      </span>
+                    ) : (
+                      <span className="font-normal text-muted-foreground">
+                        —
+                      </span>
+                    )}
+                  </DetailField>
+                </dl>
+                {chatModel.lastErrorMessage ? (
+                  <FailureMessagePanel message={chatModel.lastErrorMessage} />
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Không có nội dung chi tiết cho lỗi này.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                <ShieldCheck
+                  aria-hidden="true"
+                  className="size-4 text-success"
+                />
+                Chưa ghi nhận lỗi nào khi gọi mô hình.
+              </p>
+            )}
+          </DetailSection>
+
+          {verification ? (
+            <DetailSection icon={Activity} title="Xác minh gần nhất">
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
+                <DetailField label="Trạng thái">
+                  {getVerificationStatusDisplayLabel(verification)}
+                </DetailField>
+                <DetailField label="Lần thử">
+                  {verification.attempt ?? "—"}
+                </DetailField>
+                <DetailField label="Loại lỗi">
+                  {verification.errorType ? (
+                    <span className="font-mono text-xs">
+                      {verification.errorType}
+                    </span>
+                  ) : (
+                    <span className="font-normal text-muted-foreground">—</span>
+                  )}
+                </DetailField>
+                <DetailField label="Tạo lúc">
+                  <DateWithRelative value={verification.createdAt} />
+                </DetailField>
+                <DetailField label="Kết thúc lúc">
+                  <DateWithRelative value={verification.finishedAt} />
+                </DetailField>
+                <DetailField label="Mã lỗi">
+                  {verification.errorCode ? (
+                    <span className="font-mono text-xs">
+                      {verification.errorCode}
+                    </span>
+                  ) : (
+                    <span className="font-normal text-muted-foreground">—</span>
+                  )}
+                </DetailField>
+              </dl>
+              <FailureMessagePanel message={verification.errorMessage} />
+            </DetailSection>
           ) : null}
 
           <AuditInfo
@@ -239,7 +329,7 @@ export function ChatModelDetailDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="gap-2 pt-2 sm:gap-2">
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Đóng

@@ -13,7 +13,7 @@ const TAB_LABELS = {
   budgets: "Ngân sách",
   history: "Lịch sử",
   overview: "Tổng quan",
-  pricing: "Bảng giá",
+  pricing: "Mô hình và Bảng giá",
 } as const
 
 export function CostManagementDashboard() {

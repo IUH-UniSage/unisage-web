@@ -7,7 +7,8 @@ import {
   UploadCloud,
   Wrench,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
+import { useSearchParams } from "react-router-dom"
 
 import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -49,9 +50,10 @@ const SYSTEM_CONFIG_CATEGORY_DESCRIPTIONS: Record<
 export function SystemSettingsDashboard() {
   const { data, error, isPending } = useSystemConfigsQuery()
   const { canUpdate } = useResourcePermissions("system_config")
-  const [requestedTab, setRequestedTab] = useState<SystemConfigCategory | null>(
-    null
-  )
+  // Tab lives in ?tab= so the header search (and a shared link) can open a
+  // specific category directly.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedTab = searchParams.get("tab")
 
   const configs = data ?? EMPTY_CONFIGS
 
@@ -86,15 +88,25 @@ export function SystemSettingsDashboard() {
   }
 
   const activeTab =
-    requestedTab && availableCategories.includes(requestedTab)
-      ? requestedTab
+    requestedTab &&
+    (availableCategories as readonly string[]).includes(requestedTab)
+      ? (requestedTab as SystemConfigCategory)
       : (availableCategories[0] ?? SYSTEM_CONFIG_CATEGORY_ORDER[0])
 
   return (
     <TabbedListPage
       description={SYSTEM_CONFIG_CATEGORY_DESCRIPTIONS[activeTab]}
       kicker="Quản trị · Hệ thống"
-      onTabChange={(value) => setRequestedTab(value as SystemConfigCategory)}
+      onTabChange={(value) =>
+        setSearchParams(
+          (previous) => {
+            const next = new URLSearchParams(previous)
+            next.set("tab", value)
+            return next
+          },
+          { replace: true }
+        )
+      }
       tabs={availableCategories.map((category) => {
         const Icon = SYSTEM_CONFIG_CATEGORY_ICONS[category]
         const categoryConfigs = configsByCategory.get(category) ?? EMPTY_CONFIGS

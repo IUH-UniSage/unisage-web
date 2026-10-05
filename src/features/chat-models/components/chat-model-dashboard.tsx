@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react"
 import { useSearchParams } from "react-router-dom"
 
+import { RefreshButton } from "@/components/shared/refresh-button"
 import { ListToolbar } from "@/components/shared/list/list-toolbar"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +18,7 @@ import { ChatModelDialog } from "@/features/chat-models/components/chat-model-di
 import { ChatModelList } from "@/features/chat-models/components/chat-model-list"
 import { ChatModelStatusDialog } from "@/features/chat-models/components/chat-model-status-dialog"
 import { VerificationJobList } from "@/features/chat-models/components/verification-job-list"
+import { chatModelKeys } from "@/features/chat-models/queries/keys"
 import { useChatModelDashboard } from "@/features/chat-models/hooks/use-chat-model-dashboard"
 import type {
   ActiveFilter,
@@ -195,6 +197,11 @@ export function ChatModelDashboard() {
                     <SelectItem value="desc">Ưu tiên: Thấp đến cao</SelectItem>
                   </SelectContent>
                 </Select>
+
+                <RefreshButton
+                  label="Làm mới danh sách mô hình"
+                  queryKeys={[chatModelKeys.all]}
+                />
               </ListToolbar>
             </div>
 
@@ -202,9 +209,9 @@ export function ChatModelDashboard() {
             {dashboard.isPending ? (
               <div
                 aria-label="Đang tải danh sách mô hình chat"
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               >
-                {Array.from({ length: 6 }).map((_, i) => (
+                {Array.from({ length: 8 }).map((_, i) => (
                   <Skeleton className="h-60 rounded-2xl" key={i} />
                 ))}
               </div>

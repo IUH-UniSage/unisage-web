@@ -62,10 +62,10 @@ export const chatModelApi = {
       {
         params: {
           isActive,
+          limit: size,
           modelPurpose,
           page,
           q: q || undefined,
-          size,
           sort: sort ? `priority,${sort}` : undefined,
           status,
         },

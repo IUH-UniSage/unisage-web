@@ -2,6 +2,7 @@
   {
     "value": "openai",
     "label": "OpenAI",
+    "logo": "/providers/openai.png",
     "baseUrl": "https://api.openai.com/v1",
     "models": {
       "CHAT": ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"],
@@ -12,11 +13,23 @@
   {
     "value": "google",
     "label": "Google (Gemini)",
+    "logo": "/providers/gemini.jpg",
     "baseUrl": "https://generativelanguage.googleapis.com",
     "models": {
       "CHAT": [],
       "EMBEDDING": [],
       "EXTRACTION": []
+    }
+  },
+  {
+    "value": "zai",
+    "label": "Z.ai (GLM)",
+    "logo": "/providers/zai.png",
+    "baseUrl": "https://api.z.ai/api/paas/v4",
+    "models": {
+      "CHAT": ["glm-4.7-flash", "glm-4.5-flash"],
+      "EMBEDDING": [],
+      "EXTRACTION": ["glm-4.7-flash", "glm-4.5-flash"]
     }
   }
 ]

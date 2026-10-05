@@ -1,9 +1,28 @@
 export type DateInput = Date | number | string | null | undefined
 
-function toDate(input: DateInput): Date | null {
+/** Every date/time the UI shows is Vietnam time, whatever the viewer's device is set to. */
+export const APP_TIME_ZONE = "Asia/Ho_Chi_Minh"
+
+// "2026-10-05T06:02:00" / "2026-10-05T06:02:00.123456" - a date-time with no offset.
+const OFFSETLESS_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
+
+/**
+ * Parses an API timestamp. Both backends store and send UTC; an offset-less
+ * date-time (rows written before unisage-backend started appending "Z") is
+ * read as UTC too - `new Date()` alone would read it as the device's local
+ * time and shift it by the device's UTC offset.
+ */
+export function parseApiDate(input: DateInput): Date | null {
   if (input === null || input === undefined || input === "") return null
 
-  const date = input instanceof Date ? input : new Date(input)
+  const date =
+    input instanceof Date
+      ? input
+      : new Date(
+          typeof input === "string" && OFFSETLESS_DATE_TIME.test(input)
+            ? `${input}Z`
+            : input
+        )
   return Number.isNaN(date.getTime()) ? null : date
 }
 
@@ -16,8 +35,13 @@ export function formatDate(
   },
   locale = "vi-VN"
 ): string {
-  const date = toDate(input)
-  return date ? new Intl.DateTimeFormat(locale, options).format(date) : "-"
+  const date = parseApiDate(input)
+  return date
+    ? new Intl.DateTimeFormat(locale, {
+        timeZone: APP_TIME_ZONE,
+        ...options,
+      }).format(date)
+    : "-"
 }
 
 export function formatDateTime(input: DateInput, locale = "vi-VN"): string {
@@ -35,7 +59,7 @@ export function formatDateTime(input: DateInput, locale = "vi-VN"): string {
 }
 
 export function formatRelativeTime(input: DateInput, locale = "vi"): string {
-  const date = toDate(input)
+  const date = parseApiDate(input)
   if (!date) return "-"
 
   const elapsedSeconds = Math.round((date.getTime() - Date.now()) / 1000)

@@ -1,17 +1,24 @@
 import { useMutation } from "@tanstack/react-query"
 
 import { chatModelApi } from "@/features/chat-models/api/chat-model-api"
-import { chatModelKeys } from "@/features/chat-models/queries/keys"
+import {
+  chatModelKeys,
+  verificationJobKeys,
+} from "@/features/chat-models/queries/keys"
 import type {
   ChatModelStatus,
   CreateChatModelRequest,
   UpdateChatModelRequest,
 } from "@/features/chat-models/schemas/chat-model-schemas"
 
+// Creating, editing (a credential change) and re-verifying a model each queue
+// a verification job, so the Jobs tab has to refetch too.
+const MODEL_AND_JOB_QUERIES = [chatModelKeys.all, verificationJobKeys.all]
+
 export function useCreateChatModelMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: chatModelKeys.all,
+      invalidatesQueries: MODEL_AND_JOB_QUERIES,
       successMessage: "Đã tạo mô hình chat mới.",
     },
     mutationFn: (input: CreateChatModelRequest) =>
@@ -27,7 +34,7 @@ type UpdateChatModelVariables = {
 export function useUpdateChatModelMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: chatModelKeys.all,
+      invalidatesQueries: MODEL_AND_JOB_QUERIES,
       successMessage: "Đã cập nhật mô hình chat.",
     },
     mutationFn: ({ chatModelId, input }: UpdateChatModelVariables) =>
@@ -80,7 +87,7 @@ export function useUpdateChatModelStatusMutation() {
 export function useVerifyChatModelMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: chatModelKeys.all,
+      invalidatesQueries: MODEL_AND_JOB_QUERIES,
       successMessage: "Đã tạo yêu cầu xác minh mới.",
     },
     mutationFn: (chatModelId: string) =>

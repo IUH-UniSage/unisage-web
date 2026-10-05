@@ -11,6 +11,8 @@ type UniSageQueryMeta = Record<string, unknown> & {
 
 type UniSageMutationMeta = UniSageQueryMeta & {
   invalidatesQuery?: QueryKey
+  /** For a mutation that changes more than one cached resource. */
+  invalidatesQueries?: QueryKey[]
   successMessage?: string
 }
 
@@ -39,10 +41,14 @@ export const queryClient = new QueryClient({
       }
     },
     onSettled: (_data, error, _variables, _context, mutation) => {
-      if (mutation.meta?.invalidatesQuery) {
-        void queryClient.invalidateQueries({
-          queryKey: mutation.meta.invalidatesQuery,
-        })
+      const invalidated = [
+        ...(mutation.meta?.invalidatesQuery
+          ? [mutation.meta.invalidatesQuery]
+          : []),
+        ...(mutation.meta?.invalidatesQueries ?? []),
+      ]
+      for (const queryKey of invalidated) {
+        void queryClient.invalidateQueries({ queryKey })
       }
       if (!error && mutation.meta?.successMessage) {
         toast.success(mutation.meta.successMessage)

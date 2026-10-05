@@ -27,6 +27,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { getChatModelProviderLogo } from "@/features/chat-models/constants/chat-model-providers"
 import { CHAT_MODEL_PAGE_SIZE } from "@/features/chat-models/hooks/use-chat-model-dashboard"
 import type { ChatModel } from "@/features/chat-models/schemas/chat-model-schemas"
 import {
@@ -36,6 +37,7 @@ import {
   getVerificationStatusDisplayLabel,
   getSourceTypeLabel,
   parseVerificationErrorMessage,
+  STATUS_BADGE_STYLES,
 } from "@/features/chat-models/utils/chat-model-formatters"
 import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
@@ -59,24 +61,6 @@ type ChatModelListProps = {
   totalPages: number
 }
 
-const STATUS_BADGE_STYLES: Record<ChatModel["status"], string> = {
-  ACTIVE:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  DISABLED: "border-destructive/30 bg-destructive/10 text-destructive",
-  INACTIVE: "border-border bg-muted/50 text-muted-foreground",
-  PENDING:
-    "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-}
-
-// Mirrors CHAT_MODEL_PROVIDERS' `value`s (chat-model-providers.json) - one
-// logo file per supported cloud provider, served from public/providers/.
-// Providers without a file here (self-hosted, anthropic, unrecognized) fall
-// back to a lucide icon below.
-const PROVIDER_LOGOS: Record<string, string> = {
-  google: "/providers/gemini.jpg",
-  openai: "/providers/openai.png",
-}
-
 function getProviderVisuals(
   provider: string | null,
   modelName: string,
@@ -85,7 +69,9 @@ function getProviderVisuals(
   const p = (provider || "").toLowerCase()
   const m = modelName.toLowerCase()
 
-  const logoSrc = PROVIDER_LOGOS[p]
+  // Supported cloud providers carry a logo (chat-model-providers.json); the rest
+  // (self-hosted, anthropic, unrecognized) fall back to a lucide icon below.
+  const logoSrc = getChatModelProviderLogo(p)
   if (logoSrc) {
     return {
       avatarBg: "bg-muted/50 border-border/70",
@@ -148,7 +134,7 @@ export function ChatModelList({
   return (
     <div className="space-y-4">
       {chatModels.length ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {chatModels.map((chatModel) => (
             <ChatModelCard
               canDelete={canDelete}
@@ -406,9 +392,18 @@ function ChatModelCard({
             />
             <span className="truncate">
               <strong className="font-semibold text-foreground">
-                {chatModel.maxRpm}
+                {chatModel.maxRpm ?? "∞"}
               </strong>{" "}
               RPM
+              {chatModel.maxConcurrency != null ? (
+                <>
+                  {" · "}
+                  <strong className="font-semibold text-foreground">
+                    {chatModel.maxConcurrency}
+                  </strong>{" "}
+                  đồng thời
+                </>
+              ) : null}
             </span>
           </div>
 

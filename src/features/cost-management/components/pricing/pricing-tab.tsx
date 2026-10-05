@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import type { ColumnDef } from "@tanstack/react-table"
 import {
+  Eye,
   ExternalLink,
   History,
   Info,
@@ -13,6 +14,7 @@ import { useCallback, useMemo, useState } from "react"
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { DataTable } from "@/components/shared/list/data-table"
 import { EntityActionsMenu } from "@/components/shared/list/entity-actions-menu"
+import { Pagination } from "@/components/shared/list/pagination"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,13 +31,16 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { getChatModelProviderOption } from "@/features/chat-models/constants/chat-model-providers"
 import { chatModelOptions } from "@/features/chat-models/queries/options"
-import type { ChatModelSourceType } from "@/features/chat-models/schemas/chat-model-schemas"
-import { getPurposeLabel } from "@/features/chat-models/utils/chat-model-formatters"
+import type {
+  ChatModel,
+  ChatModelSourceType,
+} from "@/features/chat-models/schemas/chat-model-schemas"
 import { PriceDialog } from "@/features/cost-management/components/pricing/price-dialog"
 import {
   PriceHistoryTable,
   type PriceHistoryPreset,
 } from "@/features/cost-management/components/pricing/price-history-table"
+import { RegisteredModelsDialog } from "@/features/cost-management/components/pricing/registered-models-dialog"
 import {
   useCreateModelPriceMutation,
   useResetModelPriceMutation,
@@ -54,22 +59,35 @@ import {
   getProviderPricingUrl,
   priceKey,
 } from "@/features/cost-management/utils/pricing-labels"
+import {
+  getModelSupport,
+  getProviderFilterOptions,
+  matchesProviderFilter,
+  type ModelSupport,
+} from "@/features/cost-management/utils/provider-support"
 import { formatUtcDateTime } from "@/features/cost-management/utils/usage-display"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { getErrorMessage } from "@/utils/error-handler"
 
 // Registry size is bounded by providers x purposes, so one page covers it.
 const REGISTRY_PAGE_SIZE = 200
+const PAGE_SIZE = 20
+const ALL_PROVIDERS = "ALL"
+// Fixed widths for the narrow columns leave the rest to "Mô hình" and the support badges.
+const PRICE_COLUMN_META = {
+  className: "w-28 text-right text-sm",
+  headerClassName: "w-28 text-right",
+}
 
 type PricingView = "registered" | "all"
 
 type PricingRow = {
-  displayName?: string | null
   key: string
   modelName: string
+  /** Registered chat models sharing this provider + model name ("registered" view only). */
+  models?: ChatModel[]
   price?: ModelPrice
   provider: string
-  purpose?: string
   sourceType: ChatModelSourceType
 }
 
@@ -93,6 +111,74 @@ function PriceCell({
   return value == null ? "-" : formatUsdPrecise(value)
 }
 
+// "2026-07-23" -> "23/07/2026"; a calendar day, so no timezone conversion.
+function formatIsoDate(value: string): string {
+  const [year, month, day] = value.split("-")
+  return `${day}/${month}/${year}`
+}
+
+function providerLabel(provider: string): string {
+  return getChatModelProviderOption(provider)?.label ?? provider
+}
+
+// Shown under the badges; tested models need no caption.
+const SUPPORT_CAPTIONS: Partial<Record<ModelSupport["status"], string>> = {
+  inferred: "Suy theo nhà cung cấp, chưa test",
+  paid: "Cần gói trả phí, chưa test",
+}
+
+function SupportedProvidersCell({
+  price,
+  provider,
+}: {
+  price?: ModelPrice
+  provider: string
+}) {
+  const support = getModelSupport(provider, price)
+  if (support.providers.length === 0) {
+    return (
+      <div className="text-xs">
+        <p
+          className={
+            support.status === "restricted"
+              ? "text-warning-foreground"
+              : "text-muted-foreground"
+          }
+        >
+          {support.status === "restricted" ? "Cần duyệt quyền" : "Chưa hỗ trợ"}
+        </p>
+        {support.note ? (
+          <p className="text-muted-foreground">{support.note}</p>
+        ) : null}
+      </div>
+    )
+  }
+  const caption = SUPPORT_CAPTIONS[support.status]
+  return (
+    <div className="space-y-1">
+      <div className="flex flex-wrap gap-1">
+        {support.providers.map((item) => (
+          <Badge
+            key={item.provider}
+            title={
+              item.compatible
+                ? `Thêm mô hình với nhà cung cấp ${providerLabel(item.provider)} và API Base URL của ${provider}`
+                : `Thêm mô hình với nhà cung cấp ${providerLabel(item.provider)}`
+            }
+            variant={item.compatible ? "outline" : "secondary"}
+          >
+            {providerLabel(item.provider)}
+            {item.compatible ? " (tương thích)" : null}
+          </Badge>
+        ))}
+      </div>
+      {caption ? (
+        <p className="text-xs text-muted-foreground">{caption}</p>
+      ) : null}
+    </div>
+  )
+}
+
 function describeSync(result: ModelPricingSyncResult): string {
   return (
     `Đã đồng bộ: ${result.created} giá mới, ${result.updated} giá thay đổi, ` +
@@ -106,10 +192,11 @@ function describeSync(result: ModelPricingSyncResult): string {
 export function PricingTab() {
   const pricing = useResourcePermissions("model_pricing")
   const chatModels = useResourcePermissions("chat_model")
-  const [view, setView] = useState<PricingView>(
-    chatModels.canRead ? "registered" : "all"
-  )
+  const [view, setView] = useState<PricingView>("all")
   const [search, setSearch] = useState("")
+  const [providerFilter, setProviderFilter] = useState(ALL_PROVIDERS)
+  const [page, setPage] = useState(1)
+  const [detailRow, setDetailRow] = useState<PricingRow>()
   const [dialogTarget, setDialogTarget] = useState<DialogTarget>()
   const [resetTarget, setResetTarget] = useState<ModelPrice>()
   const [syncMessage, setSyncMessage] = useState<string>()
@@ -148,35 +235,82 @@ export function PricingTab() {
 
   const rows = useMemo<PricingRow[]>(() => {
     const term = search.trim().toLowerCase()
-    const all: PricingRow[] =
-      view === "registered"
-        ? (modelsQuery.data?.data ?? []).map((model) => {
-            const provider = model.llmProvider ?? ""
-            return {
-              displayName: model.displayName,
-              key: model.id,
-              modelName: model.llmModelName,
-              price: pricesByKey.get(priceKey(provider, model.llmModelName)),
-              provider,
-              purpose: getPurposeLabel(model.modelPurpose),
-              sourceType: model.sourceType,
-            }
-          })
-        : (pricesQuery.data ?? []).map((price) => ({
-            key: price.id,
-            modelName: price.modelName,
-            price,
-            provider: price.provider,
-            sourceType: "CLOUD_API",
-          }))
+    let all: PricingRow[]
+    if (view === "registered") {
+      const groups = new Map<string, PricingRow>()
+      for (const model of modelsQuery.data?.data ?? []) {
+        const provider = model.llmProvider ?? ""
+        const key = priceKey(provider, model.llmModelName)
+        const group = groups.get(key)
+        if (group) {
+          group.models?.push(model)
+          // A model name billed through any cloud config is priced like one.
+          if (model.sourceType === "CLOUD_API") group.sourceType = "CLOUD_API"
+          continue
+        }
+        groups.set(key, {
+          key,
+          modelName: model.llmModelName,
+          models: [model],
+          price: pricesByKey.get(key),
+          provider,
+          sourceType: model.sourceType,
+        })
+      }
+      all = [...groups.values()]
+    } else {
+      all = (pricesQuery.data ?? []).map((price) => ({
+        key: price.id,
+        modelName: price.modelName,
+        price,
+        provider: price.provider,
+        sourceType: "CLOUD_API",
+      }))
+    }
     return all
-      .filter((row) => !term || row.modelName.toLowerCase().includes(term))
+      .filter(
+        (row) =>
+          providerFilter === ALL_PROVIDERS ||
+          matchesProviderFilter(row.provider, row.price, providerFilter)
+      )
+      .filter(
+        (row) =>
+          !term ||
+          row.modelName.toLowerCase().includes(term) ||
+          row.models?.some((model) =>
+            model.displayName?.toLowerCase().includes(term)
+          )
+      )
       .sort(
         (a, b) =>
           a.provider.localeCompare(b.provider) ||
           a.modelName.localeCompare(b.modelName)
       )
-  }, [view, search, modelsQuery.data, pricesQuery.data, pricesByKey])
+  }, [
+    view,
+    search,
+    providerFilter,
+    modelsQuery.data,
+    pricesQuery.data,
+    pricesByKey,
+  ])
+
+  // Our own providers first; they also match the models callable through them.
+  const providerOptions = useMemo(
+    () =>
+      getProviderFilterOptions(
+        (pricesQuery.data ?? []).map((price) => price.provider)
+      ),
+    [pricesQuery.data]
+  )
+
+  const totalPages = Math.ceil(rows.length / PAGE_SIZE)
+  // Rows can shrink under the current page (sync, filter), so clamp instead of resetting.
+  const currentPage = Math.min(page, Math.max(totalPages, 1))
+  const pageRows = useMemo(
+    () => rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [rows, currentPage]
+  )
 
   const runSync = async () => {
     setSyncMessage(undefined)
@@ -217,7 +351,7 @@ export function PricingTab() {
           const provider = row.original.provider
           if (!provider) return "-"
           const url = getProviderPricingUrl(provider)
-          const label = getChatModelProviderOption(provider)?.label ?? provider
+          const label = providerLabel(provider)
           return url ? (
             <a
               className="inline-flex items-center gap-1 hover:underline"
@@ -235,23 +369,52 @@ export function PricingTab() {
         },
         header: "Nhà cung cấp",
         id: "provider",
-        meta: { className: "text-sm" },
+        meta: { className: "w-40 text-sm break-all", headerClassName: "w-40" },
+      },
+      {
+        cell: ({ row }) => {
+          const { models } = row.original
+          return (
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="font-medium break-all">{row.original.modelName}</p>
+              {row.original.price?.deprecated ? (
+                <Badge
+                  title={
+                    row.original.price.deprecationDate
+                      ? `Ngừng hỗ trợ từ ${formatIsoDate(row.original.price.deprecationDate)} (theo LiteLLM)`
+                      : "API của nhà cung cấp báo mô hình đã ngừng"
+                  }
+                  variant="destructive"
+                >
+                  Ngừng hỗ trợ
+                </Badge>
+              ) : null}
+              {models ? (
+                <Button
+                  className="h-7 px-2 text-xs text-muted-foreground"
+                  onClick={() => setDetailRow(row.original)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  <Eye aria-hidden="true" className="size-3.5" />
+                  Xem chi tiết ({models.length})
+                </Button>
+              ) : null}
+            </div>
+          )
+        },
+        header: "Mô hình",
+        id: "model",
       },
       {
         cell: ({ row }) => (
-          <div className="min-w-0">
-            <p className="font-medium">{row.original.modelName}</p>
-            {row.original.displayName || row.original.purpose ? (
-              <p className="text-xs text-muted-foreground">
-                {[row.original.purpose, row.original.displayName]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            ) : null}
-          </div>
+          <SupportedProvidersCell
+            price={row.original.price}
+            provider={row.original.provider}
+          />
         ),
-        header: "Mô hình",
-        id: "model",
+        header: "Provider dùng khi thêm mô hình",
+        id: "supportedProviders",
       },
       {
         cell: ({ row }) => (
@@ -262,10 +425,7 @@ export function PricingTab() {
         ),
         header: "Input / 1M",
         id: "input",
-        meta: {
-          className: "text-right text-sm",
-          headerClassName: "text-right",
-        },
+        meta: PRICE_COLUMN_META,
       },
       {
         cell: ({ row }) => (
@@ -279,10 +439,7 @@ export function PricingTab() {
         ),
         header: "Input cache / 1M",
         id: "cachedInput",
-        meta: {
-          className: "text-right text-sm",
-          headerClassName: "text-right",
-        },
+        meta: PRICE_COLUMN_META,
       },
       {
         cell: ({ row }) => (
@@ -293,10 +450,7 @@ export function PricingTab() {
         ),
         header: "Output / 1M",
         id: "output",
-        meta: {
-          className: "text-right text-sm",
-          headerClassName: "text-right",
-        },
+        meta: PRICE_COLUMN_META,
       },
       {
         cell: ({ row }) => {
@@ -324,6 +478,7 @@ export function PricingTab() {
         },
         header: "Nguồn",
         id: "source",
+        meta: { className: "w-28", headerClassName: "w-28" },
       },
       {
         cell: ({ row }) => {
@@ -396,18 +551,19 @@ export function PricingTab() {
 
   return (
     <div className="space-y-4">
-      <h2 className="sr-only">Bảng giá</h2>
+      <h2 className="sr-only">Mô hình và Bảng giá</h2>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <p className="flex max-w-3xl items-start gap-2 text-sm text-muted-foreground">
+        <p className="flex max-w-5xl items-start gap-2 text-sm text-muted-foreground">
           <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           <span>
-            Giá openai/google được đồng bộ mỗi ngày từ bảng giá LiteLLM (chỉ
-            tier Standard); giá chỉnh tay không bị ghi đè. Giá mới áp dụng cho
-            các lượt gọi sau, không tính lại chi phí đã ghi. Mô hình chưa có giá
-            được ghi là "chưa định giá" và chỉ cộng chi phí ước tính.
+            Giá LiteLLM (tier Standard) được đồng bộ mỗi ngày, giá chỉnh tay
+            không bị ghi đè; giá mới chỉ áp dụng cho các lượt gọi sau. Cột
+            "Provider" là nhà cung cấp chọn khi thêm mô hình ("tương thích" =
+            chọn OpenAI rồi đổi API Base URL). Chỉ OpenAI, Google, Z.ai đã gọi
+            thử; mô hình chưa có giá là "chưa định giá".
             {lastSyncedAt
-              ? ` Lần đồng bộ gần nhất: ${formatUtcDateTime(lastSyncedAt)}.`
+              ? ` Đồng bộ gần nhất: ${formatUtcDateTime(lastSyncedAt)}.`
               : ""}
           </span>
         </p>
@@ -460,7 +616,10 @@ export function PricingTab() {
           <div className="flex flex-wrap gap-2">
             {chatModels.canRead ? (
               <Select
-                onValueChange={(value) => setView(value as PricingView)}
+                onValueChange={(value) => {
+                  setView(value as PricingView)
+                  setPage(1)
+                }}
                 value={view}
               >
                 <SelectTrigger aria-label="Chọn danh sách" className="w-52">
@@ -474,11 +633,40 @@ export function PricingTab() {
                 </SelectContent>
               </Select>
             ) : null}
+            <Select
+              onValueChange={(value) => {
+                setProviderFilter(value)
+                setPage(1)
+              }}
+              value={providerFilter}
+            >
+              <SelectTrigger
+                aria-label="Lọc theo nhà cung cấp"
+                className="w-52"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_PROVIDERS}>Mọi nhà cung cấp</SelectItem>
+                {providerOptions.map((provider) => (
+                  <SelectItem key={provider} value={provider}>
+                    {providerLabel(provider)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               aria-label="Tìm mô hình"
               className="w-56"
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm mô hình..."
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(1)
+              }}
+              placeholder={
+                view === "registered"
+                  ? "Tìm mô hình hoặc tên gợi nhớ..."
+                  : "Tìm mô hình..."
+              }
               value={search}
             />
           </div>
@@ -504,7 +692,23 @@ export function PricingTab() {
               title="Không có mô hình nào"
             />
           ) : (
-            <DataTable columns={columns} data={rows} getRowId={(r) => r.key} />
+            <>
+              <DataTable
+                columns={columns}
+                data={pageRows}
+                getRowId={(r) => r.key}
+              />
+              {totalPages > 1 ? (
+                <Pagination
+                  className="rounded-none border-x-0 border-b-0 shadow-none"
+                  currentPage={currentPage}
+                  onPageChange={setPage}
+                  pageSize={PAGE_SIZE}
+                  totalItems={rows.length}
+                  totalPages={totalPages}
+                />
+              ) : null}
+            </>
           )}
         </CardContent>
       </Card>
@@ -525,6 +729,17 @@ export function PricingTab() {
           }}
           onSubmit={save}
           price={dialogTarget.kind === "edit" ? dialogTarget.price : undefined}
+        />
+      ) : null}
+
+      {detailRow?.models ? (
+        <RegisteredModelsDialog
+          modelName={detailRow.modelName}
+          models={detailRow.models}
+          onOpenChange={(open) => {
+            if (!open) setDetailRow(undefined)
+          }}
+          provider={detailRow.provider}
         />
       ) : null}
 

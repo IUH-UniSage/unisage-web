@@ -4,6 +4,8 @@ import type { ChatModelPurpose } from "@/features/chat-models/schemas/chat-model
 export type ChatModelProviderOption = {
   baseUrl: string
   label: string
+  /** Logo served from public/providers/. */
+  logo: string
   models: Record<ChatModelPurpose, string[]>
   value: string
 }
@@ -22,6 +24,14 @@ export function getChatModelProviderOption(
   value: string
 ): ChatModelProviderOption | undefined {
   return CHAT_MODEL_PROVIDERS.find((provider) => provider.value === value)
+}
+
+export function getChatModelProviderLogo(
+  value: string | null | undefined
+): string | undefined {
+  return value
+    ? getChatModelProviderOption(value.toLowerCase())?.logo
+    : undefined
 }
 
 export function getChatModelSuggestions(

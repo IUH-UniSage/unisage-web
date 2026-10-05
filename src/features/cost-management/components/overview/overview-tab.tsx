@@ -1,3 +1,4 @@
+import { RefreshButton } from "@/components/shared/refresh-button"
 import {
   BreakdownBarCard,
   DailyLineCard,
@@ -6,6 +7,7 @@ import {
 import { OverviewFiltersBar } from "@/features/cost-management/components/overview/overview-filters"
 import { OverviewKpiCards } from "@/features/cost-management/components/overview/overview-kpi-cards"
 import { OverviewTopUsersTable } from "@/features/cost-management/components/overview/overview-top-users-table"
+import { costManagementKeys } from "@/features/cost-management/queries/keys"
 import { useOverviewTab } from "@/features/cost-management/hooks/use-overview-tab"
 
 export function OverviewTab() {
@@ -16,6 +18,15 @@ export function OverviewTab() {
       <h2 className="sr-only">Tổng quan chi phí AI</h2>
 
       <OverviewFiltersBar
+        actions={
+          <RefreshButton
+            label="Làm mới tổng quan"
+            queryKeys={[
+              costManagementKeys.usageLogSummaries(),
+              costManagementKeys.budgets(),
+            ]}
+          />
+        }
         filters={overview.filters}
         onChange={overview.setFilters}
       />

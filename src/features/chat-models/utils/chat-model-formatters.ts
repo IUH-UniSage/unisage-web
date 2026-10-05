@@ -6,6 +6,7 @@ import type {
   ChatModelVerificationSummary,
 } from "@/features/chat-models/schemas/chat-model-schemas"
 import { getVerificationStatusLabel } from "@/features/chat-models/schemas/verification-status"
+import { parseApiDate } from "@/utils/date"
 
 // Mirrors com.unisage.backend.entity.enums.ChatModelSourceType — keep in
 // sync with the backend enum (name + displayName) when it changes.
@@ -41,6 +42,19 @@ export function getStatusLabel(status: ChatModelStatus): string {
   return STATUS_LABELS[status]
 }
 
+// Matches a free-tier Gemini key's 15 requests/minute - the add dialog's starting value.
+export const DEFAULT_MAX_RPM = 15
+
+// Same palette the list uses for the registry status badge.
+export const STATUS_BADGE_STYLES = {
+  ACTIVE:
+    "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  DISABLED: "border-destructive/30 bg-destructive/10 text-destructive",
+  INACTIVE: "border-border bg-muted/50 text-muted-foreground",
+  PENDING:
+    "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+} as const satisfies Record<ChatModelStatus, string>
+
 const QUEUED_STALE_AFTER_MS = 5 * 60 * 1000
 
 /**
@@ -55,9 +69,9 @@ export function getVerificationStatusDisplayLabel(
   now: Date = new Date()
 ): string {
   if (verification.status === "QUEUED" && verification.createdAt) {
-    const createdAt = new Date(verification.createdAt).getTime()
+    const createdAt = parseApiDate(verification.createdAt)?.getTime()
     if (
-      !Number.isNaN(createdAt) &&
+      createdAt !== undefined &&
       now.getTime() - createdAt > QUEUED_STALE_AFTER_MS
     ) {
       return "Đang chờ agent"
@@ -220,5 +234,58 @@ export function parseVerificationErrorMessage(
     cleanMessage: trimmed,
     isParsed: false,
     rawMessage: trimmed,
+  }
+}
+
+export type FailureMessageView = {
+  /** The cause in plain words - unisage-agent's Vietnamese summary when present. */
+  summary: string
+  /** The provider's own message, when it could be pulled out of the detail. */
+  providerMessage?: string
+  errorStatus?: string
+  modelName?: string
+  rawMessage: string
+  statusCode?: number
+}
+
+// unisage-agent's `admin_failure_message`: "<friendly cause> Chi tiết: <redacted SDK error>"
+// (credential health `lastErrorMessage` and verification job `errorMessage` alike).
+const ADMIN_DETAIL_SEPARATOR = " Chi tiết: "
+
+/**
+ * Splits an admin failure message into the friendly cause and the provider's
+ * detail (HTTP status, provider status, model, provider message). A message
+ * without the "Chi tiết:" separator - older rows, other writers - is parsed
+ * whole with `parseVerificationErrorMessage`.
+ */
+export function parseFailureMessage(
+  rawError?: string | null
+): FailureMessageView | null {
+  const trimmed = rawError?.trim()
+  if (!trimmed) return null
+
+  const separatorIndex = trimmed.indexOf(ADMIN_DETAIL_SEPARATOR)
+  if (separatorIndex === -1) {
+    const parsed = parseVerificationErrorMessage(trimmed)
+    return {
+      errorStatus: parsed.errorStatus,
+      modelName: parsed.modelName,
+      rawMessage: trimmed,
+      statusCode: parsed.statusCode,
+      summary: parsed.cleanMessage,
+    }
+  }
+
+  const summary = trimmed.slice(0, separatorIndex).trim()
+  const detail = parseVerificationErrorMessage(
+    trimmed.slice(separatorIndex + ADMIN_DETAIL_SEPARATOR.length)
+  )
+  return {
+    errorStatus: detail.errorStatus,
+    modelName: detail.modelName,
+    providerMessage: detail.cleanMessage || undefined,
+    rawMessage: trimmed,
+    statusCode: detail.statusCode,
+    summary: summary || detail.cleanMessage,
   }
 }

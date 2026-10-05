@@ -23,6 +23,7 @@ import {
   getComponentLabel,
   type ComponentHealth,
 } from "@/features/system-health/schemas/system-health-schemas"
+import { formatDate } from "@/utils/date"
 import { getErrorMessage } from "@/utils/error-handler"
 import type { PermissionRequirement } from "@/utils/permissions"
 
@@ -35,14 +36,13 @@ function formatWeekday(isoDate: string): string {
 }
 
 function formatCheckedAt(isoDateTime: string): string {
-  const date = new Date(isoDateTime)
-  if (Number.isNaN(date.getTime())) return isoDateTime
-  return new Intl.DateTimeFormat("vi-VN", {
+  const formatted = formatDate(isoDateTime, {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(date)
+  })
+  return formatted === "-" ? isoDateTime : formatted
 }
 
 export function AdminOverviewPage() {
