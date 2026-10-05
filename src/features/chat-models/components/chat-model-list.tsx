@@ -36,6 +36,7 @@ import {
   getVerificationStatusDisplayLabel,
   getSourceTypeLabel,
   parseVerificationErrorMessage,
+  STATUS_BADGE_STYLES,
 } from "@/features/chat-models/utils/chat-model-formatters"
 import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
@@ -57,15 +58,6 @@ type ChatModelListProps = {
   onStatusRequest: (chatModel: ChatModel) => void
   totalItems: number
   totalPages: number
-}
-
-const STATUS_BADGE_STYLES: Record<ChatModel["status"], string> = {
-  ACTIVE:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  DISABLED: "border-destructive/30 bg-destructive/10 text-destructive",
-  INACTIVE: "border-border bg-muted/50 text-muted-foreground",
-  PENDING:
-    "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
 }
 
 // Mirrors CHAT_MODEL_PROVIDERS' `value`s (chat-model-providers.json) - one

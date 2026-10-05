@@ -16,6 +16,7 @@ export const verificationJobSchema = z.object({
   candidateLlmModelName: z.string().nullable(),
   candidateLlmProvider: z.string().nullable(),
   candidateModelSourceRef: z.string().nullable(),
+  chatModelDisplayName: z.string().nullish(),
   chatModelId: z.uuid(),
   createdAt: z.string(),
   embeddingDimension: z.number().int().nullable(),

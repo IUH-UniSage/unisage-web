@@ -52,6 +52,7 @@ export const chatModelSchema = auditFieldsSchema.extend({
   isActive: z.boolean(),
   lastErrorAt: z.string().nullable(),
   lastErrorCode: z.string().nullable(),
+  lastErrorMessage: z.string().nullish(),
   latestVerification: chatModelVerificationSummarySchema.nullish(),
   llmModelName: z.string(),
   llmProvider: z.string().nullable(),

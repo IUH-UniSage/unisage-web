@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { FailureMessagePanel } from "@/features/chat-models/components/failure-message-panel"
 import { verificationJobKeys } from "@/features/chat-models/queries/keys"
 import { useVerificationJobsQuery } from "@/features/chat-models/queries/use-queries"
 import type { VerificationJob } from "@/features/chat-models/schemas/verification-job-schemas"
@@ -31,7 +32,10 @@ import {
   getVerificationStatusBadgeClassName,
   getVerificationStatusLabel,
 } from "@/features/chat-models/schemas/verification-status"
-import { getPurposeLabel } from "@/features/chat-models/utils/chat-model-formatters"
+import {
+  getPurposeLabel,
+  parseFailureMessage,
+} from "@/features/chat-models/utils/chat-model-formatters"
 import { getErrorMessage } from "@/utils/error-handler"
 import { formatDateTime } from "@/utils/date"
 
@@ -52,7 +56,14 @@ function VerificationStatusBadge({ status }: { status: string }) {
 function VerificationJobCandidateCell({ job }: { job: VerificationJob }) {
   return (
     <div className="min-w-0 text-sm">
-      <p className="font-medium">{job.candidateLlmModelName || "—"}</p>
+      {job.chatModelDisplayName ? (
+        <p className="font-semibold">{job.chatModelDisplayName}</p>
+      ) : (
+        <p className="text-xs text-muted-foreground italic">
+          Chưa đặt tên gợi nhớ
+        </p>
+      )}
+      <p className="font-mono text-xs">{job.candidateLlmModelName || "—"}</p>
       <p className="text-xs text-muted-foreground">
         {job.candidateLlmProvider || "—"} · {getPurposeLabel(job.modelPurpose)}
       </p>
@@ -73,7 +84,7 @@ function VerificationJobErrorCell({ job }: { job: VerificationJob }) {
       ) : null}
       {job.errorMessage ? (
         <p className="line-clamp-2 text-xs wrap-break-word text-muted-foreground">
-          {job.errorMessage}
+          {parseFailureMessage(job.errorMessage)?.summary ?? job.errorMessage}
         </p>
       ) : null}
     </div>
@@ -89,9 +100,12 @@ function VerificationJobDetailDialog({ job }: { job: VerificationJob }) {
         entityLabel="job xác minh"
         onDetail={() => setOpen(true)}
       />
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Chi tiết job xác minh</DialogTitle>
+          <DialogTitle>
+            Chi tiết job xác minh
+            {job.chatModelDisplayName ? ` — ${job.chatModelDisplayName}` : ""}
+          </DialogTitle>
           <DialogDescription>{formatDateTime(job.createdAt)}</DialogDescription>
         </DialogHeader>
 
@@ -105,6 +119,14 @@ function VerificationJobDetailDialog({ job }: { job: VerificationJob }) {
           </div>
 
           <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
+            <dt className="text-muted-foreground">Tên gợi nhớ</dt>
+            <dd className="col-span-2 font-medium">
+              {job.chatModelDisplayName || (
+                <span className="font-normal text-muted-foreground">
+                  Chưa đặt
+                </span>
+              )}
+            </dd>
             <dt className="text-muted-foreground">Mô hình chat</dt>
             <dd className="col-span-2">
               <CopyableId value={job.chatModelId} />
@@ -155,9 +177,7 @@ function VerificationJobDetailDialog({ job }: { job: VerificationJob }) {
                 Lỗi{job.errorType ? ` (${job.errorType})` : ""}
                 {job.errorCode ? ` — ${job.errorCode}` : ""}
               </p>
-              <pre className="max-h-60 overflow-auto rounded-md border bg-muted/50 p-2.5 text-xs wrap-break-word whitespace-pre-wrap text-destructive">
-                {job.errorMessage}
-              </pre>
+              <FailureMessagePanel message={job.errorMessage} />
             </div>
           ) : null}
         </div>
@@ -193,7 +213,7 @@ export function VerificationJobList() {
       },
       {
         cell: ({ row }) => <VerificationJobCandidateCell job={row.original} />,
-        header: "Mô hình (candidate)",
+        header: "Credential / mô hình (candidate)",
         id: "candidate",
       },
       {
