@@ -1,3 +1,8 @@
+import type { ColumnDef } from "@tanstack/react-table"
+import { useState } from "react"
+
+import { DataTable } from "@/components/shared/list/data-table"
+import { Pagination } from "@/components/shared/list/pagination"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -14,6 +19,35 @@ import {
   STATUS_BADGE_STYLES,
 } from "@/features/chat-models/utils/chat-model-formatters"
 
+const PAGE_SIZE = 10
+
+const COLUMNS: ColumnDef<ChatModel, unknown>[] = [
+  {
+    cell: ({ row }) =>
+      row.original.displayName || (
+        <span className="text-muted-foreground">Chưa đặt</span>
+      ),
+    header: "Tên gợi nhớ",
+    id: "displayName",
+    meta: { className: "font-medium" },
+  },
+  {
+    cell: ({ row }) => getPurposeLabel(row.original.modelPurpose),
+    header: "Mục đích",
+    id: "purpose",
+    meta: { className: "text-sm" },
+  },
+  {
+    cell: ({ row }) => (
+      <Badge className={STATUS_BADGE_STYLES[row.original.status]}>
+        {getStatusLabel(row.original.status)}
+      </Badge>
+    ),
+    header: "Trạng thái",
+    id: "status",
+  },
+]
+
 type RegisteredModelsDialogProps = {
   modelName: string
   models: ChatModel[]
@@ -27,7 +61,10 @@ export function RegisteredModelsDialog({
   onOpenChange,
   provider,
 }: RegisteredModelsDialogProps) {
+  const [page, setPage] = useState(1)
   const providerLabel = getChatModelProviderOption(provider)?.label ?? provider
+  const totalPages = Math.ceil(models.length / PAGE_SIZE)
+  const pageModels = models.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <Dialog onOpenChange={onOpenChange} open>
@@ -41,30 +78,23 @@ export function RegisteredModelsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ul className="divide-y rounded-lg border">
-          {models.map((model) => (
-            <li
-              className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5"
-              key={model.id}
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
-                  {model.displayName || (
-                    <span className="text-muted-foreground">
-                      Chưa đặt tên gợi nhớ
-                    </span>
-                  )}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {getPurposeLabel(model.modelPurpose)}
-                </p>
-              </div>
-              <Badge className={STATUS_BADGE_STYLES[model.status]}>
-                {getStatusLabel(model.status)}
-              </Badge>
-            </li>
-          ))}
-        </ul>
+        <div className="overflow-hidden rounded-lg border">
+          <DataTable
+            columns={COLUMNS}
+            data={pageModels}
+            getRowId={(model) => model.id}
+          />
+          {totalPages > 1 ? (
+            <Pagination
+              className="rounded-none border-x-0 border-b-0 shadow-none"
+              currentPage={page}
+              onPageChange={setPage}
+              pageSize={PAGE_SIZE}
+              totalItems={models.length}
+              totalPages={totalPages}
+            />
+          ) : null}
+        </div>
       </DialogContent>
     </Dialog>
   )
