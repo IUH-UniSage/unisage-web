@@ -70,10 +70,17 @@ export function MarkdownRenderer({
 
 function CitationMarker({ indexes }: { indexes: number[] }) {
   const markers = useContext(CitationMarkersContext)
+  const seen = new Set<number>()
+  const visible = indexes.filter((index) => {
+    const shown = markers?.numbers?.[index] ?? index
+    if (seen.has(shown)) return false
+    seen.add(shown)
+    return true
+  })
 
   return (
     <>
-      {indexes.map((index) =>
+      {visible.map((index) =>
         markers?.indexes.includes(index) ? (
           <button
             aria-label={`Xem nguồn ${markers.numbers?.[index] ?? index}`}
@@ -286,8 +293,7 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
     )
   }
 
-  // Standalone numbered heading like "1. Unix là gì?"
-  if (/^\d+\.\s+[A-ZÀ-Ỵa-zà-ỹ0-9_].*(\?|:)?$/.test(line) && line.length < 60) {
+  if (/^\d+\.\s+[A-ZÀ-Ỵa-zà-ỹ0-9_].*[?:]$/.test(line) && line.length < 60) {
     return (
       <h3
         className="mt-4 mb-1 text-[16.5px] font-bold tracking-tight text-foreground"
@@ -337,6 +343,19 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
     const bullet = listMatch[2]
     const isNumber = /^\d+[.)]/.test(bullet)
     const content = listMatch[3]
+
+    const label = content.match(/^(\*{1,2}|_{1,2})([^*_]+:)\1$/)
+    if (label) {
+      return (
+        <p
+          className="mt-3 mb-0.5 text-[16px] font-bold tracking-tight text-foreground"
+          key={index}
+        >
+          {renderInline(label[2])}
+        </p>
+      )
+    }
+
     // Nested sub-bullets (indented in the source) sit one level deeper
     // than top-level numbered steps, so they read as belonging under
     // the step instead of lining up flush with it.
@@ -382,7 +401,11 @@ function renderInline(text: string): React.ReactNode[] {
   // referencing the numbered source list at the end of the reply).
   const regex =
     /(<br\s*\/?>|\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+(?:\s*,\s*\d+)*\])/gi
-  const parts = text.split(regex)
+  const merged = text.replace(
+    /\[(\d+(?:\s*,\s*\d+)*)\](?:\s*\[(\d+(?:\s*,\s*\d+)*)\](?!\())+/g,
+    (match) => `[${(match.match(/\d+/g) ?? []).join(", ")}]`
+  )
+  const parts = merged.split(regex)
 
   return parts.map((part, index) => {
     // Line break marker from a wrapped table cell
