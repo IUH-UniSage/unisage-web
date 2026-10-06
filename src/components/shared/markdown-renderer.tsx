@@ -327,6 +327,20 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
     )
   }
 
+  const emphasisLabel = line.match(
+    /^(?:[-*•]\s+)?(\*{1,2}|_{1,2})([^*_]+?)\1\s*(:?)$/
+  )
+  if (
+    emphasisLabel &&
+    (emphasisLabel[2].trim().endsWith(":") || emphasisLabel[3])
+  ) {
+    return (
+      <p className="mt-2.5 mb-0.5 font-semibold text-foreground" key={index}>
+        {`${emphasisLabel[2].trim().replace(/:$/, "")}:`}
+      </p>
+    )
+  }
+
   // Sub-heading / label ending with colon (e.g. "Đặc điểm:", "Ví dụ các hệ Unix:")
   if (/^[A-ZÀ-Ỵa-zà-ỹ0-9_\s]{2,40}:$/.test(line)) {
     return (
@@ -337,24 +351,12 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
   }
 
   // Bullet point or numbered list item
-  const listMatch = rawLine.match(/^(\s*)([-*•●○◦▪▫–—]|\d+[.)])\s*(.*)$/)
+  const listMatch = rawLine.match(/^(\s*)([-*•●○◦▪▫–—]|\d+[.)])\s+(.*)$/)
   if (listMatch) {
     const indent = listMatch[1]
     const bullet = listMatch[2]
     const isNumber = /^\d+[.)]/.test(bullet)
     const content = listMatch[3]
-
-    const label = content.match(/^(\*{1,2}|_{1,2})([^*_]+:)\1$/)
-    if (label) {
-      return (
-        <p
-          className="mt-3 mb-0.5 text-[16px] font-bold tracking-tight text-foreground"
-          key={index}
-        >
-          {renderInline(label[2])}
-        </p>
-      )
-    }
 
     // Nested sub-bullets (indented in the source) sit one level deeper
     // than top-level numbered steps, so they read as belonging under
@@ -374,7 +376,12 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
             {bullet}
           </span>
         ) : (
-          <span className="mt-[10px] size-[5px] shrink-0 rounded-full bg-foreground" />
+          <span
+            className={cn(
+              "mt-[10px] size-[5px] shrink-0 rounded-full",
+              isNested ? "border border-foreground" : "bg-foreground"
+            )}
+          />
         )}
         <div className="min-w-0 flex-1 leading-[1.7]">
           {renderInline(content)}
