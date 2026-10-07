@@ -7,6 +7,7 @@ import { DepartmentDialog } from "@/features/departments/components/department-d
 import { DepartmentList } from "@/features/departments/components/department-list"
 import { DepartmentStatusDialog } from "@/features/departments/components/department-status-dialog"
 import { useDepartmentDashboard } from "@/features/departments/hooks/use-department-dashboard"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function DepartmentDashboard() {
   const dashboard = useDepartmentDashboard()
@@ -19,7 +20,7 @@ export function DepartmentDashboard() {
     <div className="space-y-5">
       {/* Header Section */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Cơ cấu tổ chức
           </p>
@@ -34,6 +35,7 @@ export function DepartmentDashboard() {
 
         {dashboard.canCreate ? (
           <Button
+            {...tourAnchor(TOUR_ANCHORS.pageActions)}
             className="gap-2 sm:self-end"
             onClick={() => dashboard.openCreate()}
           >

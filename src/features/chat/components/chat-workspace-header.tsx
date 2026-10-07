@@ -14,6 +14,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { ROUTES } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { ClientTourButton } from "@/features/product-tour"
 import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 
 type MobileChatHeaderProps = {
@@ -26,6 +28,7 @@ export function MobileChatHeader({ historyContent }: MobileChatHeaderProps) {
       <Sheet>
         <SheetTrigger asChild>
           <Button
+            {...tourAnchor(TOUR_ANCHORS.chatHistoryToggle)}
             aria-label="Mở lịch sử trò chuyện"
             size="icon"
             variant="ghost"
@@ -53,6 +56,7 @@ export function MobileChatHeader({ historyContent }: MobileChatHeaderProps) {
       </Link>
 
       <div className="ml-auto flex items-center gap-1">
+        <ClientTourButton pathname={ROUTES.chat} />
         <ThemeToggle />
       </div>
     </header>
@@ -78,6 +82,7 @@ export function DesktopChatHeader({
       <div className="flex items-center gap-2">
         {!isSourcesOpen && activeConversation ? (
           <Button
+            {...tourAnchor(TOUR_ANCHORS.chatSources)}
             aria-label="Mở nguồn tham chiếu"
             className="h-8 gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={onOpenSources}
@@ -92,6 +97,7 @@ export function DesktopChatHeader({
           </Button>
         ) : null}
 
+        <ClientTourButton pathname={ROUTES.chat} />
         <ThemeToggle />
       </div>
     </header>

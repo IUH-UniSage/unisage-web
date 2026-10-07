@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type { Budget } from "@/features/cost-management/schemas/cost-management-schemas"
 import {
   getBudgetActionLabel,
@@ -216,7 +217,10 @@ export function BudgetList({
       ) : null}
 
       {budgets.length ? (
-        <div className="grid gap-3 p-3 md:hidden">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.mobileList)}
+          className="grid gap-3 p-3 md:hidden"
+        >
           {budgets.map((budget) => (
             <article className="rounded-xl border p-4" key={budget.id}>
               <div className="flex items-start justify-between gap-3">

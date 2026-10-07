@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  TOUR_ANCHORS,
+  tabPanelTourAnchor,
+  tabTourAnchor,
+  tourAnchor,
+} from "@/constants/tour-anchors"
 import { ChatModelDetailDialog } from "@/features/chat-models/components/chat-model-detail-dialog"
 import { ChatModelDialog } from "@/features/chat-models/components/chat-model-dialog"
 import { ChatModelList } from "@/features/chat-models/components/chat-model-list"
@@ -57,7 +63,7 @@ export function ChatModelDashboard() {
       <div className="space-y-5">
         {/* Page Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
+          <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
             <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
               Quản trị · Cấu hình AI
             </p>
@@ -72,6 +78,7 @@ export function ChatModelDashboard() {
 
           {dashboard.canCreate ? (
             <Button
+              {...tourAnchor(TOUR_ANCHORS.pageActions)}
               className="cursor-pointer gap-2 shadow-xs sm:self-end"
               onClick={dashboard.openCreate}
             >
@@ -98,12 +105,20 @@ export function ChatModelDashboard() {
           }}
           value={activeTab}
         >
-          <TabsList>
-            <TabsTrigger value="models">Mô hình</TabsTrigger>
-            <TabsTrigger value="jobs">Jobs xác minh</TabsTrigger>
+          <TabsList {...tourAnchor(TOUR_ANCHORS.pageTabs)}>
+            <TabsTrigger {...tabTourAnchor("models")} value="models">
+              Mô hình
+            </TabsTrigger>
+            <TabsTrigger {...tabTourAnchor("jobs")} value="jobs">
+              Jobs xác minh
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent className="space-y-5" value="models">
+          <TabsContent
+            {...tabPanelTourAnchor("models")}
+            className="space-y-5"
+            value="models"
+          >
             <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
               <ListToolbar
                 isFiltered={dashboard.isFiltered}
@@ -237,7 +252,7 @@ export function ChatModelDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="jobs">
+          <TabsContent {...tabPanelTourAnchor("jobs")} value="jobs">
             <VerificationJobList />
           </TabsContent>
         </Tabs>

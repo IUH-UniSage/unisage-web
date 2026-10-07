@@ -1,5 +1,6 @@
 import { AlertTriangle, FileText, Trash2 } from "lucide-react"
 
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { RegionBadge } from "@/features/ingestion/components/steps/region-badge"
 import {
   estimateTokens,
@@ -30,7 +31,7 @@ export function ChunkListPanel({
   }
 
   return (
-    <div className="space-y-3">
+    <div {...tourAnchor(TOUR_ANCHORS.ingestChunkList)} className="space-y-3">
       <div className="flex items-center justify-between border-b border-border pb-2">
         <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">
           Bản đồ đoạn

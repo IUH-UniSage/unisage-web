@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { cn } from "@/lib/utils"
 
 type PaginationProps = {
@@ -60,6 +61,7 @@ export function Pagination({
 
   return (
     <div
+      {...tourAnchor(TOUR_ANCHORS.pagination)}
       className={cn(
         "flex flex-col items-center justify-between gap-4 rounded-xl border bg-card p-3 sm:flex-row",
         className

@@ -26,6 +26,7 @@ import {
 import { formatDate } from "@/utils/date"
 import { getErrorMessage } from "@/utils/error-handler"
 import type { PermissionRequirement } from "@/utils/permissions"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 const WEEKDAY_LABELS = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
 
@@ -104,7 +105,7 @@ export function AdminOverviewPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Điều hành nền tảng
           </p>
@@ -122,7 +123,10 @@ export function AdminOverviewPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.overviewMetrics)}
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
         {overviewMetrics.map((metric) => {
           const Icon = metric.icon
 
@@ -150,7 +154,10 @@ export function AdminOverviewPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.overviewActivity)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="flex-row items-center justify-between gap-4 border-b">
             <div>
               <CardTitle>Hoạt động nền tảng</CardTitle>
@@ -197,7 +204,10 @@ export function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.overviewHealth)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Tình trạng dịch vụ</CardTitle>
@@ -229,7 +239,10 @@ export function AdminOverviewPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.overviewShortcuts)}
+        className="grid gap-4 md:grid-cols-3"
+      >
         <ActionCard
           description="Rà soát phân quyền và các bất thường truy cập."
           icon={Users}

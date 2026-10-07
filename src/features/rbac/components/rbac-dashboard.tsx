@@ -20,6 +20,7 @@ import {
   type RbacTab,
   useRbacDashboard,
 } from "@/features/rbac/hooks/use-rbac-dashboard"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function RbacDashboard() {
   const dashboard = useRbacDashboard()
@@ -37,6 +38,7 @@ export function RbacDashboard() {
         actions={
           isRoleTab && dashboard.canCreateRoles ? (
             <Button
+              {...tourAnchor(TOUR_ANCHORS.pageActions)}
               className="sm:self-end"
               onClick={() => navigate(adminRoleNewPath())}
             >
@@ -45,6 +47,7 @@ export function RbacDashboard() {
             </Button>
           ) : !isRoleTab && dashboard.canCreatePermissions ? (
             <Button
+              {...tourAnchor(TOUR_ANCHORS.pageActions)}
               className="sm:self-end"
               onClick={dashboard.openCreatePermission}
             >

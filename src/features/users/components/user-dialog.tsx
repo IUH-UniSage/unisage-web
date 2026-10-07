@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 import { useAccessLevelsQuery } from "@/features/access-level/queries/use-queries"
 import { DepartmentAccessSection } from "@/features/users/components/department-access-section"
@@ -187,7 +188,10 @@ export function UserDialog({
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Người dùng
@@ -203,7 +207,10 @@ export function UserDialog({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-center">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
+          className="flex items-center gap-3 self-end sm:self-center"
+        >
           <Button
             disabled={isBusy}
             onClick={handleCancel}
@@ -239,7 +246,10 @@ export function UserDialog({
               Thông tin cá nhân & liên hệ
             </p>
             {/* Name fields */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.userFormName)}
+              className="grid gap-4 sm:grid-cols-2"
+            >
               <div className="space-y-2">
                 <Label htmlFor="user-lastname">
                   Họ <span className="translate-y-0.5 text-destructive">*</span>
@@ -278,7 +288,10 @@ export function UserDialog({
             </div>
 
             {/* Email & Phone */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.userFormContact)}
+              className="grid gap-4 sm:grid-cols-2"
+            >
               <div className="space-y-2">
                 <Label htmlFor="user-email">
                   Email đăng nhập{" "}
@@ -314,7 +327,10 @@ export function UserDialog({
             </div>
 
             {/* Code & Password */}
-            <div className={cn("grid gap-4", !isEdit && "sm:grid-cols-2")}>
+            <div
+              {...tourAnchor(TOUR_ANCHORS.userFormAccount)}
+              className={cn("grid gap-4", !isEdit && "sm:grid-cols-2")}
+            >
               <div className="space-y-2">
                 <Label htmlFor="user-code">Mã GV/SV (Mã định danh)</Label>
                 <Input
@@ -371,7 +387,10 @@ export function UserDialog({
               <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 Phân quyền & phòng ban
               </p>
-              <div className="space-y-2">
+              <div
+                {...tourAnchor(TOUR_ANCHORS.userFormRole)}
+                className="space-y-2"
+              >
                 <Label htmlFor="user-role">
                   Vai trò hệ thống{" "}
                   <span className="translate-y-0.5 text-destructive">*</span>
@@ -403,7 +422,10 @@ export function UserDialog({
                 ) : null}
               </div>
 
-              <div className="space-y-2">
+              <div
+                {...tourAnchor(TOUR_ANCHORS.userFormDepartments)}
+                className="space-y-2"
+              >
                 <Label>Quyền truy cập phòng ban</Label>
                 <DepartmentAccessSection
                   onChange={(next) =>

@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { ROUTES } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 import { ChangePasswordDialog } from "@/features/profile/components/change-password-dialog"
@@ -103,6 +104,7 @@ export function CollapsedHistoryRail({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                {...tourAnchor(TOUR_ANCHORS.chatNewConversation)}
                 aria-label="Đoạn chat mới (Ctrl + Shift + O)"
                 className={cn(
                   "size-9 cursor-pointer rounded-xl transition-colors",
@@ -133,6 +135,7 @@ export function CollapsedHistoryRail({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                {...tourAnchor(TOUR_ANCHORS.chatSearch)}
                 aria-label="Tìm kiếm (Ctrl + K)"
                 className="size-9 cursor-pointer rounded-xl text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                 onClick={onOpenSearch}
@@ -159,6 +162,11 @@ export function CollapsedHistoryRail({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
+              {...tourAnchor(
+                isGuest
+                  ? TOUR_ANCHORS.chatGuestSignIn
+                  : TOUR_ANCHORS.chatAccount
+              )}
               aria-label={isGuest ? "Đăng nhập" : "Tài khoản người dùng"}
               className={cn(
                 "size-9 cursor-pointer p-0",
@@ -238,6 +246,7 @@ export function ConversationHistory({
 
         <div className="flex items-center gap-0.5">
           <Button
+            {...tourAnchor(TOUR_ANCHORS.chatSearch)}
             aria-label="Tìm kiếm cuộc trò chuyện (Ctrl+K)"
             className="size-8 cursor-pointer rounded-lg text-muted-foreground hover:text-foreground"
             onClick={onOpenSearch}
@@ -264,6 +273,7 @@ export function ConversationHistory({
       {/* New chat button (Exact same 10px container, 8px inner padding) */}
       <div className="shrink-0 px-2.5 py-1">
         <Button
+          {...tourAnchor(TOUR_ANCHORS.chatNewConversation)}
           className={cn(
             "h-10 w-full cursor-pointer justify-start gap-2.5 rounded-xl px-2 text-sm font-medium transition-colors",
             !activeConversationId
@@ -279,7 +289,10 @@ export function ConversationHistory({
       </div>
 
       {/* Conversations list - only this section scrolls */}
-      <ScrollArea className="min-h-0 flex-1 overflow-hidden">
+      <ScrollArea
+        {...tourAnchor(TOUR_ANCHORS.chatHistory)}
+        className="min-h-0 flex-1 overflow-hidden"
+      >
         <div className="w-full min-w-0 px-2.5 py-2">
           <div className="mb-2 px-2 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase dark:text-neutral-400">
             Gần đây
@@ -363,7 +376,10 @@ export function ConversationHistory({
       {/* Bottom User Account Menu (Exact same 10px container, 8px inner padding) */}
       <div className="shrink-0 border-t border-border/40 p-2.5">
         {isGuest ? (
-          <div className="rounded-xl bg-background/60 p-3 dark:bg-muted/40">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.chatGuestSignIn)}
+            className="rounded-xl bg-background/60 p-3 dark:bg-muted/40"
+          >
             <p className="text-sm font-semibold text-foreground">
               Đăng nhập để có trải nghiệm đầy đủ
             </p>
@@ -383,6 +399,7 @@ export function ConversationHistory({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
+                {...tourAnchor(TOUR_ANCHORS.chatAccount)}
                 className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-background/80 focus-visible:outline-2 focus-visible:outline-primary dark:hover:bg-muted/50"
                 type="button"
               >

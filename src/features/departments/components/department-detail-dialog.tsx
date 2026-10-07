@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type {
   Department,
   DepartmentNode,
@@ -22,6 +23,7 @@ import {
   findDepartmentNode,
   getDepthLevelStyle,
 } from "@/features/departments/utils/tree"
+import { DialogTourButton } from "@/features/product-tour"
 
 function findDepth(nodes: DepartmentNode[], id: string, depth = 0): number {
   for (const node of nodes) {
@@ -72,7 +74,8 @@ export function DepartmentDetailDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+        <DialogTourButton tourKey="department-detail" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <div className="flex items-center gap-2">
             <DialogTitle className="truncate text-lg">
               {department.name}
@@ -97,7 +100,10 @@ export function DepartmentDetailDialog({
         <div className="space-y-4 py-1">
           {/* Function / Description */}
           {department.description ? (
-            <div className="rounded-lg border bg-muted/30 p-3.5">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.deptDetailDescription)}
+              className="rounded-lg border bg-muted/30 p-3.5"
+            >
               <p className="text-xs font-semibold text-muted-foreground">
                 Mô tả chức năng
               </p>
@@ -106,13 +112,19 @@ export function DepartmentDetailDialog({
               </p>
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed p-3 text-center text-xs text-muted-foreground">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.deptDetailDescription)}
+              className="rounded-lg border border-dashed p-3 text-center text-xs text-muted-foreground"
+            >
               Chưa có mô tả chức năng cho đơn vị này.
             </div>
           )}
 
           {/* Sub-departments / Direct Children list */}
-          <div className="space-y-2">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.deptDetailChildren)}
+            className="space-y-2"
+          >
             <span className="text-xs font-semibold text-muted-foreground">
               Đơn vị trực thuộc ({children.length})
             </span>
@@ -146,7 +158,10 @@ export function DepartmentDetailDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter
+          {...tourAnchor(TOUR_ANCHORS.dialogFooter)}
+          className="gap-2 sm:gap-2"
+        >
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Đóng

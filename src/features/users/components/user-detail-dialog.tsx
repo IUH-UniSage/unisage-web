@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 import {
   flattenDepartmentTreeWithDepth,
@@ -86,7 +87,10 @@ export function UserDetailDialog({
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Người dùng
@@ -105,7 +109,10 @@ export function UserDetailDialog({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-center">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
+          className="flex items-center gap-3 self-end sm:self-center"
+        >
           <Button onClick={handleBack} type="button" variant="outline">
             Quay lại
           </Button>
@@ -119,7 +126,10 @@ export function UserDetailDialog({
       </div>
 
       {/* Main Profile & Contact Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.userDetailProfile)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Thông tin tài khoản & danh tính
@@ -220,7 +230,10 @@ export function UserDetailDialog({
       </Card>
 
       {/* Department Accesses Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.userDetailDepartments)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -350,7 +363,10 @@ export function UserDetailDialog({
       <AdminUserUsageCard userId={user.id} />
 
       {/* Audit History Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.userDetailHistory)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Lịch sử & Hoạt động

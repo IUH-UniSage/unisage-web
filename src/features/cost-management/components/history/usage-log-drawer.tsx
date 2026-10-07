@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { adminDocumentDetailPath } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   citationSchema,
   type Citation,
@@ -36,6 +37,7 @@ import {
   getUsageRequestStatusBadgeClassName,
   getUsageRequestStatusLabel,
 } from "@/features/cost-management/utils/usage-labels"
+import { DialogTourButton } from "@/features/product-tour"
 import { getErrorMessage } from "@/utils/error-handler"
 
 const DELETED_CONTENT = "Nội dung đã bị xoá"
@@ -185,7 +187,10 @@ function UsageLogDetailBody({ detail }: { detail: UsageLogDetail }) {
 
   return (
     <div className="space-y-6">
-      <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <dl
+        {...tourAnchor(TOUR_ANCHORS.usageLogSummary)}
+        className="grid grid-cols-2 gap-4 sm:grid-cols-3"
+      >
         <Field label="Thời điểm">{formatUtcDateTime(detail.startedAt)}</Field>
         <Field label="Người dùng / IP">{getUsageRequesterLabel(detail)}</Field>
         <Field label="Mục đích">{getUsagePurposeLabel(detail.purpose)}</Field>
@@ -229,12 +234,14 @@ function UsageLogDetailBody({ detail }: { detail: UsageLogDetail }) {
         </div>
       </dl>
 
-      <MessageBlock content={detail.query} isChat={isChat} title="Câu hỏi" />
-      <MessageBlock
-        content={detail.answer}
-        isChat={isChat}
-        title="Câu trả lời"
-      />
+      <div {...tourAnchor(TOUR_ANCHORS.usageLogMessages)} className="space-y-6">
+        <MessageBlock content={detail.query} isChat={isChat} title="Câu hỏi" />
+        <MessageBlock
+          content={detail.answer}
+          isChat={isChat}
+          title="Câu trả lời"
+        />
+      </div>
 
       {citations.length > 0 ? (
         <section className="space-y-1.5">
@@ -258,7 +265,10 @@ function UsageLogDetailBody({ detail }: { detail: UsageLogDetail }) {
         </section>
       ) : null}
 
-      <section className="space-y-1.5">
+      <section
+        {...tourAnchor(TOUR_ANCHORS.usageLogProviderCalls)}
+        className="space-y-1.5"
+      >
         <h3 className="text-sm font-medium">
           Các lượt gọi nhà cung cấp ({detail.lines.length})
         </h3>
@@ -288,7 +298,8 @@ export function UsageLogDrawer({
   return (
     <Sheet onOpenChange={onOpenChange} open={Boolean(usageLogId)}>
       <SheetContent className="w-full overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-3xl">
-        <SheetHeader>
+        <DialogTourButton tourKey="usage-log-detail" />
+        <SheetHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <SheetTitle>Chi tiết request</SheetTitle>
           <SheetDescription>
             Chi phí, token và từng lượt gọi nhà cung cấp của request.

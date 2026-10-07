@@ -50,10 +50,88 @@ const permissionsByRole = {
 
 export type TestRole = keyof typeof sessionByRole
 
+// Every tour that can auto-start: intro:<workspace>, page:<key> for each
+// PAGE_TOURS (staff-tours.ts), ROUTE_TOURS (route-tours.ts) and
+// CLIENT_PAGE_TOURS (client-tours.ts) entry plus page:chat-reply, and dialog:<key> for each DIALOG_TOURS entry
+// (dialog-tours.ts), all under src/features/product-tour/tours/. Marked as seen by
+// default so a first-visit tour overlay doesn't sit on top of the page a
+// spec is trying to drive; product-tour.spec.ts opts back in.
+export const PRODUCT_TOUR_KEYS = [
+  "intro:system-admin",
+  "intro:ingester",
+  "page:admin-overview",
+  "page:ingester-overview",
+  "page:departments",
+  "page:admin-users",
+  "page:admin-rbac",
+  "page:admin-access-levels",
+  "page:admin-tickets",
+  "page:admin-usage-limits",
+  "page:categories",
+  "page:documents",
+  "page:admin-logs",
+  "page:admin-models",
+  "page:admin-cost-management",
+  "page:admin-health",
+  "page:admin-settings",
+  "page:ingester-processing",
+  "page:user-form",
+  "page:user-detail",
+  "page:role-form",
+  "page:role-detail",
+  "page:document-form",
+  "page:document-chunks",
+  "page:ingest-wizard",
+  "page:document-detail",
+  "page:admin-profile",
+  "page:home",
+  "page:chat",
+  "page:chat-reply",
+  "page:my-tickets",
+  "page:profile",
+  "dialog:access-level-form",
+  "dialog:audit-log-detail",
+  "dialog:budget-form",
+  "dialog:category-form",
+  "dialog:change-password",
+  "dialog:create-ticket",
+  "dialog:chat-model-detail",
+  "dialog:chat-model-form",
+  "dialog:department-detail",
+  "dialog:department-form",
+  "dialog:my-ticket-detail",
+  "dialog:permission-detail",
+  "dialog:permission-form",
+  "dialog:price-form",
+  "dialog:registered-models",
+  "dialog:ticket-detail",
+  "dialog:usage-limit-plan-form",
+  "dialog:usage-log-detail",
+  "dialog:verification-job-detail",
+] as const
+
+// Marks every tour as seen except `unseen`, so only those can auto-start.
+export async function seeToursExcept(page: Page, unseen: readonly string[]) {
+  await page.addInitScript(
+    ({ keys, storageKey }) => {
+      window.localStorage.setItem(storageKey, JSON.stringify(keys))
+    },
+    {
+      keys: PRODUCT_TOUR_KEYS.filter((key) => !unseen.includes(key)),
+      storageKey: "unisage_product_tour_seen",
+    }
+  )
+}
+
+type AuthenticateOptions = {
+  productTours?: boolean
+}
+
 export async function authenticateAs(
   page: Page,
   role: TestRole = "USER",
-  permissionNames: readonly string[] = permissionsByRole[role]
+  permissionNames: readonly string[] = permissionsByRole[role],
+  { productTours = false }: AuthenticateOptions = {}
 ) {
   const account = sessionByRole[role]
   const session = {
@@ -79,6 +157,17 @@ export async function authenticateAs(
       storageKey: "unisage_user_profile",
     }
   )
+  if (!productTours) {
+    await page.addInitScript(
+      ({ seenTours, storageKey }) => {
+        window.localStorage.setItem(storageKey, JSON.stringify(seenTours))
+      },
+      {
+        seenTours: PRODUCT_TOUR_KEYS,
+        storageKey: "unisage_product_tour_seen",
+      }
+    )
+  }
   await page.route("**/api/v1/master/auth/refresh", async (route) => {
     await route.fulfill({
       contentType: "application/json",

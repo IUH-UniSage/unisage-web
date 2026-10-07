@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   AUDIT_ACTION_LABELS,
   auditActionSchema,
@@ -42,6 +43,7 @@ import {
   RESOURCE_TYPE_LABELS,
   type ResourceTypeKey,
 } from "@/constants/resource-types"
+import { DialogTourButton } from "@/features/product-tour"
 import { getErrorMessage } from "@/utils/error-handler"
 import { formatDateTime } from "@/utils/date"
 import { Input } from "@/components/ui/input"
@@ -244,11 +246,15 @@ function AuditLogDetailDialog({ log }: { log: AuditLog }) {
     <Dialog onOpenChange={setOpen} open={open}>
       <EntityActionsMenu entityLabel="nhật ký" onDetail={() => setOpen(true)} />
       <DialogContent className="max-w-lg">
-        <DialogHeader>
+        <DialogTourButton tourKey="audit-log-detail" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>Chi tiết nhật ký</DialogTitle>
           <DialogDescription>{formatDateTime(log.createdAt)}</DialogDescription>
         </DialogHeader>
-        <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
+        <dl
+          {...tourAnchor(TOUR_ANCHORS.auditLogDetailSummary)}
+          className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm"
+        >
           <dt className="text-muted-foreground">Người thực hiện</dt>
           <dd className="col-span-2">
             {log.actorId
@@ -274,7 +280,10 @@ function AuditLogDetailDialog({ log }: { log: AuditLog }) {
           ) : null}
         </dl>
         {isWholeObjectAction(log.action) || !log.details ? null : (
-          <div className="max-h-80 overflow-auto rounded-lg border bg-muted/50 p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.auditLogDetailChanges)}
+            className="max-h-80 overflow-auto rounded-lg border bg-muted/50 p-3"
+          >
             <AuditLogDetailRows details={log.details} />
           </div>
         )}
@@ -505,7 +514,10 @@ export function AuditLogList() {
                 getRowId={(log) => log.id}
               />
             </div>
-            <div className="grid gap-3 p-3 md:hidden">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.mobileList)}
+              className="grid gap-3 p-3 md:hidden"
+            >
               {logs.map((log) => (
                 <article className="rounded-xl border p-4" key={log.id}>
                   <div className="flex items-start justify-between gap-3">

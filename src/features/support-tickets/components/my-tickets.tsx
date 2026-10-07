@@ -25,6 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { DialogTourButton } from "@/features/product-tour"
 import { TicketDetailContent } from "@/features/support-tickets/components/ticket-detail-content"
 import { TicketStatusBadge } from "@/features/support-tickets/components/ticket-status-badge"
 import {
@@ -55,14 +57,17 @@ function TicketDetailDialog({
   return (
     <Dialog onOpenChange={(open) => !open && onClose()} open>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
+        <DialogTourButton tourKey="my-ticket-detail" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>{ticket?.title ?? "Chi tiết yêu cầu"}</DialogTitle>
           <DialogDescription>
             Theo dõi tình trạng xử lý yêu cầu hỗ trợ của bạn.
           </DialogDescription>
         </DialogHeader>
         {ticket ? (
-          <TicketDetailContent ticket={ticket} />
+          <div {...tourAnchor(TOUR_ANCHORS.ticketDetailContent)}>
+            <TicketDetailContent ticket={ticket} />
+          </div>
         ) : error ? (
           <p className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive">
             {getErrorMessage(error)}
@@ -90,7 +95,10 @@ export function MyTickets() {
 
   return (
     <div className="mx-auto mt-6 mb-8 w-full max-w-[1200px] space-y-6 px-4">
-      <div className="flex flex-col gap-4 rounded-xl bg-gradient-to-r from-primary to-primary/75 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 rounded-xl bg-gradient-to-r from-primary to-primary/75 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between"
+      >
         <div className="flex min-w-0 items-center gap-4">
           <div className="grid size-14 shrink-0 place-items-center rounded-full bg-white/15 text-white">
             <LifeBuoy aria-hidden="true" className="size-7" />
@@ -127,6 +135,7 @@ export function MyTickets() {
             value={status ?? ALL_STATUSES}
           >
             <SelectTrigger
+              {...tourAnchor(TOUR_ANCHORS.myTicketFilter)}
               aria-label="Lọc theo trạng thái"
               className="w-full sm:w-52"
             >
@@ -142,7 +151,10 @@ export function MyTickets() {
             </SelectContent>
           </Select>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent
+          {...tourAnchor(TOUR_ANCHORS.myTicketList)}
+          className="space-y-4"
+        >
           {isPending ? (
             <div aria-label="Đang tải yêu cầu" className="space-y-3">
               <Skeleton className="h-20 rounded-xl" />

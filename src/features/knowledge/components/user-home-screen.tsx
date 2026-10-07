@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ROUTES } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type QuickLink = {
   description: string
@@ -85,6 +86,7 @@ export function UserHomePage() {
           </p>
 
           <form
+            {...tourAnchor(TOUR_ANCHORS.homeAsk)}
             className="mx-auto mt-6 flex w-full max-w-3xl items-center gap-2.5 rounded-full border border-white/20 bg-card px-3 py-2 shadow-[0_18px_55px_rgb(0_20_70_/_0.22)] dark:border-white/[0.06] dark:bg-card dark:shadow-[0_22px_65px_rgb(0_0_0_/_0.24)]"
             onSubmit={(event) => {
               event.preventDefault()
@@ -114,7 +116,10 @@ export function UserHomePage() {
             </Button>
           </form>
 
-          <div className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.homeSuggestions)}
+            className="mx-auto mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-2"
+          >
             <span className="mr-1 text-xs font-medium text-white/60">
               Gợi ý:
             </span>
@@ -150,7 +155,10 @@ export function UserHomePage() {
           </Button>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.homeTopics)}
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        >
           {quickLinks.map((item, index) => {
             const Icon = item.icon
 
@@ -209,7 +217,10 @@ export function UserHomePage() {
             </CardContent>
           </Card>
 
-          <Card className="border bg-accent shadow-none dark:border-white/[0.06] dark:bg-card">
+          <Card
+            {...tourAnchor(TOUR_ANCHORS.homeSupport)}
+            className="border bg-accent shadow-none dark:border-white/[0.06] dark:bg-card"
+          >
             <CardContent className="p-7 md:p-8">
               <div className="mb-8 grid size-11 place-items-center rounded-xl bg-card text-accent-foreground dark:bg-muted">
                 <FileQuestion aria-hidden="true" className="size-5" />

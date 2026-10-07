@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom"
 import { BrandLogo } from "@/components/shared/brand/brand-logo"
 import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { useVisibleNavItems } from "@/components/shared/navigation/use-visible-nav-items"
 import type { StaffWorkspace } from "@/routes/feature-registry"
@@ -37,7 +38,11 @@ export function StaffSidebar({
         <BrandLogo inverse workspace={workspaceLabel} />
       </div>
 
-      <nav aria-label={`Điều hướng ${workspaceLabel}`} className="flex-1 p-3">
+      <nav
+        {...tourAnchor(TOUR_ANCHORS.sidebarNav)}
+        aria-label={`Điều hướng ${workspaceLabel}`}
+        className="flex-1 p-3"
+      >
         <ul className="space-y-1">
           {visibleNavigation.map((item) => {
             const Icon = item.icon

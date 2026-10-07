@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { FailureMessagePanel } from "@/features/chat-models/components/failure-message-panel"
 import { verificationJobKeys } from "@/features/chat-models/queries/keys"
 import { useVerificationJobsQuery } from "@/features/chat-models/queries/use-queries"
@@ -36,6 +37,7 @@ import {
   getPurposeLabel,
   parseFailureMessage,
 } from "@/features/chat-models/utils/chat-model-formatters"
+import { DialogTourButton } from "@/features/product-tour"
 import { getErrorMessage } from "@/utils/error-handler"
 import { formatDateTime } from "@/utils/date"
 
@@ -101,7 +103,8 @@ function VerificationJobDetailDialog({ job }: { job: VerificationJob }) {
         onDetail={() => setOpen(true)}
       />
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
+        <DialogTourButton tourKey="verification-job-detail" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             Chi tiết job xác minh
             {job.chatModelDisplayName ? ` — ${job.chatModelDisplayName}` : ""}
@@ -110,7 +113,10 @@ function VerificationJobDetailDialog({ job }: { job: VerificationJob }) {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.verificationJobStatus)}
+            className="flex items-center justify-between gap-3"
+          >
             <VerificationStatusBadge status={job.status} />
             <span className="text-xs text-muted-foreground">
               Lần thử {job.attempt}/{job.maxAttempts} · Gen{" "}
@@ -118,7 +124,10 @@ function VerificationJobDetailDialog({ job }: { job: VerificationJob }) {
             </span>
           </div>
 
-          <dl className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
+          <dl
+            {...tourAnchor(TOUR_ANCHORS.verificationJobCandidate)}
+            className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm"
+          >
             <dt className="text-muted-foreground">Tên gợi nhớ</dt>
             <dd className="col-span-2 font-medium">
               {job.chatModelDisplayName || (

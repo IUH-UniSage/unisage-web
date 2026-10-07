@@ -24,6 +24,7 @@ import {
   type PlanKindFilter,
 } from "@/features/usage-limits/utils/plan-kind"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 const NO_PLANS: UsageLimitPlan[] = []
 
@@ -108,7 +109,7 @@ export function UsageLimitPlanDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Hạn mức
           </p>
@@ -124,6 +125,7 @@ export function UsageLimitPlanDashboard() {
 
         {canCreate ? (
           <Button
+            {...tourAnchor(TOUR_ANCHORS.pageActions)}
             className="sm:self-end"
             onClick={() => setDialogTarget("new")}
           >

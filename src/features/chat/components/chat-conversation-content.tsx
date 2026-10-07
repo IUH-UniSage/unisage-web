@@ -6,11 +6,13 @@ import { BrandMark } from "@/components/shared/brand/brand-mark"
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { AskUserFormCard } from "@/features/chat/components/ask-user-form"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import { CitationChips } from "@/features/chat/components/citation-chips"
 import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
 import { extractAskUserForm } from "@/features/chat/utils/ask-user-form"
+import { useChatReplyTour } from "@/features/product-tour"
 import {
   groupCitationsByDocument,
   markerNumbers,
@@ -43,6 +45,11 @@ export function ActiveConversation({
   const isWaitingForReply =
     isSending ||
     (lastMessage ? PENDING_STATUSES.has(lastMessage.status) : false)
+  const latestReplyIndex = messages.findLastIndex(
+    (message) => message.role === "ASSISTANT" && message.status === "COMPLETED"
+  )
+  // Once the first answer is in, explain what can be done with it.
+  useChatReplyTour(latestReplyIndex >= 0 && !isWaitingForReply && !isStreaming)
 
   return (
     <>
@@ -95,6 +102,7 @@ export function ActiveConversation({
                     }
                     content={message.content}
                     disabled={isWaitingForReply}
+                    isLatest={index === latestReplyIndex}
                     message={message}
                     onOpenCitation={onOpenCitation}
                     onSendMessage={onSendMessage}
@@ -129,6 +137,9 @@ type AssistantReplyProps = {
   answerText: string | null
   content: string
   disabled: boolean
+  // Only the newest reply carries tour anchors, so the reply tour points at
+  // what the student just read rather than the top of a long thread.
+  isLatest: boolean
   message: Message
   onOpenCitation: (citation: Citation) => void
   onSendMessage: (content: string) => void
@@ -140,6 +151,7 @@ function AssistantReply({
   answerText,
   content,
   disabled,
+  isLatest,
   message,
   onOpenCitation,
   onSendMessage,
@@ -171,7 +183,14 @@ function AssistantReply({
           content={text}
         />
       </div>
-      <CitationChips citations={citations} onOpenCitation={onOpenCitation} />
+      {citations.length ? (
+        <div {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyCitations) : {})}>
+          <CitationChips
+            citations={citations}
+            onOpenCitation={onOpenCitation}
+          />
+        </div>
+      ) : null}
       {form ? (
         <AskUserFormCard
           answerText={answerText}
@@ -180,7 +199,10 @@ function AssistantReply({
           onSubmit={onSendMessage}
         />
       ) : null}
-      <div className="flex items-center gap-1">
+      <div
+        {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyActions) : {})}
+        className="flex items-center gap-1"
+      >
         <CopyMessageButton content={text} />
         <ReportMessageButton
           disabled={reportDisabled}

@@ -14,6 +14,7 @@ import { useState } from "react"
 
 import { UserAvatar } from "@/components/shared/navigation/user-avatar"
 import { Button } from "@/components/ui/button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   Card,
   CardContent,
@@ -39,7 +40,10 @@ export function UserProfile({ me }: { me: AppUser }) {
 
   return (
     <div className="mx-auto mt-6 mb-8 w-full max-w-[1200px] space-y-6 px-4">
-      <div className="flex flex-col gap-4 rounded-xl bg-gradient-to-r from-primary to-primary/75 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 rounded-xl bg-gradient-to-r from-primary to-primary/75 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between"
+      >
         <div className="flex min-w-0 items-center gap-4">
           <UserAvatar
             avatarUrl={me.avatarUrl}
@@ -58,6 +62,7 @@ export function UserProfile({ me }: { me: AppUser }) {
           </div>
         </div>
         <Button
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
           className="self-start sm:self-center"
           onClick={() => setIsPasswordDialogOpen(true)}
           type="button"
@@ -68,7 +73,10 @@ export function UserProfile({ me }: { me: AppUser }) {
         </Button>
       </div>
 
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.profileBasic)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <User aria-hidden="true" className="size-4" />
@@ -107,7 +115,10 @@ export function UserProfile({ me }: { me: AppUser }) {
         </CardContent>
       </Card>
 
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.profileAccount)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <Shield aria-hidden="true" className="size-4" />

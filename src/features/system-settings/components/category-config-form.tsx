@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Button } from "@/components/ui/button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { ConfigField } from "@/features/system-settings/components/config-field"
 import type { ConfigGroup } from "@/features/system-settings/components/ingest-config-groups"
 import { useUpdateSystemConfigMutation } from "@/features/system-settings/queries/use-mutations"
@@ -177,7 +178,10 @@ export function CategoryConfigForm({
       )}
 
       {canUpdate ? (
-        <div className="flex justify-end">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.settingsSave)}
+          className="flex justify-end"
+        >
           <Button disabled={!isDirty || isSaving} onClick={handleSave}>
             <Save aria-hidden="true" />
             Lưu thay đổi

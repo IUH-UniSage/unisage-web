@@ -14,6 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { getResourceTypeBadgeClassName } from "@/constants/resource-types"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { DialogTourButton } from "@/features/product-tour"
 import type { AccessPermission } from "@/features/rbac/schemas/rbac-schemas"
 import {
   getPermissionLabel,
@@ -43,7 +45,8 @@ export function PermissionDetailDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+        <DialogTourButton tourKey="permission-detail" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <div className="flex items-center gap-2">
             <DialogTitle className="truncate text-lg">
               {permission.name}
@@ -69,7 +72,10 @@ export function PermissionDetailDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter
+          {...tourAnchor(TOUR_ANCHORS.dialogFooter)}
+          className="gap-2 sm:gap-2"
+        >
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Đóng

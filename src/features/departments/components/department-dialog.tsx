@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   departmentRequestSchema,
   type Department,
@@ -36,6 +37,7 @@ import {
   UNIT_TYPE_LABELS,
   type DepartmentUnitType,
 } from "@/features/departments/utils/tree"
+import { DialogTourButton } from "@/features/product-tour"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 // Unit "type" isn't a stored field — it's derived purely from where a node
@@ -170,7 +172,8 @@ export function DepartmentDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogTourButton tourKey="department-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             {department ? "Chỉnh sửa đơn vị" : "Thêm đơn vị mới"}
           </DialogTitle>
@@ -202,7 +205,10 @@ export function DepartmentDialog({
         >
           <div className="space-y-3.5 rounded-xl border bg-card/60 p-3.5">
             {/* Unit type */}
-            <div className="space-y-1.5">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.deptFormType)}
+              className="space-y-1.5"
+            >
               <Label htmlFor="dept-type" className="text-xs font-semibold">
                 Loại đơn vị
               </Label>
@@ -230,7 +236,10 @@ export function DepartmentDialog({
             </div>
 
             {/* Department Name */}
-            <div className="space-y-1.5">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.deptFormName)}
+              className="space-y-1.5"
+            >
               <Label htmlFor="dept-name" className="text-xs font-semibold">
                 Tên đơn vị{" "}
                 <span className="translate-y-0.5 text-destructive">*</span>
@@ -251,7 +260,10 @@ export function DepartmentDialog({
 
             {/* Hierarchical Parent Selector */}
             {requiresParent ? (
-              <div className="space-y-1.5">
+              <div
+                {...tourAnchor(TOUR_ANCHORS.deptFormParent)}
+                className="space-y-1.5"
+              >
                 <Label htmlFor="dept-parent" className="text-xs font-semibold">
                   Trực thuộc{" "}
                   <span className="translate-y-0.5 text-destructive">*</span>
@@ -291,7 +303,10 @@ export function DepartmentDialog({
             )}
 
             {/* Description */}
-            <div className="space-y-1.5">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.deptFormDescription)}
+              className="space-y-1.5"
+            >
               <Label htmlFor="dept-desc" className="text-xs font-semibold">
                 Mô tả chức năng
               </Label>
@@ -318,7 +333,10 @@ export function DepartmentDialog({
             </p>
           ) : null}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter
+            {...tourAnchor(TOUR_ANCHORS.dialogFooter)}
+            className="gap-2 sm:gap-0"
+          >
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
                 Hủy

@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ROUTES } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import { ChangePasswordDialog } from "@/features/profile/components/change-password-dialog"
 
@@ -49,6 +50,7 @@ export function UserAccountMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            {...tourAnchor(TOUR_ANCHORS.accountMenu)}
             aria-label="Tài khoản"
             className="rounded-full"
             size="icon"

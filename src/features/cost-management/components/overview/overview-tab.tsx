@@ -1,4 +1,5 @@
 import { RefreshButton } from "@/components/shared/refresh-button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   BreakdownBarCard,
   DailyLineCard,
@@ -17,30 +18,37 @@ export function OverviewTab() {
     <div className="space-y-6">
       <h2 className="sr-only">Tổng quan chi phí AI</h2>
 
-      <OverviewFiltersBar
-        actions={
-          <RefreshButton
-            label="Làm mới tổng quan"
-            queryKeys={[
-              costManagementKeys.usageLogSummaries(),
-              costManagementKeys.budgets(),
-            ]}
-          />
-        }
-        filters={overview.filters}
-        onChange={overview.setFilters}
-      />
+      <div {...tourAnchor(TOUR_ANCHORS.costOverviewFilters)}>
+        <OverviewFiltersBar
+          actions={
+            <RefreshButton
+              label="Làm mới tổng quan"
+              queryKeys={[
+                costManagementKeys.usageLogSummaries(),
+                costManagementKeys.budgets(),
+              ]}
+            />
+          }
+          filters={overview.filters}
+          onChange={overview.setFilters}
+        />
+      </div>
 
-      <OverviewKpiCards
-        budgetLimit={overview.budgetLimit}
-        budgetRemaining={overview.budgetRemaining}
-        budgetUsedPercent={overview.budgetUsedPercent}
-        monthOverMonthDeltaPercent={overview.monthOverMonthDeltaPercent}
-        thisMonthCost={overview.thisMonthCost}
-        thisMonthUnpricedCost={overview.thisMonthUnpricedCost}
-      />
+      <div {...tourAnchor(TOUR_ANCHORS.costOverviewKpis)}>
+        <OverviewKpiCards
+          budgetLimit={overview.budgetLimit}
+          budgetRemaining={overview.budgetRemaining}
+          budgetUsedPercent={overview.budgetUsedPercent}
+          monthOverMonthDeltaPercent={overview.monthOverMonthDeltaPercent}
+          thisMonthCost={overview.thisMonthCost}
+          thisMonthUnpricedCost={overview.thisMonthUnpricedCost}
+        />
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.costOverviewCharts)}
+        className="grid gap-6 lg:grid-cols-2"
+      >
         <DonutByPurposeCard query={overview.purposeQuery} />
         <BreakdownBarCard
           breakdownGroupBy={overview.breakdownGroupBy}

@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { PermissionMatrix } from "@/features/rbac/components/permission/permission-matrix"
 import { buildPermissionMatrix } from "@/features/rbac/utils/permission-matrix"
 import {
@@ -181,7 +182,10 @@ export function RoleDialog({
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+      >
         <div className="flex items-start gap-3">
           <Button
             aria-label="Quay lại"
@@ -208,7 +212,10 @@ export function RoleDialog({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-start">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
+          className="flex items-center gap-3 self-end sm:self-start"
+        >
           <Button
             disabled={isBusy}
             onClick={handleCancel}
@@ -253,7 +260,10 @@ export function RoleDialog({
           </CardHeader>
           <CardContent>
             <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
+              <div
+                {...tourAnchor(TOUR_ANCHORS.roleFormName)}
+                className="space-y-2 sm:col-span-2"
+              >
                 <Label htmlFor="role-name">
                   Tên vai trò{" "}
                   <span className="translate-y-0.5 text-destructive">*</span>
@@ -288,7 +298,10 @@ export function RoleDialog({
               </div>
 
               {canReadPlans ? (
-                <div className="space-y-2 sm:col-span-2">
+                <div
+                  {...tourAnchor(TOUR_ANCHORS.roleFormUsagePlan)}
+                  className="space-y-2 sm:col-span-2"
+                >
                   <Label htmlFor="role-usage-plan">Gói hạn mức</Label>
                   <Select
                     onValueChange={(value) =>
@@ -323,6 +336,7 @@ export function RoleDialog({
               ) : null}
 
               <ToggleOptionCard
+                {...tourAnchor(TOUR_ANCHORS.roleFormSystemToggle)}
                 checked={watch("isSystemRole")}
                 description="Dùng cho các nhóm quyền lõi do hệ thống quản lý."
                 label="Vai trò hệ thống"
@@ -332,6 +346,7 @@ export function RoleDialog({
               />
 
               <ToggleOptionCard
+                {...tourAnchor(TOUR_ANCHORS.roleFormActiveToggle)}
                 checked={watch("isActive")}
                 description="Cho phép gán vai trò này cho tài khoản người dùng."
                 label="Kích hoạt vai trò"
@@ -344,7 +359,10 @@ export function RoleDialog({
         </Card>
 
         {/* Permissions Assignment Card */}
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.rolePermissions)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="border-b">
             <div>
               <div className="flex items-center gap-2">
@@ -387,7 +405,10 @@ export function RoleDialog({
         ) : null}
 
         {/* Bottom Form Actions */}
-        <div className="flex items-center justify-end gap-3 border-t pt-4">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.formFooterActions)}
+          className="flex items-center justify-end gap-3 border-t pt-4"
+        >
           <Button
             disabled={isBusy}
             onClick={handleCancel}

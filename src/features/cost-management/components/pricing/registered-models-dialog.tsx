@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { getChatModelProviderOption } from "@/features/chat-models/constants/chat-model-providers"
 import type { ChatModel } from "@/features/chat-models/schemas/chat-model-schemas"
 import {
@@ -18,6 +19,7 @@ import {
   getStatusLabel,
   STATUS_BADGE_STYLES,
 } from "@/features/chat-models/utils/chat-model-formatters"
+import { DialogTourButton } from "@/features/product-tour"
 
 const PAGE_SIZE = 10
 
@@ -69,7 +71,8 @@ export function RegisteredModelsDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
+        <DialogTourButton tourKey="registered-models" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle className="font-mono text-base">{modelName}</DialogTitle>
           <DialogDescription>
             {[providerLabel, `${models.length} cấu hình đang đăng ký`]

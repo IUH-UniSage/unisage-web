@@ -2,6 +2,7 @@ import { ChevronRight, FileText, Loader2 } from "lucide-react"
 
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { Button } from "@/components/ui/button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import {
   ErrorAlert,
@@ -23,7 +24,7 @@ export function PreviewStep({ document, wizard }: PreviewStepProps) {
   const hasNoText = wizard.previewText !== undefined && !hasText
 
   return (
-    <div className="space-y-5">
+    <div {...tourAnchor(TOUR_ANCHORS.ingestPreview)} className="space-y-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="rounded-lg bg-primary/10 p-2 text-primary">

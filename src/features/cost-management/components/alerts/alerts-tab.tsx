@@ -1,3 +1,4 @@
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { AlertHistoryTable } from "@/features/cost-management/components/alerts/alert-history-table"
 import { AlertSettingsForm } from "@/features/cost-management/components/alerts/alert-settings-form"
 import { useUpdateBudgetAlertSettingsMutation } from "@/features/cost-management/queries/use-mutations"
@@ -25,14 +26,18 @@ export function AlertsTab() {
           {getErrorMessage(settingsQuery.error)}
         </p>
       ) : (
-        <AlertSettingsForm
-          isSaving={updateSettings.isPending}
-          onSubmit={save}
-          setting={settingsQuery.data}
-        />
+        <div {...tourAnchor(TOUR_ANCHORS.costAlertSettings)}>
+          <AlertSettingsForm
+            isSaving={updateSettings.isPending}
+            onSubmit={save}
+            setting={settingsQuery.data}
+          />
+        </div>
       )}
 
-      <AlertHistoryTable />
+      <div {...tourAnchor(TOUR_ANCHORS.costAlertHistory)}>
+        <AlertHistoryTable />
+      </div>
     </div>
   )
 }

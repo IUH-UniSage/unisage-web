@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { CHAT_MODEL_PROVIDERS } from "@/features/chat-models/constants/chat-model-providers"
 import {
   budgetActionSchema,
@@ -38,6 +39,7 @@ import {
   getBudgetScopeLabel,
 } from "@/features/cost-management/utils/budget-labels"
 import { getUsagePurposeLabel } from "@/features/cost-management/utils/purpose-labels"
+import { DialogTourButton } from "@/features/product-tour"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 type BudgetDialogProps = {
@@ -104,7 +106,8 @@ export function BudgetDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open>
       <DialogContent>
-        <DialogHeader>
+        <DialogTourButton tourKey="budget-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             {budget ? "Chỉnh sửa ngân sách" : "Thêm ngân sách mới"}
           </DialogTitle>
@@ -119,7 +122,10 @@ export function BudgetDialog({
           className="space-y-5"
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
-          <div className="space-y-3 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.budgetFormScope)}
+            className="space-y-3 rounded-xl border p-3"
+          >
             <Label htmlFor="budget-scope">Phạm vi</Label>
             <Select
               onValueChange={(value) =>
@@ -210,7 +216,10 @@ export function BudgetDialog({
             ) : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.budgetFormPeriod)}
+            className="grid grid-cols-2 gap-3 rounded-xl border p-3"
+          >
             <div className="space-y-2">
               <Label htmlFor="budget-period">Chu kỳ</Label>
               <Select
@@ -251,7 +260,10 @@ export function BudgetDialog({
             </div>
           </div>
 
-          <div className="space-y-3 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.budgetFormAction)}
+            className="space-y-3 rounded-xl border p-3"
+          >
             <Label htmlFor="budget-action">Hành động khi vượt ngân sách</Label>
             <Select
               onValueChange={(value) =>
@@ -296,7 +308,10 @@ export function BudgetDialog({
             ) : null}
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.budgetFormEnabled)}
+            className="flex items-start gap-3 rounded-xl border p-3"
+          >
             <Checkbox
               checked={watch("isEnabled")}
               id="budget-enabled"
@@ -321,7 +336,7 @@ export function BudgetDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
                 Hủy

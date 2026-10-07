@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { getChatModelProviderOption } from "@/features/chat-models/constants/chat-model-providers"
 import { chatModelOptions } from "@/features/chat-models/queries/options"
 import type {
@@ -568,7 +569,10 @@ export function PricingTab() {
           </span>
         </p>
         {pricing.canCreate ? (
-          <div className="flex gap-2">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.costTabActions)}
+            className="flex gap-2"
+          >
             <Button
               disabled={syncPrices.isPending}
               onClick={() => void runSync().catch(() => undefined)}

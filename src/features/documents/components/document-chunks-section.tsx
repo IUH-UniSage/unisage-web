@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useDocumentChunksQuery } from "@/features/documents/queries/use-queries"
 import { RegionBadge } from "@/features/ingestion/components/steps/region-badge"
 import type { Chunk } from "@/features/ingestion/schemas/ingestion-schemas"
@@ -144,7 +145,10 @@ export function DocumentChunksSection({
   const totalItems = chunksQuery.data?.total_items ?? 0
 
   return (
-    <Card className="border bg-card shadow-none">
+    <Card
+      {...tourAnchor(TOUR_ANCHORS.documentDetailChunks)}
+      className="border bg-card shadow-none"
+    >
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-muted-foreground" />

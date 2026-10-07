@@ -5,6 +5,7 @@ import { DataTable } from "@/components/shared/list/data-table"
 import { Pagination } from "@/components/shared/list/pagination"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { HealthStatusBadge } from "@/features/system-health/components/health-status-badge"
 import { useSystemHealthHistoryQuery } from "@/features/system-health/queries/use-queries"
 import {
@@ -116,7 +117,10 @@ export function HealthHistorySection() {
                 getRowId={(row) => row.checkedAt}
               />
             </div>
-            <div className="grid gap-3 p-3 md:hidden">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.mobileList)}
+              className="grid gap-3 p-3 md:hidden"
+            >
               {rows.map((row) => (
                 <article className="rounded-xl border p-4" key={row.checkedAt}>
                   <div className="flex items-start justify-between gap-3">

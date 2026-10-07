@@ -40,6 +40,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type {
   Department,
   DepartmentNode,
@@ -115,6 +116,7 @@ function DepartmentFlowNode({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
+              {...tourAnchor(TOUR_ANCHORS.deptNodeActions)}
               aria-label={`Tùy chọn cho ${department.name}`}
               className="nodrag absolute top-1.5 right-1.5 size-5 shrink-0 text-muted-foreground hover:text-foreground"
               onClick={(event) => event.stopPropagation()}
@@ -396,7 +398,10 @@ export function DepartmentFlowView({
   ])
 
   return (
-    <div className="h-[75vh] min-h-140 overflow-hidden rounded-xl border bg-card shadow-xs [&_.react-flow__edge-path]:transition-all [&_.react-flow__edge-path]:duration-300 [&_.react-flow__edge-path]:ease-out [&_.react-flow__node]:transition-transform [&_.react-flow__node]:duration-300 [&_.react-flow__node]:ease-out">
+    <div
+      {...tourAnchor(TOUR_ANCHORS.deptOrgChart)}
+      className="h-[75vh] min-h-140 overflow-hidden rounded-xl border bg-card shadow-xs [&_.react-flow__edge-path]:transition-all [&_.react-flow__edge-path]:duration-300 [&_.react-flow__edge-path]:ease-out [&_.react-flow__node]:transition-transform [&_.react-flow__node]:duration-300 [&_.react-flow__node]:ease-out"
+    >
       <ReactFlow
         colorMode={resolvedTheme === "dark" ? "dark" : "light"}
         edges={edges}
@@ -414,7 +419,10 @@ export function DepartmentFlowView({
         <Controls showInteractive={false} />
 
         <Panel position="top-left">
-          <div className="flex items-center rounded-lg border bg-card/95 p-0.5 shadow-sm backdrop-blur">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.deptLayoutToggle)}
+            className="flex items-center rounded-lg border bg-card/95 p-0.5 shadow-sm backdrop-blur"
+          >
             <button
               aria-label="Bố cục ngang"
               className={cn(

@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { DialogTourButton } from "@/features/product-tour"
 import {
   type AccessPermission,
   type CreatePermissionRequest,
@@ -65,7 +67,8 @@ export function PermissionDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
-        <DialogHeader>
+        <DialogTourButton tourKey="permission-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             {permission ? "Chỉnh sửa quyền hạn" : "Thêm quyền hạn mới"}
           </DialogTitle>
@@ -79,7 +82,10 @@ export function PermissionDialog({
           className="space-y-5"
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
-          <div className="space-y-2 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.permissionFormName)}
+            className="space-y-2 rounded-xl border p-3"
+          >
             <Label htmlFor="permission-name">
               Tên quyền{" "}
               <span className="translate-y-0.5 text-destructive">*</span>
@@ -101,6 +107,7 @@ export function PermissionDialog({
           </div>
 
           <ToggleOptionCard
+            data-tour={TOUR_ANCHORS.permissionFormActive}
             checked={watch("isActive")}
             description="Cho phép gán quyền này cho vai trò."
             label="Kích hoạt quyền hạn"
@@ -118,7 +125,7 @@ export function PermissionDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
                 Hủy

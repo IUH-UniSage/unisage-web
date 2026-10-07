@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { UsageMeter } from "@/features/usage-limits/components/usage-meter"
 import { useUserUsageQuery } from "@/features/usage-limits/queries/use-queries"
 
@@ -27,7 +28,10 @@ export function AdminUserUsageCard({ userId }: AdminUserUsageCardProps) {
   const usageQuery = useUserUsageQuery(userId)
 
   return (
-    <Card className="border bg-card shadow-none">
+    <Card
+      {...tourAnchor(TOUR_ANCHORS.userDetailUsage)}
+      className="border bg-card shadow-none"
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <Gauge aria-hidden="true" className="size-4" />

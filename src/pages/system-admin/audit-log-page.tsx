@@ -1,9 +1,10 @@
 import { AuditLogList } from "@/features/audit-log/components/audit-log-list"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function AuditLogPage() {
   return (
     <div className="space-y-4">
-      <div>
+      <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
         <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
           Quản trị · Hệ thống
         </p>

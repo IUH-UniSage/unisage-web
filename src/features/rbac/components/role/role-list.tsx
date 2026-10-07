@@ -29,6 +29,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { RBAC_PAGE_SIZE } from "@/features/rbac/hooks/use-rbac-dashboard"
 import type { StatusFilter } from "@/features/rbac/hooks/use-rbac-dashboard"
 import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
@@ -206,6 +207,7 @@ export function RoleList({
         ),
         header: () => (
           <Checkbox
+            {...tourAnchor(TOUR_ANCHORS.bulkSelect)}
             aria-label="Chọn tất cả vai trò trong trang"
             checked={allSelectedOnPage}
             onCheckedChange={() => onToggleAllSelection(roleIdsOnPage)}
@@ -359,7 +361,10 @@ export function RoleList({
             />
           </div>
 
-          <div className="grid gap-3 p-3 md:hidden">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.mobileList)}
+            className="grid gap-3 p-3 md:hidden"
+          >
             {roles.map((role, index) => (
               <article className="rounded-xl border p-4" key={role.id}>
                 <div className="flex items-start gap-3">

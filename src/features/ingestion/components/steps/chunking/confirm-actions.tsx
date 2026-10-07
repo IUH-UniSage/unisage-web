@@ -1,6 +1,7 @@
 import { ChevronRight, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   ErrorAlert,
   StepActions,
@@ -15,7 +16,7 @@ export function ChunkingConfirmActions({ wizard }: StepProps) {
   if (wizard.chunks.length === 0) return null
 
   return (
-    <div className="space-y-4 pt-2">
+    <div {...tourAnchor(TOUR_ANCHORS.ingestConfirm)} className="space-y-4 pt-2">
       {error ? <ErrorAlert message={getErrorMessage(error)} /> : null}
       <StepActions>
         <Button

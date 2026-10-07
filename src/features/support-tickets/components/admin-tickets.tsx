@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { AdminTicketDialog } from "@/features/support-tickets/components/admin-ticket-dialog"
 import { TicketStatusBadge } from "@/features/support-tickets/components/ticket-status-badge"
 import { useTicketsQuery } from "@/features/support-tickets/queries/use-queries"
@@ -141,7 +142,7 @@ export function AdminTickets() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
         <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
           Quản trị · Hỗ trợ
         </p>
@@ -234,7 +235,10 @@ export function AdminTickets() {
                 getRowId={(ticket) => ticket.id}
               />
             </div>
-            <div className="grid gap-3 p-3 md:hidden">
+            <div
+              {...tourAnchor(TOUR_ANCHORS.mobileList)}
+              className="grid gap-3 p-3 md:hidden"
+            >
               {tickets.map((ticket) => (
                 <article className="rounded-xl border p-4" key={ticket.id}>
                   <div className="flex items-start justify-between gap-3">

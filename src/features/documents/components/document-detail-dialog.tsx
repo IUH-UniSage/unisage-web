@@ -27,6 +27,7 @@ import {
   getDocStatusLabel,
 } from "@/constants/doc-status"
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { DocumentChunksSection } from "@/features/documents/components/document-chunks-section"
 import { DocumentVersionHistorySection } from "@/features/documents/components/document-version-history-section"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
@@ -83,7 +84,10 @@ export function DocumentDetailDialog({
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Nội dung
@@ -113,7 +117,10 @@ export function DocumentDetailDialog({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-center">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
+          className="flex items-center gap-3 self-end sm:self-center"
+        >
           <Button onClick={handleBack} type="button" variant="outline">
             Quay lại
           </Button>
@@ -127,7 +134,10 @@ export function DocumentDetailDialog({
       </div>
 
       {/* General Information Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.documentDetailInfo)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Thông tin tài liệu & Phân loại
@@ -230,7 +240,10 @@ export function DocumentDetailDialog({
       </Card>
 
       {/* File & Preview Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.documentDetailFile)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Tệp tin & Xem trước
@@ -285,7 +298,10 @@ export function DocumentDetailDialog({
       <DocumentVersionHistorySection documentId={document.id} />
 
       {/* Audit Info Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.documentDetailAudit)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <div className="flex items-center gap-2">
             <Clock className="size-4 text-muted-foreground" />

@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { DialogTourButton } from "@/features/product-tour"
 import {
   usageLimitPlanFormSchema,
   type UsageLimitPlan,
@@ -76,7 +78,8 @@ export function UsageLimitPlanDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open>
       <DialogContent>
-        <DialogHeader>
+        <DialogTourButton tourKey="usage-limit-plan-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             {plan ? "Chỉnh sửa gói hạn mức" : "Thêm gói hạn mức"}
           </DialogTitle>
@@ -90,7 +93,10 @@ export function UsageLimitPlanDialog({
           className="space-y-5"
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
-          <div className="space-y-2 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.usagePlanFormName)}
+            className="space-y-2 rounded-xl border p-3"
+          >
             <Label htmlFor="usage-plan-name">Tên gói</Label>
             <Input
               aria-invalid={Boolean(errors.name)}
@@ -104,7 +110,10 @@ export function UsageLimitPlanDialog({
             ) : null}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.usagePlanFormLimits)}
+            className="grid gap-4 sm:grid-cols-2"
+          >
             <div className="space-y-2 rounded-xl border p-3">
               <Label htmlFor="usage-plan-daily">Token / 24 giờ</Label>
               <Input
@@ -137,7 +146,10 @@ export function UsageLimitPlanDialog({
             </div>
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.usagePlanFormDefault)}
+            className="flex items-start gap-3 rounded-xl border p-3"
+          >
             <Checkbox
               checked={watch("isDefault")}
               disabled={isLockedDefault}
@@ -165,7 +177,7 @@ export function UsageLimitPlanDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
                 Hủy
