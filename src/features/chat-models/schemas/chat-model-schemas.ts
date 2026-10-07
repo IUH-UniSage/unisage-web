@@ -18,6 +18,7 @@ export const chatModelPurposeSchema = z.enum([
   "CHAT",
   "EMBEDDING",
   "EXTRACTION",
+  "RERANK",
 ])
 
 // Mirrors com.unisage.backend.entity.enums.ChatModelStatus (plan.md "State machine").
