@@ -5,6 +5,7 @@ const APP_PREFIX = "unisage_"
 export const STORAGE_KEYS = {
   accessToken: `${APP_PREFIX}access_token`,
   locale: `${APP_PREFIX}locale`,
+  productTourSeen: `${APP_PREFIX}product_tour_seen`,
   refreshToken: `${APP_PREFIX}refresh_token`,
   theme: `${APP_PREFIX}theme`,
   userProfile: `${APP_PREFIX}user_profile`,

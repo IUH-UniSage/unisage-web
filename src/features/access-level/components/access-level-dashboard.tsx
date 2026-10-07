@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { AccessLevelDialog } from "@/features/access-level/components/access-level-dialog"
 import { AccessLevelList } from "@/features/access-level/components/access-level-list"
 import { useAccessLevelDashboard } from "@/features/access-level/hooks/use-access-level-dashboard"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function AccessLevelDashboard() {
   const dashboard = useAccessLevelDashboard()
@@ -17,7 +18,7 @@ export function AccessLevelDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Phân quyền
           </p>
@@ -31,7 +32,11 @@ export function AccessLevelDashboard() {
         </div>
 
         {dashboard.canCreate ? (
-          <Button className="sm:self-end" onClick={dashboard.openCreate}>
+          <Button
+            {...tourAnchor(TOUR_ANCHORS.pageActions)}
+            className="sm:self-end"
+            onClick={dashboard.openCreate}
+          >
             <Plus aria-hidden="true" />
             Thêm cấp độ mới
           </Button>

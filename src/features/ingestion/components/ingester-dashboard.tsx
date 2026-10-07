@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProgressBar } from "@/components/ui/progress-bar"
 import { PermissionGate } from "@/features/auth/components/permission-gate"
 import { PERMISSION_POLICIES } from "@/features/auth/utils/permission-policies"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type Metric = {
   change: string
@@ -93,7 +94,7 @@ export function IngesterDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Vận hành tri thức
           </p>
@@ -115,7 +116,10 @@ export function IngesterDashboardPage() {
         </PermissionGate>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.ingesterMetrics)}
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
         {metrics.map((metric) => {
           const Icon = metric.icon
 
@@ -147,7 +151,10 @@ export function IngesterDashboardPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.7fr)]">
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.ingesterQueue)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="flex-row items-center justify-between gap-4 border-b">
             <div>
               <CardTitle>Hàng đợi xử lý tài liệu</CardTitle>
@@ -205,7 +212,10 @@ export function IngesterDashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.ingesterActivity)}
+          className="space-y-6"
+        >
           <Card className="border-0 bg-hero-alt text-white shadow-none">
             <CardContent className="p-6">
               <UploadCloud aria-hidden="true" className="size-7 text-info" />

@@ -23,6 +23,7 @@ import type {
 import type { FlattenedDepartmentNode } from "@/features/departments/utils/tree"
 import { UNIT_TYPE_LABELS } from "@/features/departments/utils/tree"
 import { cn } from "@/lib/utils"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type DepartmentListProps = {
   canCreate: boolean
@@ -130,7 +131,10 @@ export function DepartmentList({
           </Select>
 
           {/* View Mode Switcher Toggle */}
-          <div className="flex items-center rounded-lg border bg-muted/40 p-0.5">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.departmentViewMode)}
+            className="flex items-center rounded-lg border bg-muted/40 p-0.5"
+          >
             <button
               type="button"
               onClick={() => onViewModeChange("tree")}

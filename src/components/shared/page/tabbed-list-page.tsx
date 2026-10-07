@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type TabbedListPageTab = {
   content: ReactNode
@@ -31,7 +32,7 @@ export function TabbedListPage({
   return (
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             {kicker}
           </p>
@@ -45,7 +46,10 @@ export function TabbedListPage({
       </div>
 
       <Tabs onValueChange={onTabChange} value={value}>
-        <TabsList className="w-full justify-start gap-1.5 bg-transparent p-0 md:w-auto">
+        <TabsList
+          {...tourAnchor(TOUR_ANCHORS.pageTabs)}
+          className="w-full justify-start gap-1.5 bg-transparent p-0 md:w-auto"
+        >
           {tabs.map((tab) => (
             <TabsTrigger
               className="flex-none px-1.5 md:px-3"

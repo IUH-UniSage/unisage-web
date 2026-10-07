@@ -1,7 +1,7 @@
 import { Bell, Menu, Search, X } from "lucide-react"
 import type { ReactNode } from "react"
 import { useState } from "react"
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 
 import {
   StaffSidebar,
@@ -11,6 +11,8 @@ import { ThemeToggle } from "@/components/shared/theme-toggle"
 import { UserAccountMenu } from "@/components/shared/navigation/user-account-menu"
 import { WorkspaceSearch } from "@/components/shared/navigation/workspace-search"
 import { Button } from "@/components/ui/button"
+import { ProductTourButton } from "@/features/product-tour"
+import { getWorkspaceFeatureKeyForPath } from "@/routes/feature-registry"
 import {
   Sheet,
   SheetContent,
@@ -29,6 +31,8 @@ export function StaffWorkspaceLayout({
   workspace,
 }: StaffWorkspaceLayoutProps) {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
+  const { pathname } = useLocation()
+  const featureKey = getWorkspaceFeatureKeyForPath(workspace, pathname)
   const workspaceLabel =
     workspace === "ingester" ? "Nạp tài liệu" : "Quản trị hệ thống"
 
@@ -88,6 +92,7 @@ export function StaffWorkspaceLayout({
                 <Search aria-hidden="true" />
               )}
             </Button>
+            <ProductTourButton featureKey={featureKey} workspace={workspace} />
             <ThemeToggle />
             <Button aria-label="Thông báo" size="icon" variant="ghost">
               <Bell aria-hidden="true" />

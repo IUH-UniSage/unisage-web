@@ -31,6 +31,7 @@ import {
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { formatAuditDate } from "@/utils/date-format"
 import { getErrorMessage } from "@/utils/error-handler"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 const PAGE_SIZE = 10
 const ALL = "ALL"
@@ -141,7 +142,7 @@ export function AdminTickets() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
         <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
           Quản trị · Hỗ trợ
         </p>

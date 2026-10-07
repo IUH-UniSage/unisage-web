@@ -255,3 +255,112 @@
     background-size: 88px 88px;
   }
 }
+
+/*
+ * Product tour (driver.js) theme. Unlayered on purpose: driver.css is
+ * imported unlayered from use-product-tour.ts, and unlayered rules beat any
+ * @layer rule regardless of specificity, so these overrides must be too.
+ */
+.driver-popover.unisage-tour {
+  font-family: inherit;
+  max-width: min(360px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background-color: var(--popover);
+  padding: 16px;
+  color: var(--popover-foreground);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+}
+
+.unisage-tour .driver-popover-title {
+  padding-right: 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--popover-foreground);
+}
+
+.unisage-tour .driver-popover-description {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.unisage-tour .driver-popover-progress-text {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.unisage-tour .driver-popover-close-btn {
+  color: var(--muted-foreground);
+}
+
+.unisage-tour .driver-popover-close-btn:hover,
+.unisage-tour .driver-popover-close-btn:focus-visible {
+  color: var(--popover-foreground);
+}
+
+.unisage-tour .driver-popover-footer {
+  margin-top: 16px;
+}
+
+.unisage-tour .driver-popover-footer .driver-popover-footer-btn {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--background);
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  text-shadow: none;
+}
+
+.unisage-tour .driver-popover-footer .driver-popover-footer-btn:hover,
+.unisage-tour .driver-popover-footer .driver-popover-footer-btn:focus-visible {
+  background-color: var(--muted);
+}
+
+.unisage-tour .driver-popover-footer .unisage-tour-skip-btn {
+  margin-right: auto;
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--muted-foreground);
+}
+
+.unisage-tour .driver-popover-footer .unisage-tour-skip-btn:hover,
+.unisage-tour .driver-popover-footer .unisage-tour-skip-btn:focus-visible {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.unisage-tour .driver-popover-footer .driver-popover-next-btn {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.unisage-tour .driver-popover-footer .driver-popover-next-btn:hover,
+.unisage-tour .driver-popover-footer .driver-popover-next-btn:focus-visible {
+  background-color: var(--primary);
+  opacity: 0.9;
+}
+
+.unisage-tour .driver-popover-footer-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.unisage-tour .driver-popover-arrow-side-left {
+  border-left-color: var(--popover);
+}
+
+.unisage-tour .driver-popover-arrow-side-right {
+  border-right-color: var(--popover);
+}
+
+.unisage-tour .driver-popover-arrow-side-top {
+  border-top-color: var(--popover);
+}
+
+.unisage-tour .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--popover);
+}

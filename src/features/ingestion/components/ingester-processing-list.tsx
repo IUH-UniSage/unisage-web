@@ -11,6 +11,7 @@ import {
   getDocStatusBadgeClassName,
   getDocStatusLabel,
 } from "@/constants/doc-status"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type IngesterProcessingListProps = {
   documents: Document[]
@@ -32,7 +33,10 @@ export function IngesterProcessingList({
   totalPages,
 }: IngesterProcessingListProps) {
   return (
-    <Card className="border bg-card shadow-none">
+    <Card
+      {...tourAnchor(TOUR_ANCHORS.processingList)}
+      className="border bg-card shadow-none"
+    >
       <CardHeader className="border-b">
         <CardTitle>Hàng đợi xử lý tài liệu</CardTitle>
         <p className="mt-1 text-xs text-muted-foreground">

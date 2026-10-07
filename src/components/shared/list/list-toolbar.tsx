@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type ListToolbarProps = {
   children?: ReactNode
@@ -26,7 +27,10 @@ export function ListToolbar({
   searchPlaceholder,
 }: ListToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b p-3">
+    <div
+      {...tourAnchor(TOUR_ANCHORS.listToolbar)}
+      className="flex flex-wrap items-center gap-2 border-b p-3"
+    >
       <div className="relative min-w-56 flex-1">
         <Search
           aria-hidden="true"

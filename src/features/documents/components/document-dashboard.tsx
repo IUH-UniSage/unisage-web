@@ -21,6 +21,7 @@ import {
 import { DocumentList } from "@/features/documents/components/document-list"
 import { useDocumentDashboard } from "@/features/documents/hooks/use-document-dashboard"
 import { DocumentStatusSync } from "@/features/ingestion"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function DocumentDashboard() {
   const navigate = useNavigate()
@@ -57,7 +58,7 @@ export function DocumentDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Nội dung
           </p>
@@ -71,7 +72,11 @@ export function DocumentDashboard() {
         </div>
 
         {dashboard.canCreate ? (
-          <Button className="sm:self-end" onClick={() => navigate(newPath())}>
+          <Button
+            {...tourAnchor(TOUR_ANCHORS.pageActions)}
+            className="sm:self-end"
+            onClick={() => navigate(newPath())}
+          >
             <Plus aria-hidden="true" />
             Thêm tài liệu mới
           </Button>

@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { cn } from "@/lib/utils"
 
 declare module "@tanstack/react-table" {
@@ -42,7 +43,7 @@ export function DataTable<TData>({
   })
 
   return (
-    <Table>
+    <Table {...tourAnchor(TOUR_ANCHORS.dataTable)}>
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>

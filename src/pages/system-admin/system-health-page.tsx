@@ -1,9 +1,10 @@
 import { SystemHealthDashboard } from "@/features/system-health/components/system-health-dashboard"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function SystemHealthPage() {
   return (
     <div className="space-y-4">
-      <div>
+      <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
         <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
           Quản trị · Hệ thống
         </p>

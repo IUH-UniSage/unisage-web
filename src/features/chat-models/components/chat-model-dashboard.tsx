@@ -34,6 +34,7 @@ import {
   getPurposeLabel,
   getStatusLabel,
 } from "@/features/chat-models/utils/chat-model-formatters"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 const ALL = "ALL"
 
@@ -57,7 +58,7 @@ export function ChatModelDashboard() {
       <div className="space-y-5">
         {/* Page Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
+          <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
             <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
               Quản trị · Cấu hình AI
             </p>
@@ -72,6 +73,7 @@ export function ChatModelDashboard() {
 
           {dashboard.canCreate ? (
             <Button
+              {...tourAnchor(TOUR_ANCHORS.pageActions)}
               className="cursor-pointer gap-2 shadow-xs sm:self-end"
               onClick={dashboard.openCreate}
             >
@@ -98,7 +100,7 @@ export function ChatModelDashboard() {
           }}
           value={activeTab}
         >
-          <TabsList>
+          <TabsList {...tourAnchor(TOUR_ANCHORS.pageTabs)}>
             <TabsTrigger value="models">Mô hình</TabsTrigger>
             <TabsTrigger value="jobs">Jobs xác minh</TabsTrigger>
           </TabsList>

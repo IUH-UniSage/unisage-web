@@ -6,6 +6,7 @@ import {
   IngesterProcessingList,
   useIngesterProcessing,
 } from "@/features/ingestion"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function IngesterProcessingPage() {
   const navigate = useNavigate()
@@ -13,7 +14,7 @@ export function IngesterProcessingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
         <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
           Vận hành tri thức
         </p>

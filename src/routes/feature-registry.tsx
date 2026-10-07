@@ -364,6 +364,21 @@ export function getWorkspaceNavItems(
   }))
 }
 
+// Which FEATURE_REGISTRY entry a pathname is the list/index page of, or null
+// for anything else under the workspace (detail and form screens, profile,
+// unknown paths) - those aren't one of the sidebar's pages.
+export function getWorkspaceFeatureKeyForPath(
+  workspace: StaffWorkspace,
+  pathname: string
+): string | null {
+  const normalized = pathname.replace(/\/+$/, "") || "/"
+  const match = getWorkspaceNavItems(workspace).find(
+    (item) => item.to === normalized
+  )
+
+  return match?.key ?? null
+}
+
 export function buildWorkspaceRouteChildren(
   workspace: StaffWorkspace
 ): RouteObject[] {

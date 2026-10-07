@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CategoryDialog } from "@/features/categories/components/category-dialog"
 import { CategoryList } from "@/features/categories/components/category-list"
 import { useCategoryDashboard } from "@/features/categories/hooks/use-category-dashboard"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function CategoryDashboard() {
   const dashboard = useCategoryDashboard()
@@ -17,7 +18,7 @@ export function CategoryDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Nội dung
           </p>
@@ -30,7 +31,11 @@ export function CategoryDashboard() {
         </div>
 
         {dashboard.canCreate ? (
-          <Button className="sm:self-end" onClick={dashboard.openCreate}>
+          <Button
+            {...tourAnchor(TOUR_ANCHORS.pageActions)}
+            className="sm:self-end"
+            onClick={dashboard.openCreate}
+          >
             <Plus aria-hidden="true" />
             Thêm danh mục mới
           </Button>

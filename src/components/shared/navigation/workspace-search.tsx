@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 
 import { useVisibleNavItems } from "@/components/shared/navigation/use-visible-nav-items"
 import { Input } from "@/components/ui/input"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { cn } from "@/lib/utils"
 import type { StaffWorkspace } from "@/routes/feature-registry"
 import { searchWorkspace } from "@/routes/workspace-search"
@@ -97,7 +98,10 @@ export function WorkspaceSearch({
       : undefined
 
   return (
-    <div className={cn("group relative", className)}>
+    <div
+      {...tourAnchor(TOUR_ANCHORS.workspaceSearch)}
+      className={cn("group relative", className)}
+    >
       <Search
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary"

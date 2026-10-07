@@ -12,6 +12,7 @@ import {
 import { UserList } from "@/features/users/components/user-list"
 import { UserStatusDialog } from "@/features/users/components/user-status-dialog"
 import { useUserDashboard } from "@/features/users/hooks/use-user-dashboard"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function UserDashboard() {
   const dashboard = useUserDashboard()
@@ -25,7 +26,7 @@ export function UserDashboard() {
     <>
       <div className="space-y-4">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
+          <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
             <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
               Quản trị · Người dùng
             </p>
@@ -40,6 +41,7 @@ export function UserDashboard() {
 
           {dashboard.canCreate ? (
             <Button
+              {...tourAnchor(TOUR_ANCHORS.pageActions)}
               className="sm:self-end"
               onClick={() => navigate(adminUserNewPath())}
             >
