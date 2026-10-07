@@ -70,10 +70,17 @@ export function MarkdownRenderer({
 
 function CitationMarker({ indexes }: { indexes: number[] }) {
   const markers = useContext(CitationMarkersContext)
+  const seen = new Set<number>()
+  const visible = indexes.filter((index) => {
+    const shown = markers?.numbers?.[index] ?? index
+    if (seen.has(shown)) return false
+    seen.add(shown)
+    return true
+  })
 
   return (
     <>
-      {indexes.map((index) =>
+      {visible.map((index) =>
         markers?.indexes.includes(index) ? (
           <button
             aria-label={`Xem nguồn ${markers.numbers?.[index] ?? index}`}
@@ -286,8 +293,7 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
     )
   }
 
-  // Standalone numbered heading like "1. Unix là gì?"
-  if (/^\d+\.\s+[A-ZÀ-Ỵa-zà-ỹ0-9_].*(\?|:)?$/.test(line) && line.length < 60) {
+  if (/^\d+\.\s+[A-ZÀ-Ỵa-zà-ỹ0-9_].*[?:]$/.test(line) && line.length < 60) {
     return (
       <h3
         className="mt-4 mb-1 text-[16.5px] font-bold tracking-tight text-foreground"
@@ -321,6 +327,20 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
     )
   }
 
+  const emphasisLabel = line.match(
+    /^(?:[-*•]\s+)?(\*{1,2}|_{1,2})([^*_]+?)\1\s*(:?)$/
+  )
+  if (
+    emphasisLabel &&
+    (emphasisLabel[2].trim().endsWith(":") || emphasisLabel[3])
+  ) {
+    return (
+      <p className="mt-2.5 mb-0.5 font-semibold text-foreground" key={index}>
+        {`${emphasisLabel[2].trim().replace(/:$/, "")}:`}
+      </p>
+    )
+  }
+
   // Sub-heading / label ending with colon (e.g. "Đặc điểm:", "Ví dụ các hệ Unix:")
   if (/^[A-ZÀ-Ỵa-zà-ỹ0-9_\s]{2,40}:$/.test(line)) {
     return (
@@ -331,12 +351,13 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
   }
 
   // Bullet point or numbered list item
-  const listMatch = rawLine.match(/^(\s*)([-*•●○◦▪▫–—]|\d+[.)])\s*(.*)$/)
+  const listMatch = rawLine.match(/^(\s*)([-*•●○◦▪▫–—]|\d+[.)])\s+(.*)$/)
   if (listMatch) {
     const indent = listMatch[1]
     const bullet = listMatch[2]
     const isNumber = /^\d+[.)]/.test(bullet)
     const content = listMatch[3]
+
     // Nested sub-bullets (indented in the source) sit one level deeper
     // than top-level numbered steps, so they read as belonging under
     // the step instead of lining up flush with it.
@@ -355,7 +376,12 @@ function renderLine(rawLine: string, index: number): React.ReactNode {
             {bullet}
           </span>
         ) : (
-          <span className="mt-[10px] size-[5px] shrink-0 rounded-full bg-foreground" />
+          <span
+            className={cn(
+              "mt-[10px] size-[5px] shrink-0 rounded-full",
+              isNested ? "border border-foreground" : "bg-foreground"
+            )}
+          />
         )}
         <div className="min-w-0 flex-1 leading-[1.7]">
           {renderInline(content)}
@@ -382,7 +408,11 @@ function renderInline(text: string): React.ReactNode[] {
   // referencing the numbered source list at the end of the reply).
   const regex =
     /(<br\s*\/?>|\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+(?:\s*,\s*\d+)*\])/gi
-  const parts = text.split(regex)
+  const merged = text.replace(
+    /\[(\d+(?:\s*,\s*\d+)*)\](?:\s*\[(\d+(?:\s*,\s*\d+)*)\](?!\())+/g,
+    (match) => `[${(match.match(/\d+/g) ?? []).join(", ")}]`
+  )
+  const parts = merged.split(regex)
 
   return parts.map((part, index) => {
     // Line break marker from a wrapped table cell

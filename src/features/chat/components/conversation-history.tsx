@@ -223,7 +223,7 @@ export function ConversationHistory({
     setIsLoggingOut(true)
     try {
       await logout()
-      await navigate(ROUTES.signIn, { replace: true })
+      await navigate(ROUTES.home, { replace: true })
     } finally {
       setIsLoggingOut(false)
     }

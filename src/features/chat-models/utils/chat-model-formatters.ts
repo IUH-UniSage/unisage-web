@@ -24,6 +24,7 @@ const PURPOSE_LABELS = {
   CHAT: "Chat",
   EMBEDDING: "Embedding",
   EXTRACTION: "Trích xuất",
+  RERANK: "Rerank",
 } as const satisfies Record<ChatModelPurpose, string>
 
 export function getPurposeLabel(purpose: ChatModelPurpose): string {
