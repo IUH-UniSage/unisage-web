@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   CHAT_MODEL_PROVIDERS,
   getChatModelProviderOption,
@@ -38,6 +39,7 @@ import {
   getPurposeLabel,
   getSourceTypeLabel,
 } from "@/features/chat-models/utils/chat-model-formatters"
+import { DialogTourButton } from "@/features/product-tour"
 import {
   applyFieldErrors,
   getErrorCode,
@@ -142,7 +144,8 @@ export function ChatModelDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader>
+        <DialogTourButton tourKey="chat-model-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle className="text-xl">
             {chatModel ? "Chỉnh sửa mô hình chat" : "Thêm mô hình chat mới"}
           </DialogTitle>
@@ -156,7 +159,10 @@ export function ChatModelDialog({
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
           {/* Section 1: Source & Purpose */}
-          <div className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.chatModelFormSource)}
+            className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10"
+          >
             <h3 className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <SlidersHorizontal
                 aria-hidden="true"
@@ -296,7 +302,10 @@ export function ChatModelDialog({
           </div>
 
           {/* Section 2: Model & Connection details */}
-          <div className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.chatModelFormConnection)}
+            className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10"
+          >
             <h3 className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <KeyRound aria-hidden="true" className="size-3.5 text-primary" />
               Thông tin mô hình & Kết nối
@@ -370,7 +379,10 @@ export function ChatModelDialog({
                 ) : null}
               </div>
 
-              <div className="space-y-2 sm:col-span-2">
+              <div
+                {...tourAnchor(TOUR_ANCHORS.chatModelFormApiKey)}
+                className="space-y-2 sm:col-span-2"
+              >
                 <Label htmlFor="chat-model-api-key">
                   API key
                   {!chatModel && sourceType === "CLOUD_API" ? (
@@ -401,7 +413,10 @@ export function ChatModelDialog({
           </div>
 
           {/* Section 3: Limits & Priority */}
-          <div className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.chatModelFormLimits)}
+            className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10"
+          >
             <h3 className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
               <Gauge aria-hidden="true" className="size-3.5 text-primary" />
               Giới hạn hệ thống & Độ ưu tiên
@@ -468,7 +483,10 @@ export function ChatModelDialog({
             </p>
           ) : null}
 
-          <DialogFooter className="pt-2">
+          <DialogFooter
+            {...tourAnchor(TOUR_ANCHORS.dialogFooter)}
+            className="pt-2"
+          >
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
                 Hủy

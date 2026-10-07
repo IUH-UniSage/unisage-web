@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  TOUR_ANCHORS,
+  tabPanelTourAnchor,
+  tabTourAnchor,
+  tourAnchor,
+} from "@/constants/tour-anchors"
 import { ChatModelDetailDialog } from "@/features/chat-models/components/chat-model-detail-dialog"
 import { ChatModelDialog } from "@/features/chat-models/components/chat-model-dialog"
 import { ChatModelList } from "@/features/chat-models/components/chat-model-list"
@@ -34,7 +40,6 @@ import {
   getPurposeLabel,
   getStatusLabel,
 } from "@/features/chat-models/utils/chat-model-formatters"
-import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 const ALL = "ALL"
 
@@ -101,11 +106,19 @@ export function ChatModelDashboard() {
           value={activeTab}
         >
           <TabsList {...tourAnchor(TOUR_ANCHORS.pageTabs)}>
-            <TabsTrigger value="models">Mô hình</TabsTrigger>
-            <TabsTrigger value="jobs">Jobs xác minh</TabsTrigger>
+            <TabsTrigger {...tabTourAnchor("models")} value="models">
+              Mô hình
+            </TabsTrigger>
+            <TabsTrigger {...tabTourAnchor("jobs")} value="jobs">
+              Jobs xác minh
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent className="space-y-5" value="models">
+          <TabsContent
+            {...tabPanelTourAnchor("models")}
+            className="space-y-5"
+            value="models"
+          >
             <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
               <ListToolbar
                 isFiltered={dashboard.isFiltered}
@@ -239,7 +252,7 @@ export function ChatModelDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="jobs">
+          <TabsContent {...tabPanelTourAnchor("jobs")} value="jobs">
             <VerificationJobList />
           </TabsContent>
         </Tabs>

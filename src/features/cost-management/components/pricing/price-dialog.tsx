@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { CHAT_MODEL_PROVIDERS } from "@/features/chat-models/constants/chat-model-providers"
 import {
   modelPriceFormSchema,
@@ -27,6 +28,7 @@ import {
   type ModelPriceFormValues,
   type ModelPriceRequest,
 } from "@/features/cost-management/schemas/cost-management-schemas"
+import { DialogTourButton } from "@/features/product-tour"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 type PriceDialogProps = {
@@ -90,7 +92,8 @@ export function PriceDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open>
       <DialogContent>
-        <DialogHeader>
+        <DialogTourButton tourKey="price-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             {isEditing ? `Sửa giá ${price?.modelName}` : "Thêm giá mô hình"}
           </DialogTitle>
@@ -104,7 +107,10 @@ export function PriceDialog({
           className="space-y-5"
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
-          <div className="grid grid-cols-2 gap-3 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.priceFormModel)}
+            className="grid grid-cols-2 gap-3 rounded-xl border p-3"
+          >
             <div className="space-y-2">
               <Label htmlFor="price-provider">Nhà cung cấp</Label>
               <Select
@@ -152,7 +158,10 @@ export function PriceDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.priceFormRates)}
+            className="grid grid-cols-3 gap-3 rounded-xl border p-3"
+          >
             {PRICE_FIELDS.map((field) => (
               <div className="space-y-2" key={field.id}>
                 <Label htmlFor={`price-${field.id}`}>
@@ -186,7 +195,7 @@ export function PriceDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <Button
               disabled={isBusy}
               onClick={() => onOpenChange(false)}

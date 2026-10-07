@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   useDeleteIndexedChunkMutation,
   useIndexedChunksQuery,
@@ -252,7 +253,10 @@ function IndexedChunkCard({
   const metadataGroups = buildMetadataGroups(chunk)
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border bg-card shadow-none">
+    <div
+      {...tourAnchor(TOUR_ANCHORS.chunkCard)}
+      className="w-full overflow-hidden rounded-xl border bg-card shadow-none"
+    >
       <div className="flex items-center justify-between gap-2 border-b bg-muted/40 px-4 py-3">
         <div className="flex items-center gap-2">
           <Badge className="font-mono text-sm" variant="secondary">
@@ -261,6 +265,7 @@ function IndexedChunkCard({
           <RegionBadge type={chunk.region_type} />
         </div>
         <Button
+          {...tourAnchor(TOUR_ANCHORS.chunkDelete)}
           aria-label={`Xóa chunk ${chunk.chunk_id}`}
           className="text-destructive hover:text-destructive"
           onClick={onRequestDelete}
@@ -274,7 +279,7 @@ function IndexedChunkCard({
 
       <Tabs defaultValue="content">
         <div className="border-b px-4 pt-2">
-          <TabsList variant="line">
+          <TabsList {...tourAnchor(TOUR_ANCHORS.chunkTabs)} variant="line">
             <TabsTrigger value="content">
               <FileText aria-hidden="true" />
               Nội dung gốc

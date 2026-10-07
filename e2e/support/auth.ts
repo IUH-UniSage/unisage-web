@@ -50,12 +50,13 @@ const permissionsByRole = {
 
 export type TestRole = keyof typeof sessionByRole
 
-// Every tour the staff workspaces can auto-start (intro:<workspace> plus
-// page:<FEATURE_REGISTRY key> for each PAGE_TOURS entry in
-// src/features/product-tour/tours/staff-tours.ts). Marked as seen by
+// Every tour the staff workspaces can auto-start: intro:<workspace>,
+// page:<key> for each PAGE_TOURS entry (staff-tours.ts) and ROUTE_TOURS entry
+// (route-tours.ts), and dialog:<key> for each DIALOG_TOURS entry
+// (dialog-tours.ts), all under src/features/product-tour/tours/. Marked as seen by
 // default so a first-visit tour overlay doesn't sit on top of the page a
 // spec is trying to drive; product-tour.spec.ts opts back in.
-const PRODUCT_TOUR_KEYS = [
+export const PRODUCT_TOUR_KEYS = [
   "intro:system-admin",
   "intro:ingester",
   "page:admin-overview",
@@ -74,6 +75,32 @@ const PRODUCT_TOUR_KEYS = [
   "page:admin-health",
   "page:admin-settings",
   "page:ingester-processing",
+  "page:user-form",
+  "page:user-detail",
+  "page:role-form",
+  "page:role-detail",
+  "page:document-form",
+  "page:document-chunks",
+  "page:ingest-wizard",
+  "page:document-detail",
+  "page:admin-profile",
+  "dialog:access-level-form",
+  "dialog:audit-log-detail",
+  "dialog:budget-form",
+  "dialog:category-form",
+  "dialog:change-password",
+  "dialog:chat-model-detail",
+  "dialog:chat-model-form",
+  "dialog:department-detail",
+  "dialog:department-form",
+  "dialog:permission-detail",
+  "dialog:permission-form",
+  "dialog:price-form",
+  "dialog:registered-models",
+  "dialog:ticket-detail",
+  "dialog:usage-limit-plan-form",
+  "dialog:usage-log-detail",
+  "dialog:verification-job-detail",
 ] as const
 
 type AuthenticateOptions = {

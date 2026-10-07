@@ -5,13 +5,13 @@ import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { DOCUMENT_PAGE_SIZE } from "@/features/documents/hooks/use-document-dashboard"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import {
   getDocStatusBadgeClassName,
   getDocStatusLabel,
 } from "@/constants/doc-status"
-import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type IngesterProcessingListProps = {
   documents: Document[]
@@ -76,6 +76,7 @@ export function IngesterProcessingList({
                   {getDocStatusLabel(document.status)}
                 </Badge>
                 <Button
+                  {...tourAnchor(TOUR_ANCHORS.processingAction)}
                   onClick={() => onOpenWizard(document)}
                   size="sm"
                   variant="outline"

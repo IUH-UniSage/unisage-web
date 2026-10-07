@@ -1,7 +1,12 @@
 import type { ReactNode } from "react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import {
+  TOUR_ANCHORS,
+  tabPanelTourAnchor,
+  tabTourAnchor,
+  tourAnchor,
+} from "@/constants/tour-anchors"
 
 type TabbedListPageTab = {
   content: ReactNode
@@ -52,6 +57,7 @@ export function TabbedListPage({
         >
           {tabs.map((tab) => (
             <TabsTrigger
+              {...tabTourAnchor(tab.value)}
               className="flex-none px-1.5 md:px-3"
               key={tab.value}
               value={tab.value}
@@ -63,7 +69,12 @@ export function TabbedListPage({
         </TabsList>
 
         {tabs.map((tab) => (
-          <TabsContent className="mt-2" key={tab.value} value={tab.value}>
+          <TabsContent
+            {...tabPanelTourAnchor(tab.value)}
+            className="mt-2"
+            key={tab.value}
+            value={tab.value}
+          >
             {tab.content}
           </TabsContent>
         ))}

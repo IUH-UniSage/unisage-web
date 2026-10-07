@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type { AccessPermission } from "@/features/rbac/schemas/rbac-schemas"
 import {
   getRowIds,
@@ -63,7 +64,10 @@ export function PermissionMatrix({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.permissionMatrixToolbar)}
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         {onSearchQueryChange ? (
           <div className="relative max-w-md flex-1">
             <Search
@@ -111,6 +115,7 @@ export function PermissionMatrix({
         </p>
       ) : (
         <Accordion
+          {...tourAnchor(TOUR_ANCHORS.permissionMatrixGroups)}
           className="grid grid-cols-1 items-start gap-2 sm:grid-cols-2"
           onValueChange={setExpandedResources}
           type="multiple"

@@ -29,6 +29,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   USER_PAGE_SIZE,
   type StatusFilter,
@@ -169,6 +170,7 @@ export function UserList({
         ),
         header: () => (
           <Checkbox
+            {...tourAnchor(TOUR_ANCHORS.bulkSelect)}
             aria-label="Chọn tất cả người dùng trong trang"
             checked={allSelectedOnPage}
             onCheckedChange={() => onToggleAllSelection(userIdsOnPage)}
@@ -360,7 +362,10 @@ export function UserList({
             />
           </div>
 
-          <div className="grid gap-3 p-3 md:hidden">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.mobileList)}
+            className="grid gap-3 p-3 md:hidden"
+          >
             {users.map((user, index) => (
               <article className="rounded-xl border p-4" key={user.id}>
                 <div className="flex items-start gap-3">

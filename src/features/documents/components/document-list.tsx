@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { DOCUMENT_PAGE_SIZE } from "@/features/documents/hooks/use-document-dashboard"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
@@ -301,7 +302,10 @@ export function DocumentList({
       ) : null}
 
       {documents.length ? (
-        <div className="grid gap-3 p-3 md:hidden">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.mobileList)}
+          className="grid gap-3 p-3 md:hidden"
+        >
           {documents.map((document, index) => (
             <article className="rounded-xl border p-4" key={document.id}>
               <div className="flex items-start justify-between gap-3">

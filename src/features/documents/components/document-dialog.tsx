@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form"
 // TODO(url-source): re-enable when the "Dán đường dẫn URL" flow is
 // implemented - see the commented-out Tabs block further down this file.
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -133,7 +134,10 @@ export function DocumentDialog({
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Nội dung
@@ -149,7 +153,10 @@ export function DocumentDialog({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-center">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
+          className="flex items-center gap-3 self-end sm:self-center"
+        >
           <Button
             disabled={isBusy}
             onClick={handleCancel}
@@ -180,7 +187,10 @@ export function DocumentDialog({
         onSubmit={(event) => void handleSubmit(submit)(event)}
       >
         {/* Basic Info Card */}
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.documentFormBasic)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <FileText className="size-5 text-primary" />
@@ -215,7 +225,10 @@ export function DocumentDialog({
         </Card>
 
         {/* Source & File Card */}
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.documentFormSource)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <UploadCloud className="size-5 text-primary" />
@@ -455,7 +468,10 @@ export function DocumentDialog({
         </Card>
 
         {/* Classification & Access Card */}
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.documentFormClassification)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <Folder className="size-5 text-primary" />
@@ -557,7 +573,10 @@ export function DocumentDialog({
         </Card>
 
         {/* Scope Card */}
-        <Card className="border bg-card shadow-none">
+        <Card
+          {...tourAnchor(TOUR_ANCHORS.documentFormScope)}
+          className="border bg-card shadow-none"
+        >
           <CardHeader className="border-b">
             <div className="flex items-center gap-2">
               <Globe className="size-5 text-primary" />
@@ -594,7 +613,10 @@ export function DocumentDialog({
         ) : null}
 
         {/* Bottom Actions */}
-        <div className="flex items-center justify-end gap-3 border-t pt-4">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.formFooterActions)}
+          className="flex items-center justify-end gap-3 border-t pt-4"
+        >
           <Button
             disabled={isBusy}
             onClick={handleCancel}

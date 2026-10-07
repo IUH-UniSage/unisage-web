@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type EntityActionsMenuProps = {
   canDelete?: boolean
@@ -47,6 +48,7 @@ export function EntityActionsMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          {...tourAnchor(TOUR_ANCHORS.rowActions)}
           aria-label={`Hành động cho ${entityLabel}`}
           size="icon-sm"
           variant="ghost"

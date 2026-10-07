@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { ACCESS_LEVEL_PAGE_SIZE } from "@/features/access-level/hooks/use-access-level-dashboard"
 import type { AccessLevel } from "@/features/access-level/schemas/access-level-schemas"
 import { formatAuditDate } from "@/utils/date-format"
@@ -188,7 +189,10 @@ export function AccessLevelList({
       ) : null}
 
       {accessLevels.length ? (
-        <div className="grid gap-3 p-3 md:hidden">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.mobileList)}
+          className="grid gap-3 p-3 md:hidden"
+        >
           {accessLevels.map((accessLevel, index) => (
             <article className="rounded-xl border p-4" key={accessLevel.id}>
               <div className="flex items-start justify-between gap-3">

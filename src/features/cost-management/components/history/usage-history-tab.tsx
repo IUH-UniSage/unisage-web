@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { UsageHistoryFiltersBar } from "@/features/cost-management/components/history/usage-history-filters"
 import { UsageLogDrawer } from "@/features/cost-management/components/history/usage-log-drawer"
 import { useUsageHistoryTab } from "@/features/cost-management/hooks/use-usage-history-tab"
@@ -155,18 +156,20 @@ export function UsageHistoryTab() {
     <div className="space-y-4">
       <h2 className="sr-only">Lịch sử sử dụng</h2>
 
-      <UsageHistoryFiltersBar
-        actions={
-          <RefreshButton
-            label="Làm mới lịch sử"
-            queryKeys={[costManagementKeys.usageLogsAll()]}
-          />
-        }
-        filters={history.filters}
-        hasFilters={history.hasFilters}
-        onChange={history.changeFilters}
-        onClear={history.clearFilters}
-      />
+      <div {...tourAnchor(TOUR_ANCHORS.costHistoryFilters)}>
+        <UsageHistoryFiltersBar
+          actions={
+            <RefreshButton
+              label="Làm mới lịch sử"
+              queryKeys={[costManagementKeys.usageLogsAll()]}
+            />
+          }
+          filters={history.filters}
+          hasFilters={history.hasFilters}
+          onChange={history.changeFilters}
+          onClear={history.clearFilters}
+        />
+      </div>
 
       <Card className="border bg-card shadow-none">
         <CardContent className="p-0">

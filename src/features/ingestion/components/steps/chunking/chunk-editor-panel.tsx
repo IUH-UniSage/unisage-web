@@ -4,6 +4,7 @@ import { useState } from "react"
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { RegionBadge } from "@/features/ingestion/components/steps/region-badge"
 import {
   estimateTokens,
@@ -57,7 +58,10 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
   const tokens = estimateTokens(draft)
 
   return (
-    <div className="flex flex-col space-y-4 rounded-3xl border border-border bg-card p-5 shadow-sm">
+    <div
+      {...tourAnchor(TOUR_ANCHORS.ingestChunkEditor)}
+      className="flex flex-col space-y-4 rounded-3xl border border-border bg-card p-5 shadow-sm"
+    >
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-black tracking-widest text-primary uppercase">

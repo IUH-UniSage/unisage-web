@@ -5,6 +5,7 @@ import { RefreshButton } from "@/components/shared/refresh-button"
 import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { BudgetDialog } from "@/features/cost-management/components/budgets/budget-dialog"
 import { BudgetList } from "@/features/cost-management/components/budgets/budget-list"
 import {
@@ -59,7 +60,10 @@ export function BudgetsTab() {
           sang nhà cung cấp khác, hết ngân sách hệ thống hoặc theo mục đích sẽ
           từ chối request mới.
         </p>
-        <div className="flex shrink-0 gap-2">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.costTabActions)}
+          className="flex shrink-0 gap-2"
+        >
           <RefreshButton
             label="Làm mới ngân sách"
             queryKeys={[costManagementKeys.budgets()]}

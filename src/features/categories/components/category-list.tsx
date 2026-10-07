@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { CATEGORY_PAGE_SIZE } from "@/features/categories/hooks/use-category-dashboard"
 import type { Category } from "@/features/categories/schemas/category-schemas"
 import { formatAuditDate } from "@/utils/date-format"
@@ -159,7 +160,10 @@ export function CategoryList({
       ) : null}
 
       {categories.length ? (
-        <div className="grid gap-3 p-3 md:hidden">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.mobileList)}
+          className="grid gap-3 p-3 md:hidden"
+        >
           {categories.map((category, index) => (
             <article className="rounded-xl border p-4" key={category.id}>
               <div className="flex items-start justify-between gap-3">

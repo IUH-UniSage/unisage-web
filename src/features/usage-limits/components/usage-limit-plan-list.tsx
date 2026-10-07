@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type { UsageLimitPlan } from "@/features/usage-limits/schemas/usage-limit-schemas"
 import {
   getPlanKind,
@@ -243,7 +244,10 @@ export function UsageLimitPlanList({
       ) : null}
 
       {plans.length ? (
-        <div className="grid gap-3 p-3 md:hidden">
+        <div
+          {...tourAnchor(TOUR_ANCHORS.mobileList)}
+          className="grid gap-3 p-3 md:hidden"
+        >
           {plans.map((plan, index) => (
             <article className="rounded-xl border p-4" key={plan.id}>
               <div className="flex items-start justify-between gap-3">

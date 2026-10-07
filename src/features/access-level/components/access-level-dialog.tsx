@@ -15,11 +15,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   accessLevelRequestSchema,
   type AccessLevel,
   type CreateAccessLevelRequest,
 } from "@/features/access-level/schemas/access-level-schemas"
+import { DialogTourButton } from "@/features/product-tour"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 type AccessLevelDialogProps = {
@@ -67,7 +69,8 @@ export function AccessLevelDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
-        <DialogHeader>
+        <DialogTourButton tourKey="access-level-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             {accessLevel ? "Chỉnh sửa cấp độ truy cập" : "Thêm cấp độ truy cập"}
           </DialogTitle>
@@ -81,7 +84,10 @@ export function AccessLevelDialog({
           className="space-y-5"
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
-          <div className="space-y-2 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.accessLevelFormLevel)}
+            className="space-y-2 rounded-xl border p-3"
+          >
             <Label htmlFor="access-level-level">Cấp độ</Label>
             <Input
               aria-invalid={Boolean(errors.level)}
@@ -100,7 +106,10 @@ export function AccessLevelDialog({
             )}
           </div>
 
-          <div className="space-y-2 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.accessLevelFormDescription)}
+            className="space-y-2 rounded-xl border p-3"
+          >
             <Label htmlFor="access-level-description">Mô tả</Label>
             <Textarea
               id="access-level-description"
@@ -118,7 +127,7 @@ export function AccessLevelDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
                 Hủy

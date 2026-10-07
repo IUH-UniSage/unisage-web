@@ -9,6 +9,7 @@ import {
   ingesterDocumentDetailPath,
   ROUTES,
 } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { DocumentChunkManager } from "@/features/documents/components/document-chunk-manager"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 
@@ -51,7 +52,10 @@ export function DocumentChunksPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Nội dung
@@ -71,6 +75,7 @@ export function DocumentChunksPage() {
         </div>
 
         <Button
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
           className="self-end sm:self-center"
           onClick={() => navigate(detailPath(documentId))}
           type="button"

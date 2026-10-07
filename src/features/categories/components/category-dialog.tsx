@@ -14,11 +14,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   categoryRequestSchema,
   type Category,
   type CreateCategoryRequest,
 } from "@/features/categories/schemas/category-schemas"
+import { DialogTourButton } from "@/features/product-tour"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 type CategoryDialogProps = {
@@ -67,7 +69,8 @@ export function CategoryDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
-        <DialogHeader>
+        <DialogTourButton tourKey="category-form" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>
             {category ? "Chỉnh sửa danh mục" : "Thêm danh mục"}
           </DialogTitle>
@@ -80,7 +83,10 @@ export function CategoryDialog({
           className="space-y-5"
           onSubmit={(event) => void handleSubmit(submit)(event)}
         >
-          <div className="space-y-2 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.categoryFormName)}
+            className="space-y-2 rounded-xl border p-3"
+          >
             <Label htmlFor="category-name">
               Tên danh mục{" "}
               <span className="translate-y-0.5 text-destructive">*</span>
@@ -96,7 +102,10 @@ export function CategoryDialog({
             ) : null}
           </div>
 
-          <div className="space-y-2 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.categoryFormDescription)}
+            className="space-y-2 rounded-xl border p-3"
+          >
             <Label htmlFor="category-description">
               Mô tả <span className="translate-y-0.5 text-destructive">*</span>
             </Label>
@@ -113,7 +122,10 @@ export function CategoryDialog({
             ) : null}
           </div>
 
-          <div className="space-y-2 rounded-xl border p-3">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.categoryFormStatus)}
+            className="space-y-2 rounded-xl border p-3"
+          >
             <Label htmlFor="category-status">Ghi chú trạng thái</Label>
             <Input
               id="category-status"
@@ -135,7 +147,7 @@ export function CategoryDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <DialogClose asChild>
               <Button disabled={isBusy} type="button" variant="outline">
                 Hủy

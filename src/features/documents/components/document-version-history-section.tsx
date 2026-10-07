@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useDocumentVersionsQuery } from "@/features/documents/queries/use-queries"
 import type { DocumentVersion } from "@/features/documents/schemas/document-version-schemas"
 import { formatDateTime } from "@/utils/date"
@@ -23,7 +24,10 @@ export function DocumentVersionHistorySection({
   const versions = versionsQuery.data ?? []
 
   return (
-    <Card className="border bg-card shadow-none">
+    <Card
+      {...tourAnchor(TOUR_ANCHORS.documentDetailVersions)}
+      className="border bg-card shadow-none"
+    >
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <History className="size-4 text-muted-foreground" />

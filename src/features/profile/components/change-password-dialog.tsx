@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { DialogTourButton } from "@/features/product-tour"
 import { useChangePasswordMutation } from "@/features/profile/queries/use-mutations"
 import {
   changePasswordFormSchema,
@@ -26,9 +28,21 @@ type ChangePasswordDialogProps = {
 }
 
 const FIELDS = [
-  { label: "Mật khẩu hiện tại", name: "currentPassword" },
-  { label: "Mật khẩu mới", name: "newPassword" },
-  { label: "Nhập lại mật khẩu mới", name: "confirmPassword" },
+  {
+    anchor: TOUR_ANCHORS.passwordCurrent,
+    label: "Mật khẩu hiện tại",
+    name: "currentPassword",
+  },
+  {
+    anchor: TOUR_ANCHORS.passwordNew,
+    label: "Mật khẩu mới",
+    name: "newPassword",
+  },
+  {
+    anchor: TOUR_ANCHORS.passwordConfirm,
+    label: "Nhập lại mật khẩu mới",
+    name: "confirmPassword",
+  },
 ] as const
 
 export function ChangePasswordDialog({
@@ -70,16 +84,17 @@ export function ChangePasswordDialog({
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogContent>
+        <DialogTourButton tourKey="change-password" />
         <form className="space-y-4" onSubmit={onSubmit}>
-          <DialogHeader>
+          <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
             <DialogTitle>Đổi mật khẩu</DialogTitle>
             <DialogDescription>
               Nhập mật khẩu hiện tại và mật khẩu mới (tối thiểu 8 ký tự).
             </DialogDescription>
           </DialogHeader>
 
-          {FIELDS.map(({ label, name }) => (
-            <div className="space-y-1.5" key={name}>
+          {FIELDS.map(({ anchor, label, name }) => (
+            <div {...tourAnchor(anchor)} className="space-y-1.5" key={name}>
               <Label htmlFor={name}>{label}</Label>
               <Input
                 autoComplete={
@@ -105,7 +120,7 @@ export function ChangePasswordDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <Button
               onClick={() => handleOpenChange(false)}
               type="button"

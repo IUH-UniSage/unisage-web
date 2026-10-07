@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/ui/progress-bar"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   ErrorAlert,
   StepActions,
@@ -22,7 +23,10 @@ export function EmbeddingStep({
   const isTerminal = state === "SUCCESS" || state === "FAILURE"
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 py-4">
+    <div
+      {...tourAnchor(TOUR_ANCHORS.ingestEmbedding)}
+      className="mx-auto max-w-2xl space-y-6 py-4"
+    >
       <div className="space-y-4 rounded-3xl border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center justify-between text-xs font-black tracking-widest uppercase">
           <span className="flex items-center gap-2 text-foreground">

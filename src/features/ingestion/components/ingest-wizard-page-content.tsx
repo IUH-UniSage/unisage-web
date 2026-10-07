@@ -3,6 +3,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { ChunkEditorPanel } from "@/features/ingestion/components/steps/chunking/chunk-editor-panel"
 import { ChunkListPanel } from "@/features/ingestion/components/steps/chunking/chunk-list-panel"
@@ -32,7 +33,10 @@ function StepIndicator({ activeStep }: { activeStep: VisualStep }) {
   const steps: VisualStep[] = [1, 2, 3]
 
   return (
-    <ol className="flex w-full items-center justify-center gap-3 overflow-x-auto">
+    <ol
+      {...tourAnchor(TOUR_ANCHORS.ingestStepper)}
+      className="flex w-full items-center justify-center gap-3 overflow-x-auto"
+    >
       {steps.map((step, index) => {
         const isDone = step < activeStep
         const isActive = step === activeStep
@@ -102,7 +106,7 @@ export function IngestWizardPageContent({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div {...tourAnchor(TOUR_ANCHORS.pageHeader)}>
         <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
           Vận hành tri thức
         </p>
@@ -134,7 +138,10 @@ export function IngestWizardPageContent({
               {wizard.step === "chunking" || wizard.step === "review" ? (
                 <div className="space-y-6">
                   <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)_240px]">
-                    <div className="flex h-full flex-col rounded-3xl border border-border bg-card p-5 shadow-sm">
+                    <div
+                      {...tourAnchor(TOUR_ANCHORS.ingestChunkConfig)}
+                      className="flex h-full flex-col rounded-3xl border border-border bg-card p-5 shadow-sm"
+                    >
                       <ChunkingConfigPanel wizard={wizard} />
                     </div>
                     <ChunkEditorPanel

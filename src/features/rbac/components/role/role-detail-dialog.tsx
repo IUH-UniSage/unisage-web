@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { PermissionMatrix } from "@/features/rbac/components/permission/permission-matrix"
 import type {
   AccessPermission,
@@ -68,7 +69,10 @@ export function RoleDetailDialog({
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.pageHeader)}
+        className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+      >
         <div className="flex items-start gap-3">
           <Button
             aria-label="Quay lại danh sách vai trò"
@@ -100,6 +104,7 @@ export function RoleDetailDialog({
 
         {canUpdate ? (
           <Button
+            {...tourAnchor(TOUR_ANCHORS.pageActions)}
             className="self-end sm:self-start"
             onClick={handleEdit}
             type="button"
@@ -111,7 +116,10 @@ export function RoleDetailDialog({
       </div>
 
       {/* Basic Role Metadata Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.roleDetailOverview)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <CardTitle className="text-base font-semibold">
             Thông tin tổng quan
@@ -142,7 +150,10 @@ export function RoleDetailDialog({
       </Card>
 
       {/* Permissions List Card */}
-      <Card className="border bg-card shadow-none">
+      <Card
+        {...tourAnchor(TOUR_ANCHORS.rolePermissions)}
+        className="border bg-card shadow-none"
+      >
         <CardHeader className="border-b">
           <div>
             <div className="flex items-center gap-2">

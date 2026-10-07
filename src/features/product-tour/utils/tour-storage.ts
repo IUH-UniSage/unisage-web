@@ -8,8 +8,14 @@ export function workspaceIntroTourKey(workspace: string): string {
   return `intro:${workspace}`
 }
 
-export function pageTourKey(featureKey: string): string {
-  return `page:${featureKey}`
+// A FEATURE_REGISTRY key for list pages, or a route tour key
+// ("user-form", "document-detail", ...) for detail and form screens.
+export function pageTourKey(tourKey: string): string {
+  return `page:${tourKey}`
+}
+
+export function dialogTourKey(tourKey: string): string {
+  return `dialog:${tourKey}`
 }
 
 function readSeenTours(): string[] {

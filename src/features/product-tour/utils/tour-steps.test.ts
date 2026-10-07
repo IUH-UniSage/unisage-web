@@ -69,6 +69,40 @@ describe("buildDriveSteps", () => {
 
     expect(step.element).toBe(document.getElementById("on-page"))
   })
+
+  it("falls back through an anchor list to the first visible target", () => {
+    renderAnchors(
+      `<table data-tour="data-table"></table>
+       <div data-tour="mobile-list" id="cards"></div>`,
+      ["#cards"]
+    )
+
+    const [step] = buildDriveSteps([
+      {
+        anchor: [TOUR_ANCHORS.dataTable, TOUR_ANCHORS.mobileList],
+        description: "d",
+        title: "t",
+      },
+    ])
+
+    expect(step.element).toBe(document.getElementById("cards"))
+  })
+
+  it("only looks inside the given root", () => {
+    renderAnchors(
+      `<div data-tour="dialog-header" id="page"></div>
+       <div role="dialog"><div data-tour="dialog-header" id="dialog"></div></div>`,
+      ["#page", "#dialog"]
+    )
+    const dialog = document.querySelector('[role="dialog"]') ?? undefined
+
+    const [step] = buildDriveSteps(
+      [{ anchor: TOUR_ANCHORS.dialogHeader, description: "d", title: "t" }],
+      dialog
+    )
+
+    expect(step.element).toBe(document.getElementById("dialog"))
+  })
 })
 
 describe("tour storage", () => {

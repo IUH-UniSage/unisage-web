@@ -6,15 +6,15 @@ import { useProductTour } from "@/features/product-tour/hooks/use-product-tour"
 import type { StaffWorkspace } from "@/routes/feature-registry"
 
 type ProductTourButtonProps = {
-  featureKey: string | null
+  pathname: string
   workspace: StaffWorkspace
 }
 
 export function ProductTourButton({
-  featureKey,
+  pathname,
   workspace,
 }: ProductTourButtonProps) {
-  const { hasTour, start } = useProductTour({ featureKey, workspace })
+  const { hasTour, start } = useProductTour({ pathname, workspace })
 
   if (!hasTour) return null
 

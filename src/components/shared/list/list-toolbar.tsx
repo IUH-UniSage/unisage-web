@@ -31,7 +31,10 @@ export function ListToolbar({
       {...tourAnchor(TOUR_ANCHORS.listToolbar)}
       className="flex flex-wrap items-center gap-2 border-b p-3"
     >
-      <div className="relative min-w-56 flex-1">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.listSearch)}
+        className="relative min-w-56 flex-1"
+      >
         <Search
           aria-hidden="true"
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -45,7 +48,10 @@ export function ListToolbar({
         />
       </div>
       {children}
-      <div className="flex gap-2">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.listFilterActions)}
+        className="flex gap-2"
+      >
         <Button onClick={onApplyFilters}>
           <Filter aria-hidden="true" />
           Lọc

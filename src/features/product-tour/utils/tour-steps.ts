@@ -1,28 +1,32 @@
 import type { DriveStep } from "driver.js"
 
-import { tourAnchorSelector, type TourAnchor } from "@/constants/tour-anchors"
-import type { TourStep } from "@/features/product-tour/tours/staff-tours"
+import { tourAnchorSelector, type TourTarget } from "@/constants/tour-anchors"
+import type { TourStep } from "@/features/product-tour/tours/tour-step"
 
 // An anchor can exist more than once (the sidebar is mounted both as the
 // desktop rail and inside the mobile sheet, DataTable is reused inside
-// dialogs) and some copies are hidden by responsive classes, so pick the
-// first one that is actually laid out.
+// dialogs, every chunk card carries the same anchors) and some copies are
+// hidden by responsive classes, so pick the first one that is laid out.
 export function findVisibleAnchor(
-  anchor: TourAnchor,
+  target: TourTarget | readonly TourTarget[],
   root: ParentNode = document
 ): Element | null {
-  const candidates = root.querySelectorAll(tourAnchorSelector(anchor))
+  const targets: readonly TourTarget[] =
+    typeof target === "string" ? [target] : target
 
-  return (
-    Array.from(candidates).find(
-      (element) => element.getClientRects().length > 0
-    ) ?? null
-  )
+  for (const candidate of targets) {
+    const match = Array.from(
+      root.querySelectorAll(tourAnchorSelector(candidate))
+    ).find((element) => element.getClientRects().length > 0)
+    if (match) return match
+  }
+
+  return null
 }
 
 // Steps whose anchor is not on screen (permission-gated button, empty list
-// with no table, element hidden at this breakpoint) are dropped up front so
-// the progress counter only counts steps the user will actually see.
+// with no table, inactive tab, element hidden at this breakpoint) are dropped
+// up front so the progress counter only counts steps the user will see.
 export function buildDriveSteps(
   steps: readonly TourStep[],
   root: ParentNode = document

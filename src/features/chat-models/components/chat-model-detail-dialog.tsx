@@ -22,6 +22,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  TOUR_ANCHORS,
+  tourAnchor,
+  type TourAnchor,
+} from "@/constants/tour-anchors"
 import { FailureMessagePanel } from "@/features/chat-models/components/failure-message-panel"
 import type { ChatModel } from "@/features/chat-models/schemas/chat-model-schemas"
 import {
@@ -31,6 +36,7 @@ import {
   getVerificationStatusDisplayLabel,
   STATUS_BADGE_STYLES,
 } from "@/features/chat-models/utils/chat-model-formatters"
+import { DialogTourButton } from "@/features/product-tour"
 import { cn } from "@/lib/utils"
 import { formatDateTime, formatRelativeTime } from "@/utils/date"
 
@@ -43,16 +49,21 @@ type ChatModelDetailDialogProps = {
 }
 
 function DetailSection({
+  anchor,
   children,
   icon: Icon,
   title,
 }: {
+  anchor?: TourAnchor
   children: ReactNode
   icon?: typeof SlidersHorizontal
   title: string
 }) {
   return (
-    <section className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10">
+    <section
+      className="space-y-4 rounded-xl border bg-muted/20 p-4 dark:bg-muted/10"
+      data-tour={anchor}
+    >
       <h3 className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
         {Icon ? (
           <Icon aria-hidden="true" className="size-3.5 text-primary" />
@@ -114,7 +125,11 @@ export function ChatModelDetailDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader className="space-y-2 border-b pb-2">
+        <DialogTourButton tourKey="chat-model-detail" />
+        <DialogHeader
+          {...tourAnchor(TOUR_ANCHORS.dialogHeader)}
+          className="space-y-2 border-b pb-2"
+        >
           <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
             <DialogTitle className="min-w-0 truncate text-xl font-bold">
               {chatModel.displayName || chatModel.llmModelName}
@@ -150,7 +165,11 @@ export function ChatModelDetailDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-1">
-          <DetailSection icon={SlidersHorizontal} title="Cấu hình mô hình">
+          <DetailSection
+            anchor={TOUR_ANCHORS.chatModelDetailConfig}
+            icon={SlidersHorizontal}
+            title="Cấu hình mô hình"
+          >
             <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
               <DetailField label="Tên gợi nhớ">
                 {chatModel.displayName || (
@@ -242,7 +261,11 @@ export function ChatModelDetailDialog({
             </dl>
           </DetailSection>
 
-          <DetailSection icon={ShieldAlert} title="Lỗi gần đây khi gọi mô hình">
+          <DetailSection
+            anchor={TOUR_ANCHORS.chatModelDetailErrors}
+            icon={ShieldAlert}
+            title="Lỗi gần đây khi gọi mô hình"
+          >
             {hasRecentError ? (
               <div className="space-y-4">
                 <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
@@ -284,7 +307,11 @@ export function ChatModelDetailDialog({
           </DetailSection>
 
           {verification ? (
-            <DetailSection icon={Activity} title="Xác minh gần nhất">
+            <DetailSection
+              anchor={TOUR_ANCHORS.chatModelDetailVerification}
+              icon={Activity}
+              title="Xác minh gần nhất"
+            >
               <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
                 <DetailField label="Trạng thái">
                   {getVerificationStatusDisplayLabel(verification)}
@@ -329,7 +356,10 @@ export function ChatModelDetailDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 pt-2 sm:gap-2">
+        <DialogFooter
+          {...tourAnchor(TOUR_ANCHORS.dialogFooter)}
+          className="gap-2 pt-2 sm:gap-2"
+        >
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Đóng

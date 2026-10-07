@@ -256,9 +256,18 @@
   }
 }
 
+/* Dialogs with a tour "?" button (DialogTourButton) next to the close button
+   need the header text to stop short of both buttons. */
+[data-slot="dialog-content"]:has(> [data-dialog-tour-button])
+  [data-slot="dialog-header"],
+[data-slot="sheet-content"]:has(> [data-dialog-tour-button])
+  [data-slot="sheet-header"] {
+  padding-right: 5rem;
+}
+
 /*
  * Product tour (driver.js) theme. Unlayered on purpose: driver.css is
- * imported unlayered from use-product-tour.ts, and unlayered rules beat any
+ * imported unlayered from use-tour-runner.ts, and unlayered rules beat any
  * @layer rule regardless of specificity, so these overrides must be too.
  */
 .driver-popover.unisage-tour {

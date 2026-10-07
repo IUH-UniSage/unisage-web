@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { DialogTourButton } from "@/features/product-tour"
 import { TicketDetailContent } from "@/features/support-tickets/components/ticket-detail-content"
 import { useUpdateTicketMutation } from "@/features/support-tickets/queries/use-mutations"
 import { useTicketQuery } from "@/features/support-tickets/queries/use-queries"
@@ -89,7 +91,10 @@ function UpdateTicketForm({
 
   return (
     <form className="space-y-4 border-t pt-4" onSubmit={onSubmit}>
-      <div className="space-y-1.5">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.ticketFormStatus)}
+        className="space-y-1.5"
+      >
         <Label htmlFor="ticket-status">Trạng thái</Label>
         <Controller
           control={control}
@@ -115,7 +120,10 @@ function UpdateTicketForm({
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div
+        {...tourAnchor(TOUR_ANCHORS.ticketFormResolution)}
+        className="space-y-1.5"
+      >
         <Label htmlFor="ticket-resolution">Phản hồi cho người dùng</Label>
         <Textarea
           disabled={isClosed}
@@ -146,7 +154,7 @@ function UpdateTicketForm({
         </p>
       ) : null}
 
-      <DialogFooter>
+      <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
         <Button onClick={onDone} type="button" variant="outline">
           Đóng
         </Button>
@@ -182,7 +190,8 @@ export function AdminTicketDialog({
   return (
     <Dialog onOpenChange={(open) => !open && onClose()} open>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
+        <DialogTourButton tourKey="ticket-detail" />
+        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <DialogTitle>{ticket?.title ?? "Chi tiết yêu cầu"}</DialogTitle>
           <DialogDescription>
             Xem yêu cầu hỗ trợ và cập nhật trạng thái xử lý.
@@ -190,7 +199,9 @@ export function AdminTicketDialog({
         </DialogHeader>
         {ticket ? (
           <>
-            <TicketDetailContent showRequester ticket={ticket} />
+            <div {...tourAnchor(TOUR_ANCHORS.ticketDetailContent)}>
+              <TicketDetailContent showRequester ticket={ticket} />
+            </div>
             {canUpdate ? (
               // Remount on a refetched ticket so the form shows its new values.
               <UpdateTicketForm
@@ -199,7 +210,7 @@ export function AdminTicketDialog({
                 ticket={ticket}
               />
             ) : (
-              <DialogFooter>
+              <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
                 <Button onClick={onClose} type="button" variant="outline">
                   Đóng
                 </Button>

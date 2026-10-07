@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { getResourceTypeBadgeClassName } from "@/constants/resource-types"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import {
   RBAC_PAGE_SIZE,
   type StatusFilter,
@@ -165,6 +166,7 @@ export function PermissionList({
         ),
         header: () => (
           <Checkbox
+            {...tourAnchor(TOUR_ANCHORS.bulkSelect)}
             aria-label="Chọn tất cả quyền hạn trong trang"
             checked={allSelectedOnPage}
             onCheckedChange={() => onToggleAllSelection(permissionIdsOnPage)}
@@ -299,7 +301,10 @@ export function PermissionList({
             />
           </div>
 
-          <div className="grid gap-3 p-3 md:hidden">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.mobileList)}
+            className="grid gap-3 p-3 md:hidden"
+          >
             {permissions.map((permission, index) => {
               const { resource } = splitPermissionName(permission.name)
 
