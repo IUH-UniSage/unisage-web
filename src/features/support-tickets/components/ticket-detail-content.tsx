@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Badge } from "@/components/ui/badge"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { TicketStatusBadge } from "@/features/support-tickets/components/ticket-status-badge"
 import {
   TICKET_TYPE_LABELS,
@@ -71,13 +72,17 @@ export function TicketDetailContent({
         </div>
       </Block>
 
-      <Block title="Phản hồi từ cán bộ">
-        {ticket.resolution ? (
-          <p className="break-words whitespace-pre-wrap">{ticket.resolution}</p>
-        ) : (
-          <p className="text-muted-foreground italic">Chưa có phản hồi.</p>
-        )}
-      </Block>
+      <div {...tourAnchor(TOUR_ANCHORS.ticketDetailResolution)}>
+        <Block title="Phản hồi từ cán bộ">
+          {ticket.resolution ? (
+            <p className="break-words whitespace-pre-wrap">
+              {ticket.resolution}
+            </p>
+          ) : (
+            <p className="text-muted-foreground italic">Chưa có phản hồi.</p>
+          )}
+        </Block>
+      </div>
     </div>
   )
 }

@@ -1,8 +1,10 @@
-import { CircleHelp } from "lucide-react"
+import { useMemo } from "react"
 
-import { Button } from "@/components/ui/button"
-import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { TourHelpButton } from "@/features/product-tour/components/tour-help-button"
 import { useProductTour } from "@/features/product-tour/hooks/use-product-tour"
+import { WORKSPACE_INTRO_STEPS } from "@/features/product-tour/tours/staff-tours"
+import { resolveStaffPageTour } from "@/features/product-tour/utils/resolve-page-tour"
+import { workspaceIntroTourKey } from "@/features/product-tour/utils/tour-storage"
 import type { StaffWorkspace } from "@/routes/feature-registry"
 
 type ProductTourButtonProps = {
@@ -10,25 +12,24 @@ type ProductTourButtonProps = {
   workspace: StaffWorkspace
 }
 
+// Staff workspaces: the workspace intro runs ahead of the page's own steps
+// on a first visit.
 export function ProductTourButton({
   pathname,
   workspace,
 }: ProductTourButtonProps) {
-  const { hasTour, start } = useProductTour({ pathname, workspace })
-
-  if (!hasTour) return null
-
-  return (
-    <Button
-      {...tourAnchor(TOUR_ANCHORS.tourButton)}
-      aria-label="Hướng dẫn sử dụng trang này"
-      onClick={start}
-      size="icon"
-      title="Hướng dẫn sử dụng trang này"
-      type="button"
-      variant="ghost"
-    >
-      <CircleHelp aria-hidden="true" />
-    </Button>
+  const pageTour = useMemo(
+    () => resolveStaffPageTour(workspace, pathname),
+    [pathname, workspace]
   )
+  const intro = useMemo(
+    () => ({
+      key: workspaceIntroTourKey(workspace),
+      steps: WORKSPACE_INTRO_STEPS[workspace],
+    }),
+    [workspace]
+  )
+  const { hasTour, start } = useProductTour({ intro, pageTour })
+
+  return hasTour ? <TourHelpButton onClick={start} /> : null
 }

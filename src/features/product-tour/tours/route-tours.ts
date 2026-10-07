@@ -364,6 +364,12 @@ export const ROUTE_TOURS: readonly RouteTour[] = [
         "Vai trò và phạm vi truy cập hiện tại của bạn.",
         "top"
       ),
+      fieldStep(
+        TOUR_ANCHORS.profileUsage,
+        "Hạn mức sử dụng",
+        "Số lượt trò chuyện với trợ lý bạn đã dùng trong 24 giờ và 7 ngày.",
+        "top"
+      ),
     ],
   },
 ]

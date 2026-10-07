@@ -1,55 +1,60 @@
-import { useCallback, useEffect, useMemo } from "react"
+import { useCallback, useEffect } from "react"
 
 import { TOUR_ANCHORS } from "@/constants/tour-anchors"
 import {
   isTourActive,
   useTourRunner,
 } from "@/features/product-tour/hooks/use-tour-runner"
-import { WORKSPACE_INTRO_STEPS } from "@/features/product-tour/tours/staff-tours"
-import { resolveStaffPageTour } from "@/features/product-tour/utils/resolve-page-tour"
+import type { TourStep } from "@/features/product-tour/tours/tour-step"
+import type { PageTour } from "@/features/product-tour/utils/resolve-page-tour"
 import { findVisibleAnchor } from "@/features/product-tour/utils/tour-steps"
 import {
   hasSeenTour,
   pageTourKey,
-  workspaceIntroTourKey,
 } from "@/features/product-tour/utils/tour-storage"
-import type { StaffWorkspace } from "@/routes/feature-registry"
 
 // Pages render a skeleton while their first query is pending, so the
-// auto-start waits for the real page header before measuring anchors.
+// auto-start waits for the page's ready anchor before measuring anchors.
 const AUTO_START_POLL_MS = 300
 const AUTO_START_TIMEOUT_MS = 10_000
 
 type UseProductTourOptions = {
-  pathname: string
-  workspace: StaffWorkspace
+  // Workspace introduction shown ahead of the page's steps on first visit.
+  intro?: { key: string; steps: readonly TourStep[] }
+  // Must be referentially stable (memoised or a module constant).
+  pageTour: PageTour | null
 }
 
-export function useProductTour({ pathname, workspace }: UseProductTourOptions) {
+export function useProductTour({ intro, pageTour }: UseProductTourOptions) {
   const { run, stop } = useTourRunner()
-  const pageTour = useMemo(
-    () => resolveStaffPageTour(workspace, pathname),
-    [pathname, workspace]
-  )
+  const introKey = intro?.key
+  const introSteps = intro?.steps
 
   useEffect(() => {
     if (!pageTour) return
 
-    const introKey = workspaceIntroTourKey(workspace)
     const pageKey = pageTourKey(pageTour.key)
-    const introSeen = hasSeenTour(introKey)
-    const pageSeen = hasSeenTour(pageKey)
-    if (introSeen && pageSeen) return
+    const seenKeys = introKey ? [introKey, pageKey] : [pageKey]
+    const allSeen = () => seenKeys.every(hasSeenTour)
+    if (allSeen()) return
 
-    const steps = [
-      ...(introSeen ? [] : WORKSPACE_INTRO_STEPS[workspace]),
-      ...(pageSeen ? [] : pageTour.steps),
-    ]
+    const readyAnchor = pageTour.readyAnchor ?? TOUR_ANCHORS.pageHeader
     const startedAt = Date.now()
     const timer = window.setInterval(() => {
-      if (findVisibleAnchor(TOUR_ANCHORS.pageHeader) && !isTourActive()) {
+      // The same page can mount more than one button (separate mobile and
+      // desktop headers); whichever polls first runs the tour, and the
+      // other stops once it has been marked seen.
+      if (allSeen()) {
         window.clearInterval(timer)
-        run(steps, [introKey, pageKey])
+      } else if (findVisibleAnchor(readyAnchor) && !isTourActive()) {
+        window.clearInterval(timer)
+        run(
+          [
+            ...(introKey && !hasSeenTour(introKey) ? (introSteps ?? []) : []),
+            ...(hasSeenTour(pageKey) ? [] : pageTour.steps),
+          ],
+          seenKeys
+        )
       } else if (Date.now() - startedAt > AUTO_START_TIMEOUT_MS) {
         window.clearInterval(timer)
       }
@@ -61,7 +66,7 @@ export function useProductTour({ pathname, workspace }: UseProductTourOptions) {
       // elements that no longer exist.
       stop()
     }
-  }, [pageTour, run, stop, workspace])
+  }, [introKey, introSteps, pageTour, run, stop])
 
   const start = useCallback(() => {
     if (!pageTour) return

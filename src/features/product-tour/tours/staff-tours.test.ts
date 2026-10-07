@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import { ROUTES } from "@/constants/paths"
+import {
+  CHAT_REPLY_STEPS,
+  CHAT_REPLY_TOUR_KEY,
+  CLIENT_PAGE_TOURS,
+  getClientPageTour,
+} from "@/features/product-tour/tours/client-tours"
 import { DIALOG_TOURS } from "@/features/product-tour/tours/dialog-tours"
 import { ROUTE_TOURS } from "@/features/product-tour/tours/route-tours"
 import { PAGE_TOURS } from "@/features/product-tour/tours/staff-tours"
@@ -96,5 +102,39 @@ describe("dialog tours", () => {
     Object.values(DIALOG_TOURS).forEach((tour) => {
       expect(tour.steps.some((step) => step.anchor)).toBe(true)
     })
+  })
+})
+
+describe("client tours", () => {
+  const clientKey = (pathname: string) => getClientPageTour(pathname)?.key
+
+  it("resolves the student-facing pages", () => {
+    expect(clientKey(ROUTES.home)).toBe("home")
+    expect(clientKey(ROUTES.chat)).toBe("chat")
+    expect(clientKey(ROUTES.tickets)).toBe("my-tickets")
+    expect(clientKey(ROUTES.profile)).toBe("profile")
+  })
+
+  it("has no tour for placeholder pages", () => {
+    expect(getClientPageTour(ROUTES.knowledge)).toBeNull()
+    expect(getClientPageTour(ROUTES.notifications)).toBeNull()
+  })
+
+  it("never shares a seen key with a staff tour", () => {
+    const staffKeys = [
+      ...Object.keys(PAGE_TOURS),
+      ...ROUTE_TOURS.map((tour) => tour.key),
+    ]
+
+    CLIENT_PAGE_TOURS.forEach((tour) =>
+      expect(staffKeys).not.toContain(tour.key)
+    )
+    expect(staffKeys).not.toContain(CHAT_REPLY_TOUR_KEY)
+  })
+
+  it("replays the reply steps at the end of the chat tour", () => {
+    const chatSteps = getClientPageTour(ROUTES.chat)?.steps ?? []
+
+    CHAT_REPLY_STEPS.forEach((step) => expect(chatSteps).toContain(step))
   })
 })

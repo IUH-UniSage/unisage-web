@@ -14,8 +14,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { ROUTES } from "@/constants/paths"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { useAuth } from "@/features/auth/hooks/use-auth"
+import { ClientTourButton } from "@/features/product-tour"
 
 const userNavigation = [
   {
@@ -34,7 +36,10 @@ const userNavigation = [
 
 function UserNavigation({ mobile = false }: { mobile?: boolean }) {
   return (
-    <nav aria-label="Điều hướng người dùng">
+    <nav
+      {...(mobile ? {} : tourAnchor(TOUR_ANCHORS.userNav))}
+      aria-label="Điều hướng người dùng"
+    >
       <ul
         className={mobile ? "flex flex-col items-stretch" : "flex items-center"}
       >
@@ -125,15 +130,25 @@ export function UserLayout() {
                     <UserAccountMenu />
                   </>
                 ) : (
-                  <Button asChild size="sm">
+                  <Button
+                    {...tourAnchor(TOUR_ANCHORS.userSignIn)}
+                    asChild
+                    size="sm"
+                  >
                     <Link to={ROUTES.signIn}>Đăng nhập</Link>
                   </Button>
                 )}
               </div>
 
+              <ClientTourButton
+                className="text-white hover:bg-white/10 hover:text-white lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground"
+                pathname={location.pathname}
+              />
+
               <Sheet>
                 <SheetTrigger asChild>
                   <Button
+                    {...tourAnchor(TOUR_ANCHORS.userMobileMenu)}
                     aria-label="Mở điều hướng"
                     className="text-white hover:bg-white/10 hover:text-white lg:hidden"
                     size="icon"

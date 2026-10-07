@@ -50,9 +50,9 @@ const permissionsByRole = {
 
 export type TestRole = keyof typeof sessionByRole
 
-// Every tour the staff workspaces can auto-start: intro:<workspace>,
-// page:<key> for each PAGE_TOURS entry (staff-tours.ts) and ROUTE_TOURS entry
-// (route-tours.ts), and dialog:<key> for each DIALOG_TOURS entry
+// Every tour that can auto-start: intro:<workspace>, page:<key> for each
+// PAGE_TOURS (staff-tours.ts), ROUTE_TOURS (route-tours.ts) and
+// CLIENT_PAGE_TOURS (client-tours.ts) entry plus page:chat-reply, and dialog:<key> for each DIALOG_TOURS entry
 // (dialog-tours.ts), all under src/features/product-tour/tours/. Marked as seen by
 // default so a first-visit tour overlay doesn't sit on top of the page a
 // spec is trying to drive; product-tour.spec.ts opts back in.
@@ -84,15 +84,22 @@ export const PRODUCT_TOUR_KEYS = [
   "page:ingest-wizard",
   "page:document-detail",
   "page:admin-profile",
+  "page:home",
+  "page:chat",
+  "page:chat-reply",
+  "page:my-tickets",
+  "page:profile",
   "dialog:access-level-form",
   "dialog:audit-log-detail",
   "dialog:budget-form",
   "dialog:category-form",
   "dialog:change-password",
+  "dialog:create-ticket",
   "dialog:chat-model-detail",
   "dialog:chat-model-form",
   "dialog:department-detail",
   "dialog:department-form",
+  "dialog:my-ticket-detail",
   "dialog:permission-detail",
   "dialog:permission-form",
   "dialog:price-form",
@@ -102,6 +109,19 @@ export const PRODUCT_TOUR_KEYS = [
   "dialog:usage-log-detail",
   "dialog:verification-job-detail",
 ] as const
+
+// Marks every tour as seen except `unseen`, so only those can auto-start.
+export async function seeToursExcept(page: Page, unseen: readonly string[]) {
+  await page.addInitScript(
+    ({ keys, storageKey }) => {
+      window.localStorage.setItem(storageKey, JSON.stringify(keys))
+    },
+    {
+      keys: PRODUCT_TOUR_KEYS.filter((key) => !unseen.includes(key)),
+      storageKey: "unisage_product_tour_seen",
+    }
+  )
+}
 
 type AuthenticateOptions = {
   productTours?: boolean

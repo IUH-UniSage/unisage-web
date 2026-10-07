@@ -1,6 +1,6 @@
-import { expect, type Page, test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
-import { authenticateAs, PRODUCT_TOUR_KEYS } from "./support/auth"
+import { authenticateAs, seeToursExcept } from "./support/auth"
 import { mockRbac } from "./support/rbac"
 
 test("walks a first-time admin through the page and lets them replay it", async ({
@@ -80,24 +80,11 @@ test("lets a first-time admin skip the tour", async ({ page }) => {
   await expect(popover).toHaveCount(0)
 })
 
-// Seeds every tour as seen except `unseen`, so only that one auto-starts.
-async function seeOnlyTour(page: Page, unseen: string) {
-  await page.addInitScript(
-    ({ keys, storageKey }) => {
-      window.localStorage.setItem(storageKey, JSON.stringify(keys))
-    },
-    {
-      keys: PRODUCT_TOUR_KEYS.filter((key) => key !== unseen),
-      storageKey: "unisage_product_tour_seen",
-    }
-  )
-}
-
 test("tours a create screen reached from a list page", async ({
   page,
 }, testInfo) => {
   await authenticateAs(page, "SUPER_ADMIN", undefined, { productTours: true })
-  await seeOnlyTour(page, "page:role-form")
+  await seeToursExcept(page, ["page:role-form"])
   await mockRbac(page)
   await page.goto("/admin/rbac/new")
 
@@ -118,7 +105,7 @@ test("tours a create screen reached from a list page", async ({
 
 test("tours a dialog without closing it", async ({ page }, testInfo) => {
   await authenticateAs(page, "SUPER_ADMIN", undefined, { productTours: true })
-  await seeOnlyTour(page, "dialog:permission-form")
+  await seeToursExcept(page, ["dialog:permission-form"])
   await mockRbac(page)
   await page.goto("/admin/rbac")
 

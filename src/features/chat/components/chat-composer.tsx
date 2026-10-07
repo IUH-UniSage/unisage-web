@@ -2,6 +2,7 @@ import { ArrowUp, Maximize2, Minimize2, Plus, Square } from "lucide-react"
 import { useLayoutEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { cn } from "@/lib/utils"
 
 type ChatComposerProps = {
@@ -160,6 +161,7 @@ export function ChatComposer({
       )}
     >
       <form
+        {...tourAnchor(TOUR_ANCHORS.chatComposer)}
         className={cn(
           "relative mx-auto flex max-w-3xl items-end gap-2 rounded-[26px] border border-border/60 bg-muted/60 px-3 py-1.5 shadow-sm transition-[border-color,box-shadow,height,border-radius] dark:border-white/10 dark:bg-muted/60",
           centered && "shadow-md dark:shadow-[0_12px_36px_rgb(0_0_0_/_0.3)]",

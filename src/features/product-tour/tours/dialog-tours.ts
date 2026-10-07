@@ -196,6 +196,33 @@ export const DIALOG_TOURS = {
       SAVE_FOOTER,
     ],
   },
+  "create-ticket": {
+    steps: [
+      dialogHeaderStep(
+        "Báo cáo câu trả lời",
+        "Gửi câu trả lời này cho cán bộ xem xét. Câu hỏi và câu trả lời được đính kèm sẵn, bạn chỉ cần mô tả vấn đề."
+      ),
+      fieldStep(
+        TOUR_ANCHORS.ticketFormType,
+        "Loại vấn đề",
+        "Chọn loại gần nhất, ví dụ AI trả lời sai hoặc AI không trả lời được, để yêu cầu đến đúng người xử lý."
+      ),
+      fieldStep(
+        TOUR_ANCHORS.ticketFormTitle,
+        "Tiêu đề",
+        "Điền sẵn bằng câu hỏi của bạn. Sửa lại nếu muốn tóm tắt ngắn gọn hơn."
+      ),
+      fieldStep(
+        TOUR_ANCHORS.ticketFormDescription,
+        "Mô tả vấn đề",
+        "Nói rõ câu trả lời sai ở đâu và bạn mong đợi điều gì, cán bộ sẽ xử lý nhanh hơn.",
+        "top"
+      ),
+      dialogFooterStep(
+        "Gửi yêu cầu. Mỗi câu trả lời chỉ báo cáo được một lần; theo dõi kết quả ở mục Yêu cầu hỗ trợ."
+      ),
+    ],
+  },
   "department-detail": {
     steps: [
       dialogHeaderStep(
@@ -246,6 +273,26 @@ export const DIALOG_TOURS = {
         "top"
       ),
       SAVE_FOOTER,
+    ],
+  },
+  "my-ticket-detail": {
+    readyAnchor: TOUR_ANCHORS.ticketDetailContent,
+    steps: [
+      dialogHeaderStep(
+        "Chi tiết yêu cầu",
+        "Trạng thái xử lý, nội dung bạn đã báo cáo và phản hồi của cán bộ."
+      ),
+      fieldStep(
+        TOUR_ANCHORS.ticketDetailContent,
+        "Nội dung đã gửi",
+        "Loại vấn đề, mô tả của bạn, câu hỏi gốc và câu trả lời bị báo cáo."
+      ),
+      fieldStep(
+        TOUR_ANCHORS.ticketDetailResolution,
+        "Phản hồi từ cán bộ",
+        "Hiện ở đây khi yêu cầu được giải quyết. Yêu cầu Đã đóng sẽ không được cập nhật thêm.",
+        "top"
+      ),
     ],
   },
   "permission-detail": {

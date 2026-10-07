@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { DialogTourButton } from "@/features/product-tour"
 import { useCreateTicketMutation } from "@/features/support-tickets/queries/use-mutations"
 import {
   createTicketFormSchema,
@@ -81,8 +83,9 @@ export function CreateTicketDialog({
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogContent>
+        <DialogTourButton tourKey="create-ticket" />
         <form className="space-y-4" onSubmit={onSubmit}>
-          <DialogHeader>
+          <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
             <DialogTitle>Báo cáo câu trả lời này</DialogTitle>
             <DialogDescription>
               Gửi yêu cầu hỗ trợ để cán bộ xem xét câu trả lời của trợ lý. Mỗi
@@ -90,7 +93,10 @@ export function CreateTicketDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-1.5">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.ticketFormType)}
+            className="space-y-1.5"
+          >
             <Label htmlFor="ticket-type">Loại vấn đề</Label>
             <Controller
               control={control}
@@ -115,7 +121,10 @@ export function CreateTicketDialog({
             ) : null}
           </div>
 
-          <div className="space-y-1.5">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.ticketFormTitle)}
+            className="space-y-1.5"
+          >
             <Label htmlFor="ticket-title">Tiêu đề</Label>
             <Input
               id="ticket-title"
@@ -127,7 +136,10 @@ export function CreateTicketDialog({
             ) : null}
           </div>
 
-          <div className="space-y-1.5">
+          <div
+            {...tourAnchor(TOUR_ANCHORS.ticketFormDescription)}
+            className="space-y-1.5"
+          >
             <Label htmlFor="ticket-description">Mô tả vấn đề</Label>
             <Textarea
               id="ticket-description"
@@ -149,7 +161,7 @@ export function CreateTicketDialog({
             </p>
           ) : null}
 
-          <DialogFooter>
+          <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
             <Button
               onClick={() => handleOpenChange(false)}
               type="button"

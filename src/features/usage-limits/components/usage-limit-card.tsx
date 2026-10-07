@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { UsageMeter } from "@/features/usage-limits/components/usage-meter"
 import { useMyUsageQuery } from "@/features/usage-limits/queries/use-queries"
 
@@ -16,7 +17,10 @@ export function UsageLimitCard() {
   const usageQuery = useMyUsageQuery()
 
   return (
-    <Card className="border bg-card shadow-none">
+    <Card
+      {...tourAnchor(TOUR_ANCHORS.profileUsage)}
+      className="border bg-card shadow-none"
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <Gauge aria-hidden="true" className="size-4" />
