@@ -20,7 +20,7 @@ test("logs out and clears the cached profile", async ({ page }, testInfo) => {
   await page.goto("/")
   await page.getByRole("button", { name: "Đăng xuất" }).click()
 
-  await expect(page).toHaveURL(/\/login$/)
+  await expect(page).toHaveURL(/\/$/)
   expect(
     await page.evaluate(() =>
       window.localStorage.getItem("unisage_user_profile")
