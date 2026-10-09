@@ -136,16 +136,16 @@ export function ClarificationPanel({
 
   return (
     <section aria-label="Câu hỏi bổ sung" className="mx-auto w-full max-w-3xl">
-      <div className="flex max-h-[60vh] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm">
+      <div className="flex max-h-[65vh] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-md transition-all">
         <Tabs
           className="min-h-0 gap-0"
           onValueChange={setActiveTab}
           value={activeTab}
         >
-          <div className="flex items-center gap-1 border-b border-border/60 py-1 pr-1.5 pl-2">
+          <div className="flex items-center gap-1 border-b border-border/60 bg-muted/20 py-1 pr-1.5 pl-2">
             <TabsList
               aria-label="Các câu hỏi"
-              className="h-10 min-w-0 flex-1 justify-start overflow-x-auto"
+              className="h-10 min-w-0 flex-1 [scrollbar-width:none] justify-start overflow-x-auto [&::-webkit-scrollbar]:hidden"
               variant="line"
             >
               {panel.questions.map((question) => (
@@ -161,7 +161,7 @@ export function ClarificationPanel({
             <Button
               aria-expanded={!isCollapsed}
               aria-label={isCollapsed ? "Mở rộng câu hỏi" : "Thu gọn câu hỏi"}
-              className="size-8 shrink-0 text-muted-foreground"
+              className="size-8 shrink-0 text-muted-foreground hover:bg-muted"
               onClick={() => setIsCollapsed((current) => !current)}
               size="icon"
               type="button"
@@ -176,7 +176,7 @@ export function ClarificationPanel({
             </Button>
             <Button
               aria-label="Huỷ câu hỏi"
-              className="size-8 shrink-0 text-muted-foreground"
+              className="size-8 shrink-0 text-muted-foreground hover:bg-muted"
               disabled={busy}
               onClick={requestCancel}
               size="icon"
@@ -187,18 +187,18 @@ export function ClarificationPanel({
             </Button>
           </div>
           {isCollapsed ? null : (
-            <div className="min-h-0 overflow-y-auto px-3 py-3 sm:px-4">
+            <div className="min-h-0 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
               {panel.questions.map((question) => {
                 const result = results[question.id]
                 const localError =
                   result.state === "invalid" ? result.message : null
                 return (
                   <TabsContent
-                    className="space-y-3"
+                    className="space-y-3.5 focus-visible:outline-hidden"
                     key={question.id}
                     value={question.id}
                   >
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-sm font-semibold tracking-tight text-foreground sm:text-base">
                       {question.prompt}
                     </p>
                     <QuestionInput
@@ -220,13 +220,14 @@ export function ClarificationPanel({
             </div>
           )}
         </Tabs>
-        <div className="flex items-center justify-end gap-3 border-t border-border/60 px-3 py-2 sm:px-4">
+        <div className="flex items-center justify-end gap-3 border-t border-border/60 bg-muted/10 px-4 py-2.5 sm:px-5">
           {remaining > 0 ? (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               Còn {remaining} câu
             </span>
           ) : null}
           <Button
+            className="px-4 font-medium shadow-2xs transition-all"
             disabled={busy || remaining > 0}
             onClick={submit}
             size="sm"

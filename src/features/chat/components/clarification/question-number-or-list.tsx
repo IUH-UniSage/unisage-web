@@ -36,10 +36,10 @@ export function QuestionNumberOrList({
   question,
 }: QuestionNumberOrListProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5 rounded-xl border border-border/60 bg-muted/20 p-3.5 sm:p-4">
       <div
         aria-label="Cách nhập"
-        className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5"
+        className="inline-flex items-center rounded-lg border border-border/60 bg-muted/60 p-1"
         role="group"
       >
         {MODES.map((mode) => {
@@ -48,9 +48,9 @@ export function QuestionNumberOrList({
             <button
               aria-pressed={isActive}
               className={cn(
-                "cursor-pointer rounded-md px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed",
+                "cursor-pointer rounded-md px-3.5 py-1 text-xs font-medium transition-all disabled:cursor-not-allowed",
                 isActive
-                  ? "bg-background font-medium text-foreground shadow-xs"
+                  ? "bg-background font-semibold text-foreground shadow-2xs"
                   : "text-muted-foreground hover:text-foreground"
               )}
               disabled={disabled}

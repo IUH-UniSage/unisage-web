@@ -35,8 +35,8 @@ export function QuestionNumberList({
     })
 
   return (
-    <div className="space-y-2">
-      <ul className="flex flex-wrap gap-2">
+    <div className="space-y-3">
+      <ul className="flex flex-wrap items-center gap-2.5">
         {draft.values.map((value, index) => {
           const itemError =
             spec && value.trim() ? validateDecimal(value, spec) : null
@@ -46,7 +46,7 @@ export function QuestionNumberList({
               <Input
                 aria-invalid={Boolean(itemError) || undefined}
                 aria-label={`${question.tab_label} ${index + 1}`}
-                className="h-9 w-24"
+                className="h-10 w-28 rounded-lg text-center font-medium transition-all focus-visible:ring-1"
                 disabled={disabled}
                 inputMode="decimal"
                 onChange={(event) => setValue(index, event.target.value)}
@@ -57,7 +57,7 @@ export function QuestionNumberList({
               {draft.values.length > 1 ? (
                 <Button
                   aria-label={`Xoá giá trị ${index + 1}`}
-                  className="size-7 text-muted-foreground"
+                  className="size-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-destructive"
                   disabled={disabled}
                   onClick={() =>
                     onChange({
@@ -76,23 +76,26 @@ export function QuestionNumberList({
           )
         })}
       </ul>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 pt-0.5">
         <Button
+          className="h-8.5 rounded-lg px-3 text-xs font-medium shadow-2xs transition-all"
           disabled={disabled || !canAdd}
           onClick={() => onChange({ ...draft, values: [...draft.values, ""] })}
           size="sm"
           type="button"
           variant="outline"
         >
-          <Plus className="size-3.5" />
+          <Plus className="mr-1 size-3.5" />
           Thêm
         </Button>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs font-medium text-muted-foreground">
           {draft.values.length}/{maxItems}
           {spec?.unit ? ` · ${spec.unit}` : ""}
         </span>
       </div>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-xs font-medium text-destructive">{error}</p>
+      ) : null}
     </div>
   )
 }

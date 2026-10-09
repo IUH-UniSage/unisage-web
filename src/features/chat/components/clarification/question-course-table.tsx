@@ -47,11 +47,11 @@ export function QuestionCourseTable({
     })
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div
         aria-hidden="true"
         className={cn(
-          "hidden gap-2 px-1 text-xs font-medium text-muted-foreground sm:grid",
+          "hidden gap-2 px-1 text-xs font-semibold text-muted-foreground sm:grid",
           ROW_GRID
         )}
       >
@@ -68,7 +68,7 @@ export function QuestionCourseTable({
             <li
               aria-label={label}
               className={cn(
-                "grid grid-cols-2 gap-2 rounded-xl border border-border p-3 sm:border-0 sm:p-0",
+                "grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/20 p-3 sm:border-border/40 sm:bg-transparent sm:p-0.5",
                 ROW_GRID
               )}
               key={row.id}
@@ -79,7 +79,7 @@ export function QuestionCourseTable({
                 </span>
                 <Button
                   aria-label={`Xoá ${label.toLowerCase()}`}
-                  className="size-8 text-muted-foreground"
+                  className="size-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-destructive"
                   disabled={disabled || draft.rows.length === 1}
                   onClick={() =>
                     onChange({
@@ -101,7 +101,7 @@ export function QuestionCourseTable({
                 <Input
                   aria-invalid={Boolean(errors.name) || undefined}
                   aria-label={`${label}: tên môn`}
-                  className="h-9"
+                  className="h-9 rounded-lg transition-all focus-visible:ring-1"
                   disabled={disabled}
                   maxLength={80}
                   onChange={(event) =>
@@ -118,7 +118,7 @@ export function QuestionCourseTable({
                 <Input
                   aria-invalid={Boolean(errors.credits) || undefined}
                   aria-label={`${label}: tín chỉ`}
-                  className="h-9"
+                  className="h-9 rounded-lg transition-all focus-visible:ring-1"
                   disabled={disabled}
                   inputMode="numeric"
                   onChange={(event) =>
@@ -136,7 +136,7 @@ export function QuestionCourseTable({
                 <Input
                   aria-invalid={Boolean(errors.score) || undefined}
                   aria-label={`${label}: điểm`}
-                  className="h-9"
+                  className="h-9 rounded-lg transition-all focus-visible:ring-1"
                   disabled={disabled}
                   onChange={(event) =>
                     updateRow(row.id, { score: event.target.value })
@@ -147,7 +147,7 @@ export function QuestionCourseTable({
                 />
               </div>
               {errors.name || errors.credits || errors.score ? (
-                <p className="col-span-2 text-xs text-destructive sm:order-last sm:col-span-4">
+                <p className="col-span-2 text-xs font-medium text-destructive sm:order-last sm:col-span-4">
                   {[errors.name, errors.credits, errors.score]
                     .filter(Boolean)
                     .join(" · ")}
@@ -157,8 +157,9 @@ export function QuestionCourseTable({
           )
         })}
       </ul>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 pt-1">
         <Button
+          className="h-8.5 rounded-lg px-3 text-xs font-medium shadow-2xs"
           disabled={disabled || !canAdd}
           onClick={() =>
             onChange({ ...draft, rows: [...draft.rows, emptyCourseRow()] })
@@ -167,14 +168,16 @@ export function QuestionCourseTable({
           type="button"
           variant="outline"
         >
-          <Plus className="size-3.5" />
+          <Plus className="mr-1 size-3.5" />
           Thêm môn
         </Button>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs font-medium text-muted-foreground">
           {draft.rows.length}/{maxRows} môn
         </span>
       </div>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-xs font-medium text-destructive">{error}</p>
+      ) : null}
     </div>
   )
 }
