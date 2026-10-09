@@ -31,7 +31,12 @@ Bỏ `AskUserFormCard` (form chip nằm trong tin nhắn). Thay bằng:
 ```ts
 // src/features/chat/schemas/clarification-schemas.ts (zod, .strict())
 type QuestionKind =
-  "choice" | "number" | "number_list" | "text" | "course_table"
+  | "choice"
+  | "number"
+  | "number_list"
+  | "number_or_list"
+  | "text"
+  | "course_table"
 type ChoiceOption = {
   id: string
   label: string
@@ -52,14 +57,14 @@ type Question = {
 type ClarificationPanel = {
   schema_version: 1
   panel_id: string
-  questions: Question[]
+  questions: Question[] // id q1..q99; hiện đủ mọi câu, không cắt ở 12 (server chặn ở 50)
 }
 
 type Answer =
   | { question_id: string; option_id: string }
   | { question_id: string; other_text: string }
-  | { question_id: string; number: string }
-  | { question_id: string; numbers: string[] }
+  | { question_id: string; number: string } // number; number_or_list ở chế độ "Nhập sẵn"
+  | { question_id: string; numbers: string[] } // number_list; number_or_list ở chế độ "Nhập từng cột"
   | { question_id: string; text: string }
   | {
       question_id: string
@@ -134,6 +139,7 @@ src/features/chat/components/clarification/
 ├── question-choice.tsx              # radio-style list: label, description, "(Đề xuất)", dòng "Khác" + input
 ├── question-number.tsx              # Input type="text" inputMode="decimal", validate min/max/step, hiện unit
 ├── question-number-list.tsx         # danh sách ô số, nút "+ thêm", "×" xoá, giới hạn max_items
+├── question-number-or-list.tsx      # công tắc "Nhập sẵn" (1 ô → number) / "Nhập từng cột" (danh sách → numbers), mặc định "Nhập từng cột"
 ├── question-text.tsx                # Textarea 1–3 dòng, max_length
 ├── question-course-table.tsx        # bảng: tên môn | tín chỉ | điểm (số hoặc chữ), "+ thêm môn", tối đa 30 dòng
 └── answered-clarification-card.tsx  # card có border thay cho bong bóng USER
@@ -150,6 +156,12 @@ src/features/chat/utils/
   - ←/→ hoặc Tab chuyển tab; ↑/↓ chọn option; Enter chọn rồi sang tab chưa trả lời kế tiếp.
   - Esc mở dialog xác nhận huỷ. Huỷ thì không hỏi lại lần hai; nếu đã có câu trả lời nháp thì mới xác
     nhận.
+- **`number_or_list`** (ví dụ "Điểm thường xuyên"): cùng ràng buộc `number` và `max_items` như
+  `number_list`. Tab có công tắc 2 lựa chọn; chỉ gửi giá trị của chế độ đang chọn (`number` hoặc
+  `numbers`), nháp giữ cả hai ô và chế độ đã chọn. `display` của card: `"Nhập sẵn: 7.3"` hoặc
+  `"Từng cột: 8, 7, 7"` (message USER lạc quan dựng y hệt).
+- **Nhiều tab:** panel hiện đủ mọi câu hỏi của lượt; thanh tab cuộn ngang bên trong panel, trang không
+  bị cuộn ngang ở 375px.
 - **Tab:** có dấu ✓ khi đã có câu trả lời hợp lệ, dấu chấm đỏ khi server trả lỗi cho tab đó.
 - **Nút gửi:** "Gửi câu trả lời" kèm số tab còn thiếu ("Còn 2 câu"), bị disable cho đến khi đủ.
 - **Card có border** (`answered-clarification-card.tsx`): `rounded-2xl border border-border`, căn phải
