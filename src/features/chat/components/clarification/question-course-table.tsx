@@ -73,6 +73,27 @@ export function QuestionCourseTable({
               )}
               key={row.id}
             >
+              <div className="col-span-2 -mt-1 -mr-1 flex items-center justify-between sm:order-last sm:col-span-1 sm:m-0 sm:justify-end">
+                <span className="text-xs font-medium text-muted-foreground sm:sr-only">
+                  {label}
+                </span>
+                <Button
+                  aria-label={`Xoá ${label.toLowerCase()}`}
+                  className="size-8 text-muted-foreground"
+                  disabled={disabled || draft.rows.length === 1}
+                  onClick={() =>
+                    onChange({
+                      ...draft,
+                      rows: draft.rows.filter((item) => item.id !== row.id),
+                    })
+                  }
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
               <div className="col-span-2 space-y-1 sm:col-span-1">
                 <span className="text-xs text-muted-foreground sm:sr-only">
                   Tên môn
@@ -125,26 +146,8 @@ export function QuestionCourseTable({
                   value={row.score}
                 />
               </div>
-              <div className="col-span-2 flex justify-end sm:col-span-1">
-                <Button
-                  aria-label={`Xoá ${label.toLowerCase()}`}
-                  className="size-8 text-muted-foreground"
-                  disabled={disabled || draft.rows.length === 1}
-                  onClick={() =>
-                    onChange({
-                      ...draft,
-                      rows: draft.rows.filter((item) => item.id !== row.id),
-                    })
-                  }
-                  size="icon"
-                  type="button"
-                  variant="ghost"
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
               {errors.name || errors.credits || errors.score ? (
-                <p className="col-span-2 text-xs text-destructive sm:col-span-4">
+                <p className="col-span-2 text-xs text-destructive sm:order-last sm:col-span-4">
                   {[errors.name, errors.credits, errors.score]
                     .filter(Boolean)
                     .join(" · ")}

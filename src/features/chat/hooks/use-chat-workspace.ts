@@ -201,9 +201,7 @@ export function useChatWorkspace() {
         if (!submittedPanel) return false
         removeMessages(conversationId, optimisticIds)
         setClarificationErrors({
-          byQuestion: Object.fromEntries(
-            error.questionErrors.map((item) => [item.question_id, item.reason])
-          ),
+          byQuestion: error.errors ?? {},
           panelId: submittedPanel.panelId,
         })
         toast.error(error.message || "Câu trả lời chưa hợp lệ.")

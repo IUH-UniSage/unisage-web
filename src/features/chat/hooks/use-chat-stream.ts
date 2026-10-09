@@ -4,8 +4,6 @@ import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
   type ClarificationClosed,
   clarificationClosedSchema,
-  type ClarificationFieldError,
-  clarificationFieldErrorSchema,
   type ClarificationPanel,
   clarificationPanelSchema,
   type ClarificationRequest,
@@ -30,12 +28,10 @@ export type ChatStreamWarningPayload = {
 
 /**
  * A non-2xx answer to `POST /chat/stream` (before any SSE). Carries the HTTP
- * status and the clarification-specific extras of contract §4 so the caller
- * can react per code (4010 per-tab errors, 4091/4092/4093, 503 on cancel).
+ * status next to the envelope's `code`/`errors` so the caller can react per
+ * contract §4 (4010's `errors` maps question_id -> reason; 503 on cancel).
  */
 export class ChatStreamHttpError extends ApiResponseError {
-  readonly panelId: string | null
-  readonly questionErrors: ClarificationFieldError[]
   readonly status: number
 
   constructor(
@@ -44,11 +40,7 @@ export class ChatStreamHttpError extends ApiResponseError {
       code: number
       errors?: Record<string, string> | null
       message: string
-    },
-    extras: {
-      panelId?: string | null
-      questionErrors?: ClarificationFieldError[]
-    } = {}
+    }
   ) {
     super(payload)
     // Keep the backend's own message rather than ApiResponseError's generic
@@ -56,8 +48,6 @@ export class ChatStreamHttpError extends ApiResponseError {
     if (payload.message) this.message = payload.message
     this.name = "ChatStreamHttpError"
     this.status = status
-    this.panelId = extras.panelId ?? null
-    this.questionErrors = extras.questionErrors ?? []
   }
 }
 
@@ -136,38 +126,25 @@ async function readStreamErrorMessage(response: Response): Promise<Error> {
         code: unknown
         errors?: unknown
         message: unknown
-        panel_id?: unknown
       }
-      // 4010 lists per-question errors as an array; other codes (e.g. the
-      // usage limit) carry a field -> message record.
-      const questionErrors = Array.isArray(payload.errors)
-        ? payload.errors.flatMap((item) => {
-            const parsed = clarificationFieldErrorSchema.safeParse(item)
-            return parsed.success ? [parsed.data] : []
-          })
-        : []
       const errors =
         payload.errors &&
         typeof payload.errors === "object" &&
         !Array.isArray(payload.errors)
-          ? (payload.errors as Record<string, string>)
+          ? Object.fromEntries(
+              Object.entries(payload.errors).filter(
+                (entry): entry is [string, string] =>
+                  typeof entry[1] === "string"
+              )
+            )
           : null
-      return new ChatStreamHttpError(
-        response.status,
-        {
-          // A string code (e.g. BACKEND_JAVA_UNAVAILABLE) falls back to the
-          // HTTP status; callers branch on `status` for those.
-          code:
-            typeof payload.code === "number" ? payload.code : response.status,
-          errors,
-          message: typeof payload.message === "string" ? payload.message : "",
-        },
-        {
-          panelId:
-            typeof payload.panel_id === "string" ? payload.panel_id : null,
-          questionErrors,
-        }
-      )
+      return new ChatStreamHttpError(response.status, {
+        // A string code (e.g. BACKEND_JAVA_UNAVAILABLE) falls back to the
+        // HTTP status; callers branch on `status` for those.
+        code: typeof payload.code === "number" ? payload.code : response.status,
+        errors,
+        message: typeof payload.message === "string" ? payload.message : "",
+      })
     }
   } catch {
     // Response body wasn't the usual {code, message} envelope - fall through.

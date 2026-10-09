@@ -232,10 +232,10 @@ describe("useChatStream", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  it("surfaces a 4010 response with its per-question errors", async () => {
+  it("surfaces a 4010 response with its per-question error map", async () => {
     const body = {
       code: 4010,
-      errors: [{ question_id: "q2", reason: "Giá trị phải từ 0 đến 10" }],
+      errors: { q2: "Giá trị phải từ 0 đến 10" },
       message: "Câu trả lời chưa hợp lệ",
     }
     vi.stubGlobal(
@@ -260,6 +260,6 @@ describe("useChatStream", () => {
     expect(error.status).toBe(400)
     expect(error.code).toBe(4010)
     expect(error.message).toBe("Câu trả lời chưa hợp lệ")
-    expect(error.questionErrors).toEqual(body.errors)
+    expect(error.errors).toEqual(body.errors)
   })
 })

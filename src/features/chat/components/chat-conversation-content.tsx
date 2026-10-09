@@ -9,13 +9,21 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import {
+  AnsweredClarificationCard,
+  CancelledClarificationCard,
+} from "@/features/chat/components/clarification/answered-clarification-card"
+import {
   ClarificationPanel,
   type ClarificationSubmitPayload,
 } from "@/features/chat/components/clarification/clarification-panel"
 import { CitationChips } from "@/features/chat/components/citation-chips"
 import { LegacyAskUserFormNotice } from "@/features/chat/components/legacy-ask-user-form-notice"
 import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
-import type { OpenPanel } from "@/features/chat/utils/clarification-state"
+import {
+  type OpenPanel,
+  readAnsweredCard,
+  readClarification,
+} from "@/features/chat/utils/clarification-state"
 import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
 import { useChatReplyTour } from "@/features/product-tour"
 import {
@@ -78,9 +86,7 @@ export function ActiveConversation({
                 className="group flex animate-in flex-col items-end gap-1.5 duration-300 fade-in slide-in-from-bottom-2"
                 key={message.id}
               >
-                <div className="max-w-[85%] rounded-3xl bg-secondary px-5 py-3 text-[15px] leading-6 font-normal text-secondary-foreground shadow-2xs md:max-w-[75%]">
-                  <MarkdownRenderer content={message.content} />
-                </div>
+                <UserTurn message={message} previous={messages[index - 1]} />
               </div>
             ) : (
               <div
@@ -104,7 +110,7 @@ export function ActiveConversation({
                         "Không thể tạo câu trả lời. Vui lòng thử lại."}
                     </div>
                   </>
-                ) : !message.content ? (
+                ) : !message.content && !readClarification(message) ? (
                   <p className="text-sm text-muted-foreground italic">
                     Đã dừng tạo câu trả lời.
                   </p>
@@ -162,6 +168,35 @@ export function ActiveConversation({
   )
 }
 
+// A submit turn of the question panel renders as the bordered answer card;
+// any other USER message stays a plain bubble.
+function UserTurn({
+  message,
+  previous,
+}: {
+  message: Message
+  previous: Message | undefined
+}) {
+  const answers = readAnsweredCard(message)
+  if (!answers) {
+    return (
+      <div className="max-w-[85%] rounded-3xl bg-secondary px-5 py-3 text-[15px] leading-6 font-normal text-secondary-foreground shadow-2xs md:max-w-[75%]">
+        <MarkdownRenderer content={message.content} />
+      </div>
+    )
+  }
+
+  const previousPanel =
+    previous?.role === "ASSISTANT"
+      ? (readClarification(previous)?.panel ?? null)
+      : null
+  return (
+    <div className="w-full max-w-[92%] md:max-w-[75%]">
+      <AnsweredClarificationCard answers={answers} panel={previousPanel} />
+    </div>
+  )
+}
+
 type AssistantReplyProps = {
   content: string
   // Only the newest reply carries tour anchors, so the reply tour points at
@@ -182,6 +217,7 @@ function AssistantReply({
   reportDisabled,
 }: AssistantReplyProps) {
   const { form: legacyForm, text } = stripLegacyAskUserForm(content)
+  const clarification = readClarification(message)
   const citations = message.citations ?? []
   const numbers = markerNumbers(groupCitationsByDocument(citations))
 
@@ -215,6 +251,9 @@ function AssistantReply({
         </div>
       ) : null}
       {legacyForm ? <LegacyAskUserFormNotice form={legacyForm} /> : null}
+      {clarification?.status === "cancelled" ? (
+        <CancelledClarificationCard panel={clarification.panel} />
+      ) : null}
       <div
         {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyActions) : {})}
         className="flex items-center gap-1"

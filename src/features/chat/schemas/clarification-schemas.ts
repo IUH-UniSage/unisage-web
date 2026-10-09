@@ -114,12 +114,6 @@ export const clarificationClosedSchema = z
   })
   .strict()
 
-// `errors[]` of a 400/4010 CLARIFICATION_INVALID response.
-export const clarificationFieldErrorSchema = z.object({
-  question_id: z.string(),
-  reason: z.string(),
-})
-
 export type QuestionKind = z.infer<typeof questionKindSchema>
 export type ChoiceOption = z.infer<typeof choiceOptionSchema>
 export type NumberSpec = z.infer<typeof numberSpecSchema>
@@ -131,9 +125,6 @@ export type Answer = z.infer<typeof answerSchema>
 export type AnsweredItem = z.infer<typeof answeredItemSchema>
 export type ClarificationAnswers = z.infer<typeof clarificationAnswersSchema>
 export type ClarificationClosed = z.infer<typeof clarificationClosedSchema>
-export type ClarificationFieldError = z.infer<
-  typeof clarificationFieldErrorSchema
->
 
 // `clarification` of a `POST /chat/stream` body (contract §1).
 export type ClarificationRequest =
