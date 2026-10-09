@@ -24,7 +24,7 @@ Bỏ `AskUserFormCard` (form chip nằm trong tin nhắn). Thay bằng:
    trả lời. Câu trả lời dạng bảng môn thì hiện thành bảng nhỏ.
 4. **Reload hoặc vào lại cuộc chat** thì panel còn đang mở vẫn hiện ra, card vẫn hiện y hệt.
 5. **Lịch sử cũ** vẫn hiển thị đúng: message có fence `ask_user_form` không lộ JSON.
-6. **Nút Đúng/Sai** dưới mỗi kết quả "Kết quả tham khảo theo quy chế" (công thức lấy từ Qdrant). Chọn Sai thì phải chọn lý do.
+6. **Nút Đúng/Sai** dưới mỗi kết quả "Kết quả do AI tự tính, có thể sai" (mọi phép tính ngoài 3 công thức cài sẵn). Chọn Sai thì phải chọn lý do.
 
 ## Contract client dùng
 
@@ -190,7 +190,7 @@ src/features/chat/utils/
 Contract ở `unisage-agent/contracts/chat-sse.md` §5b.
 
 - `components/calculation-feedback.tsx`: gắn dưới mỗi phần tử `metadata.calculation.items` có
-  `mode == "retrieved"` và `status == "computed"` trong `AssistantReply`.
+  `mode == "llm"` và `status == "computed"` trong `AssistantReply`.
 - Có hai nút **Đúng** (`ThumbsUp`) và **Sai** (`ThumbsDown`). Bấm **Sai** thì mở `Popover` gồm:
   - radio 5 lý do: Sai công thức · Sai kết quả · Sai nguồn/quy chế · Thiếu thông tin · Khác;
   - textarea ghi chú (≤ 500 ký tự, bắt buộc khi chọn "Khác");

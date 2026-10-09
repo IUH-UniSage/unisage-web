@@ -15,18 +15,18 @@ test.beforeEach(async ({ page }, testInfo) => {
   await seeToursExcept(page, [])
 })
 
-test("marks a retrieved calculation wrong with a reason and keeps it after reload", async ({
+test("marks an AI-computed calculation wrong with a reason and keeps it after reload", async ({
   page,
 }, testInfo) => {
   const server = await mockCalculationFeedbackChat(page)
   await page.goto("/chat")
   await openConversationFromHistory(page, server.title)
 
-  // Only the retrieved, computed item gets buttons (T2 is builtin).
+  // Only the AI-computed item gets buttons (T2 is builtin).
   const groups = page.getByRole("group", { name: /Phản hồi kết quả/ })
   await expect(groups).toHaveCount(1)
   const row = groups.first()
-  await expect(row).toContainText("Học phí học kỳ: 8.400.000 đồng")
+  await expect(row).toContainText("Kết quả AI tự tính ở trên có đúng không?")
 
   await row.getByRole("button", { name: "Sai" }).click()
   const send = page.getByRole("button", { name: "Gửi", exact: true })

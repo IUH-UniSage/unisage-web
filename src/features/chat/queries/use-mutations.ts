@@ -41,7 +41,7 @@ export function useDeleteConversationMutation(userId: string) {
 }
 
 /**
- * Đúng/Sai on one retrieved calculation result (contract §5b). On success the
+ * Đúng/Sai on one AI-computed calculation result (contract §5b). On success the
  * verdict is written into the cached message's `metadata.calculation_feedback`
  * - the same field the backend persists - so it survives a reload unchanged.
  * Errors are handled by the caller (a 409 locks the buttons instead of a

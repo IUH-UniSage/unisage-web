@@ -22,8 +22,8 @@ vi.mock("sonner", () => ({ toast }))
 
 const ITEM: CalculationItem = {
   item_id: "T1",
-  mode: "retrieved",
-  result_summary: "Học phí học kỳ: 8.400.000 đồng",
+  mode: "llm",
+  result_summary: null,
   run_id: "run-1",
   source_summary: { heading: "Chương II › Điều 8", title: "QĐ-123.pdf" },
   status: "computed",
@@ -45,7 +45,8 @@ afterEach(() => {
 function setup(current?: Parameters<typeof CalculationFeedback>[0]["current"]) {
   const queryClient = new QueryClient()
   const message = buildMessage({
-    content: "**Kết quả tham khảo theo quy chế**",
+    content:
+      "**Kết quả do AI tự tính, có thể sai - bạn kiểm tra lại giúp mình nhé**",
   })
   queryClient.setQueryData(chatKeys.messages(message.conversationId), [message])
   const wrapper = ({ children }: { children: ReactNode }) => (

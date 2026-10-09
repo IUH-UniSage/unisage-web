@@ -6,7 +6,7 @@ import {
   calculationMetadataSchema,
 } from "@/features/chat/schemas/calculation-schemas"
 
-/** Items that get Đúng/Sai buttons: retrieved formulas that were computed. */
+/** Items that get Đúng/Sai buttons: calculations the AI computed itself. */
 export function readFeedbackItems(message: Message): CalculationItem[] {
   if (message.role !== "ASSISTANT") return []
   const parsed = calculationMetadataSchema.safeParse(
@@ -14,7 +14,7 @@ export function readFeedbackItems(message: Message): CalculationItem[] {
   )
   if (!parsed.success) return []
   return parsed.data.items.filter(
-    (item) => item.mode === "retrieved" && item.status === "computed"
+    (item) => item.mode === "llm" && item.status === "computed"
   )
 }
 

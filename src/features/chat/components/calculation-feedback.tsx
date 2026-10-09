@@ -49,7 +49,10 @@ type CalculationFeedbackProps = {
   messageId: string
 }
 
-/** Đúng / Sai under one "Kết quả tham khảo theo quy chế" result. */
+// AI-computed items carry no result summary (the AI wrote the result itself).
+const AI_RESULT_QUESTION = "Kết quả AI tự tính ở trên có đúng không?"
+
+/** Đúng / Sai under one "Kết quả do AI tự tính" result. */
 export function CalculationFeedback({
   conversationId,
   current,
@@ -87,14 +90,16 @@ export function CalculationFeedback({
     })
   }
 
+  const label = item.result_summary ?? AI_RESULT_QUESTION
+
   return (
     <div
-      aria-label={`Phản hồi kết quả: ${item.result_summary}`}
+      aria-label={`Phản hồi kết quả: ${label}`}
       className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-border/60 px-3 py-2 text-sm"
       role="group"
     >
       <span className="min-w-0 flex-1 basis-48 text-muted-foreground">
-        {item.result_summary}
+        {label}
       </span>
       <LockedHint isLocked={isLocked}>
         <div className="flex items-center gap-1">

@@ -6,8 +6,9 @@ import { z } from "zod"
 export const calculationItemSchema = z
   .object({
     item_id: z.string().min(1),
-    mode: z.enum(["builtin", "retrieved"]),
-    result_summary: z.string(),
+    mode: z.enum(["builtin", "llm"]),
+    // Only built-in (Python) results have one; an AI-computed item sends null.
+    result_summary: z.string().nullable(),
     run_id: z.string(),
     source_summary: z
       .object({
@@ -16,7 +17,7 @@ export const calculationItemSchema = z
       })
       .strict()
       .nullable(),
-    status: z.enum(["computed", "needs_input", "unresolved", "quote_only"]),
+    status: z.enum(["computed", "needs_input", "unresolved"]),
   })
   .strict()
 

@@ -251,7 +251,7 @@ function AssistantReply({
         />
       </div>
       {feedbackItems.length ? (
-        // One Đúng/Sai row per retrieved result, in `items` order.
+        // One Đúng/Sai row per AI-computed result, in `items` order.
         <div className="space-y-2">
           {feedbackItems.map((item) => (
             <CalculationFeedback

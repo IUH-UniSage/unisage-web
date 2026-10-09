@@ -417,7 +417,7 @@ export async function openConversationFromHistory(page: Page, title: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Đúng/Sai feedback on a retrieved calculation (contracts/chat-sse.md §5b).
+// Đúng/Sai feedback on an AI-computed calculation (contracts/chat-sse.md §5b).
 
 const CALC_CONVERSATION_ID = "6f2b9a31-8c4d-4e5f-a061-2b3c4d5e6f71"
 const CALC_ASSISTANT_ID = "6f2b9a31-8c4d-4e5f-a061-2b3c4d5e6f73"
@@ -431,8 +431,8 @@ export async function mockCalculationFeedbackChat(page: Page) {
       items: [
         {
           item_id: "T1",
-          mode: "retrieved",
-          result_summary: "Học phí học kỳ: 8.400.000 đồng",
+          mode: "llm",
+          result_summary: null,
           run_id: "run-1",
           source_summary: {
             heading: "Chương II › Điều 8",
@@ -498,7 +498,7 @@ export async function mockCalculationFeedbackChat(page: Page) {
           {
             ...base,
             content:
-              "**Kết quả tham khảo theo quy chế**\n\nHọc phí học kỳ: 8.400.000 đồng.",
+              "**Kết quả do AI tự tính, có thể sai - bạn kiểm tra lại giúp mình nhé**\n\nHọc phí học kỳ: 8.400.000 đồng.",
             id: CALC_ASSISTANT_ID,
             metadata: assistantMetadata,
             role: "ASSISTANT",
