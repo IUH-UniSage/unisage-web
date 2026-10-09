@@ -8,7 +8,6 @@ type QuestionNumberOrListProps = {
   draft: NumberOrListDraft
   error: string | null
   onChange: (draft: NumberOrListDraft) => void
-  onCommit: () => void
   question: Question
 }
 
@@ -23,7 +22,6 @@ export function QuestionNumberOrList({
   draft,
   error,
   onChange,
-  onCommit,
   question,
 }: QuestionNumberOrListProps) {
   const isSingle = draft.mode === "single"
@@ -36,7 +34,6 @@ export function QuestionNumberOrList({
           draft={{ kind: "number", value: draft.value }}
           error={error}
           onChange={(next) => onChange({ ...draft, value: next.value })}
-          onCommit={onCommit}
           question={question}
         />
       ) : (

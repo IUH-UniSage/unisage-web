@@ -7,7 +7,6 @@ type QuestionNumberProps = {
   draft: NumberDraft
   error: string | null
   onChange: (draft: NumberDraft) => void
-  onCommit: () => void
   question: Question
 }
 
@@ -16,7 +15,6 @@ export function QuestionNumber({
   draft,
   error,
   onChange,
-  onCommit,
   question,
 }: QuestionNumberProps) {
   const spec = question.number
@@ -33,11 +31,6 @@ export function QuestionNumber({
           onChange={(event) =>
             onChange({ ...draft, value: event.target.value })
           }
-          onKeyDown={(event) => {
-            if (event.key !== "Enter") return
-            event.preventDefault()
-            onCommit()
-          }}
           placeholder={spec ? `${spec.min} – ${spec.max}` : undefined}
           type="text"
           value={draft.value}

@@ -14,8 +14,6 @@ type QuestionChoiceProps = {
   draft: ChoiceDraft
   error: string | null
   onChange: (draft: ChoiceDraft) => void
-  // Enter on an option: keep it and move on to the next unanswered tab.
-  onCommit: () => void
   question: Question
 }
 
@@ -24,7 +22,6 @@ export function QuestionChoice({
   draft,
   error,
   onChange,
-  onCommit,
   question,
 }: QuestionChoiceProps) {
   const value = draft.other ? OTHER_VALUE : (draft.optionId ?? "")
@@ -62,10 +59,9 @@ export function QuestionChoice({
                 className="mt-0.5"
                 id={itemId}
                 onKeyDown={(event) => {
+                  // Enter picks the focused option; the panel then moves on.
                   if (event.key !== "Enter") return
-                  event.preventDefault()
                   onChange({ ...draft, optionId: option.id, other: false })
-                  onCommit()
                 }}
                 value={option.id}
               />
@@ -124,11 +120,6 @@ export function QuestionChoice({
               onFocus={() => {
                 if (!draft.other)
                   onChange({ ...draft, optionId: null, other: true })
-              }}
-              onKeyDown={(event) => {
-                if (event.key !== "Enter") return
-                event.preventDefault()
-                onCommit()
               }}
               placeholder="Nhập câu trả lời của bạn"
               value={draft.otherText}

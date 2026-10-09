@@ -1,4 +1,10 @@
-import { cleanup, render, screen, within } from "@testing-library/react"
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 
@@ -214,5 +220,77 @@ describe("ClarificationPanel", () => {
     expect(screen.getAllByRole("tab")).toHaveLength(15)
     expect(screen.getByText("Còn 15 câu")).toBeInTheDocument()
     expect(screen.getByRole("tablist")).toHaveClass("overflow-x-auto")
+  })
+
+  it("moves to the next tab on Enter and focuses its first input", async () => {
+    const user = userEvent.setup()
+    renderPanel()
+
+    await user.click(screen.getByRole("tab", { name: /Điểm CK/ }))
+    await user.type(
+      screen.getByLabelText("Điểm cuối kỳ (thang 10)"),
+      "6.5{Enter}"
+    )
+
+    expect(screen.getByRole("tab", { name: /Các môn/ })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+    await waitFor(() =>
+      expect(screen.getByLabelText("Môn 1: tên môn")).toHaveFocus()
+    )
+  })
+
+  it("submits on Enter in the last tab when everything is answered", async () => {
+    const user = userEvent.setup()
+    const { onSubmit } = renderPanel()
+
+    await answerAll(user)
+    await user.keyboard("{Enter}")
+
+    expect(onSubmit).toHaveBeenCalledTimes(1)
+  })
+
+  it("goes back to the first unanswered tab on Enter in the last tab", async () => {
+    const user = userEvent.setup()
+    const { onSubmit } = renderPanel()
+
+    await user.click(screen.getByRole("tab", { name: /Các môn/ }))
+    await user.type(screen.getByLabelText("Môn 1: tín chỉ"), "3")
+    await user.type(screen.getByLabelText("Môn 1: điểm"), "B+{Enter}")
+
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByRole("tab", { name: /Khoá/ })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+  })
+
+  it("does not move on while an IME is composing", () => {
+    renderPanel()
+    const radio = screen.getByRole("radio", { name: /K19/ })
+    radio.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        bubbles: true,
+        isComposing: true,
+        key: "Enter",
+      })
+    )
+    expect(screen.getByRole("tab", { name: /Khoá/ })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+  })
+
+  it("focuses the input that + just added", async () => {
+    const user = userEvent.setup()
+    renderPanel({
+      panel: { ...PANEL, questions: [CONTRACT_PANEL.questions[2]] },
+    })
+
+    await user.type(screen.getByLabelText("Điểm TH 1"), "9")
+    await user.click(screen.getByRole("button", { name: "Thêm cột" }))
+
+    expect(screen.getByLabelText("Điểm TH 2")).toHaveFocus()
   })
 })

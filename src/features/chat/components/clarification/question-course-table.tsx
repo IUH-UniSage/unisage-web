@@ -1,4 +1,5 @@
 import { Plus, X } from "lucide-react"
+import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,6 +38,18 @@ export function QuestionCourseTable({
     COURSE_TABLE_MAX_ROWS
   )
   const canAdd = draft.rows.length < maxRows
+  const listRef = useRef<HTMLUListElement>(null)
+  // Row "Thêm môn" just added - its first cell is focused once rendered.
+  const focusRowIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const rowId = focusRowIdRef.current
+    if (!rowId) return
+    listRef.current
+      ?.querySelector<HTMLInputElement>(`[data-row-id="${rowId}"] input`)
+      ?.focus()
+    focusRowIdRef.current = null
+  }, [draft.rows.length])
 
   const updateRow = (id: string, patch: Partial<CourseRowDraft>) =>
     onChange({
@@ -60,13 +73,14 @@ export function QuestionCourseTable({
         <span>Điểm</span>
         <span />
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-2" ref={listRef}>
         {draft.rows.map((row, index) => {
           const errors = validateCourseRow(row)
           const label = `Môn ${index + 1}`
           return (
             <li
               aria-label={label}
+              data-row-id={row.id}
               className={cn(
                 "grid grid-cols-2 gap-2 rounded-xl border border-border/60 bg-muted/20 p-3 sm:border-border/40 sm:bg-transparent sm:p-0.5",
                 ROW_GRID
@@ -161,9 +175,11 @@ export function QuestionCourseTable({
         <Button
           className="h-8.5 rounded-lg px-3 text-xs font-medium shadow-2xs"
           disabled={disabled || !canAdd}
-          onClick={() =>
-            onChange({ ...draft, rows: [...draft.rows, emptyCourseRow()] })
-          }
+          onClick={() => {
+            const row = emptyCourseRow()
+            onChange({ ...draft, rows: [...draft.rows, row] })
+            focusRowIdRef.current = row.id
+          }}
           size="sm"
           type="button"
           variant="outline"

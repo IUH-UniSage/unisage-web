@@ -1,5 +1,11 @@
 import { Check, ChevronDown, X } from "lucide-react"
-import { useEffect, useEffectEvent, useState } from "react"
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -74,9 +80,31 @@ export function ClarificationPanel({
     () => new Set()
   )
 
+  // The latest draft, readable in the same event that changed it (Enter on an
+  // option both picks it and moves on, before React re-renders).
+  const draftRef = useRef(draft)
+  const contentRef = useRef<HTMLDivElement>(null)
+  // Bumped to focus the first input of `tab` once that tab has rendered.
+  const [focusRequest, setFocusRequest] = useState<{ n: number; tab: string }>()
+
   useEffect(() => {
     writeClarificationDraft(panel.panel_id, draft)
   }, [draft, panel.panel_id])
+
+  useEffect(() => {
+    if (!focusRequest) return
+    // Radix mounts the new tab's content a beat after it becomes active.
+    const frame = requestAnimationFrame(() => {
+      const content = contentRef.current?.querySelector<HTMLElement>(
+        `[data-question-id="${focusRequest.tab}"]`
+      )
+      const target = content?.querySelector<HTMLElement>(
+        '[role="radio"][data-state="checked"], input:not([disabled]), textarea:not([disabled]), [role="radio"]'
+      )
+      target?.focus()
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [focusRequest])
 
   const results = validatePanel(panel, draft)
   const remaining = panel.questions.filter(
@@ -87,19 +115,49 @@ export function ClarificationPanel({
     editedSinceError.has(questionId) ? null : (serverErrors[questionId] ?? null)
 
   const updateDraft = (questionId: string, next: QuestionDraft) => {
+    draftRef.current = { ...draftRef.current, [questionId]: next }
     setDraft((current) => ({ ...current, [questionId]: next }))
     if (serverErrors[questionId]) {
       setEditedSinceError((current) => new Set(current).add(questionId))
     }
   }
 
-  const goToNextUnanswered = (fromId: string, answeredId?: string) => {
+  const goToTab = (tab: string) => {
+    setActiveTab(tab)
+    setIsCollapsed(false)
+    setFocusRequest((current) => ({ n: (current?.n ?? 0) + 1, tab }))
+  }
+
+  // Enter: next tab; on the last tab, submit - or, if something is still
+  // missing or wrong, go back to the first such tab.
+  const advance = (fromId: string) => {
     const order = panel.questions.map((question) => question.id)
-    const start = order.indexOf(fromId)
-    const next = [...order.slice(start + 1), ...order.slice(0, start)].find(
-      (id) => id !== answeredId && results[id].state !== "valid"
-    )
-    if (next) setActiveTab(next)
+    const index = order.indexOf(fromId)
+    if (index < order.length - 1) {
+      goToTab(order[index + 1])
+      return
+    }
+    const latest = validatePanel(panel, draftRef.current)
+    const unanswered = order.find((id) => latest[id].state !== "valid")
+    if (unanswered) goToTab(unanswered)
+    else submit()
+  }
+
+  const onContentKeyDown = (
+    questionId: string,
+    event: ReactKeyboardEvent<HTMLDivElement>
+  ) => {
+    if (event.key !== "Enter" || event.shiftKey) return
+    // Vietnamese IME: Enter that confirms a composed word is not "next".
+    if (event.nativeEvent.isComposing) return
+    const target = event.target as HTMLElement
+    // Radix radios swallow Enter (preventDefault) - for us it means "next".
+    const isRadio = target.getAttribute("role") === "radio"
+    if (event.defaultPrevented && !isRadio) return
+    // A real button (+, ×, switch link) keeps its own Enter.
+    if (target.tagName === "BUTTON" && !isRadio) return
+    event.preventDefault()
+    advance(questionId)
   }
 
   const requestCancel = () => {
@@ -109,7 +167,7 @@ export function ClarificationPanel({
   }
 
   const submit = () => {
-    const payload = buildSubmission(panel, draft)
+    const payload = buildSubmission(panel, draftRef.current)
     if (payload && !busy) onSubmit(payload)
   }
 
@@ -187,7 +245,10 @@ export function ClarificationPanel({
             </Button>
           </div>
           {isCollapsed ? null : (
-            <div className="min-h-0 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
+            <div
+              className="min-h-0 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5"
+              ref={contentRef}
+            >
               {panel.questions.map((question) => {
                 const result = results[question.id]
                 const localError =
@@ -195,7 +256,9 @@ export function ClarificationPanel({
                 return (
                   <TabsContent
                     className="space-y-3.5 focus-visible:outline-hidden"
+                    data-question-id={question.id}
                     key={question.id}
+                    onKeyDown={(event) => onContentKeyDown(question.id, event)}
                     value={question.id}
                   >
                     <p className="text-sm font-semibold tracking-tight text-foreground sm:text-base">
@@ -206,12 +269,6 @@ export function ClarificationPanel({
                       draft={draft[question.id] ?? emptyQuestionDraft(question)}
                       error={serverErrorOf(question.id) ?? localError}
                       onChange={(next) => updateDraft(question.id, next)}
-                      onCommit={(answered) =>
-                        goToNextUnanswered(
-                          question.id,
-                          answered ? question.id : undefined
-                        )
-                      }
                       question={question}
                     />
                   </TabsContent>
@@ -309,16 +366,12 @@ function QuestionInput({
   draft,
   error,
   onChange,
-  onCommit,
   question,
 }: {
   disabled: boolean
   draft: QuestionDraft
   error: string | null
   onChange: (draft: QuestionDraft) => void
-  // `answered`: the commit itself answered this question (a just-picked
-  // option), even though the draft state has not re-rendered yet.
-  onCommit: (answered: boolean) => void
   question: Question
 }) {
   switch (draft.kind) {
@@ -329,9 +382,6 @@ function QuestionInput({
           draft={draft}
           error={error}
           onChange={onChange}
-          onCommit={() =>
-            onCommit(!draft.other || Boolean(draft.otherText.trim()))
-          }
           question={question}
         />
       )
@@ -342,7 +392,6 @@ function QuestionInput({
           draft={draft}
           error={error}
           onChange={onChange}
-          onCommit={() => onCommit(false)}
           question={question}
         />
       )
@@ -363,7 +412,6 @@ function QuestionInput({
           draft={draft}
           error={error}
           onChange={onChange}
-          onCommit={() => onCommit(false)}
           question={question}
         />
       )

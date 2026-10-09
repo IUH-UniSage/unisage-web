@@ -1,4 +1,5 @@
 import { Plus, X } from "lucide-react"
+import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +28,15 @@ export function QuestionNumberList({
   const spec = question.number
   const maxItems = question.max_items ?? NUMBER_LIST_MAX_ITEMS
   const canAdd = draft.values.length < maxItems
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([])
+  // Index of the input "+" just added - focused once it has rendered.
+  const focusIndexRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (focusIndexRef.current === null) return
+    inputsRef.current[focusIndexRef.current]?.focus()
+    focusIndexRef.current = null
+  }, [draft.values.length])
 
   const setValue = (index: number, value: string) =>
     onChange({
@@ -51,6 +61,9 @@ export function QuestionNumberList({
                 inputMode="decimal"
                 onChange={(event) => setValue(index, event.target.value)}
                 placeholder={`${index + 1}`}
+                ref={(element) => {
+                  inputsRef.current[index] = element
+                }}
                 title={itemError ?? undefined}
                 type="text"
                 value={value}
@@ -80,9 +93,10 @@ export function QuestionNumberList({
               aria-label="Thêm cột"
               className="size-10 rounded-lg text-muted-foreground"
               disabled={disabled}
-              onClick={() =>
+              onClick={() => {
                 onChange({ ...draft, values: [...draft.values, ""] })
-              }
+                focusIndexRef.current = draft.values.length
+              }}
               size="icon"
               type="button"
               variant="ghost"
