@@ -156,6 +156,49 @@ export const CLARIFY_PANEL = {
   schema_version: 1,
 } as const
 
+// A long panel (contract §3: every question of the turn, ids up to q99):
+// "Điểm TX" (number_or_list) first, then 14 number tabs.
+export const MANY_TABS_PANEL = {
+  panel_id: "7f1c2a9e-2222-4000-8000-000000000015",
+  questions: [
+    {
+      allow_other: false,
+      id: "q1",
+      kind: "number_or_list",
+      max_items: 20,
+      max_length: null,
+      number: { max: "10", min: "0", step: "0.01", unit: null },
+      options: [],
+      prompt:
+        "Điểm thường xuyên: nhập TBtx nếu đã biết, hoặc nhập từng cột TX1…TXn",
+      tab_label: "Điểm TX",
+    },
+    ...Array.from({ length: 14 }, (_, index) => ({
+      allow_other: false,
+      id: `q${index + 2}`,
+      kind: "number",
+      max_items: null,
+      max_length: null,
+      number: { max: "10", min: "0", step: "0.01", unit: null },
+      options: [],
+      prompt: `Điểm môn thứ ${index + 2}`,
+      tab_label: `Môn ${index + 2}`,
+    })),
+  ],
+  schema_version: 1,
+}
+
+type MockPanel = {
+  panel_id: string
+  questions: ReadonlyArray<{
+    id: string
+    kind: string
+    options: ReadonlyArray<{ id: string; label: string }>
+    prompt: string
+    tab_label: string
+  }>
+}
+
 type MockMessage = Record<string, unknown> & { metadata: unknown }
 type StreamBody = {
   clarification?: {
@@ -176,9 +219,12 @@ function sse(events: Array<[string, unknown]>): string {
 }
 
 // What the agent stores on the USER message of a submit (contract §5).
-function answeredCard(answers: Array<Record<string, unknown>>) {
+function answeredCard(
+  panel: MockPanel,
+  answers: Array<Record<string, unknown>>
+) {
   return {
-    items: CLARIFY_PANEL.questions.map((question) => {
+    items: panel.questions.map((question) => {
       const answer = answers.find((it) => it.question_id === question.id) ?? {}
       const base = {
         kind: question.kind,
@@ -197,9 +243,17 @@ function answeredCard(answers: Array<Record<string, unknown>>) {
       if (question.kind === "course_table") {
         return { ...base, display: null, rows: answer.rows }
       }
+      if (question.kind === "number_or_list") {
+        return {
+          ...base,
+          display: Array.isArray(answer.numbers)
+            ? `Từng cột: ${answer.numbers.join(", ")}`
+            : `Nhập sẵn: ${String(answer.number)}`,
+        }
+      }
       return { ...base, display: String(answer.number ?? "") }
     }),
-    panel_id: CLARIFY_PANEL_ID,
+    panel_id: panel.panel_id,
     schema_version: 1,
   }
 }
@@ -210,7 +264,10 @@ function answeredCard(answers: Array<Record<string, unknown>>) {
  */
 export async function mockClarificationChat(
   page: Page,
-  { withOpenPanel = false }: { withOpenPanel?: boolean } = {}
+  {
+    panel = CLARIFY_PANEL,
+    withOpenPanel = false,
+  }: { panel?: MockPanel; withOpenPanel?: boolean } = {}
 ) {
   const createdAt = new Date().toISOString()
   const streamBodies: StreamBody[] = []
@@ -236,7 +293,7 @@ export async function mockClarificationChat(
         content: "Mình cần thêm vài thông tin để tính GPA.",
         metadata: {
           clarification: {
-            panel: CLARIFY_PANEL,
+            panel,
             schema_version: 1,
             status: "open",
           },
@@ -288,7 +345,7 @@ export async function mockClarificationChat(
       await route.fulfill({
         body: sse([
           ["token", "Mình cần thêm vài thông tin để tính GPA."],
-          ["clarification", CLARIFY_PANEL],
+          ["clarification", panel],
           ["done", {}],
         ]),
         contentType: "text/event-stream",
@@ -300,7 +357,7 @@ export async function mockClarificationChat(
       if (lastAssistant) {
         lastAssistant.metadata = {
           clarification: {
-            panel: CLARIFY_PANEL,
+            panel,
             schema_version: 1,
             status: "cancelled",
           },
@@ -310,7 +367,7 @@ export async function mockClarificationChat(
         body: sse([
           [
             "clarification_closed",
-            { panel_id: CLARIFY_PANEL_ID, status: "cancelled" },
+            { panel_id: panel.panel_id, status: "cancelled" },
           ],
           ["done", {}],
         ]),
@@ -324,7 +381,7 @@ export async function mockClarificationChat(
     messages.push(
       message({
         content: "Khoá: K20\nĐiểm CK: 6.5\nCác môn: 2 môn",
-        metadata: { clarification_answers: answeredCard(answers) },
+        metadata: { clarification_answers: answeredCard(panel, answers) },
         role: "USER",
       })
     )

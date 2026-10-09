@@ -4,6 +4,7 @@ import { seeToursExcept } from "./support/auth"
 import {
   browseAsGuest,
   CLARIFY_PANEL_ID,
+  MANY_TABS_PANEL,
   mockClarificationChat,
   openConversationFromHistory,
 } from "./support/chat"
@@ -165,4 +166,69 @@ test("keeps an open panel across reload, then cancels it", async ({
       `clarification-cancelled-${testInfo.project.name}.png`
     ),
   })
+})
+
+test("answers a 15-tab panel with a number_or_list tab in both modes", async ({
+  page,
+}, testInfo) => {
+  const server = await mockClarificationChat(page, { panel: MANY_TABS_PANEL })
+  await page.goto("/chat")
+
+  await page
+    .getByRole("textbox", { name: "Tin nhắn gửi UniSage" })
+    .fill("Tính điểm tổng kết giúp em")
+  await page.keyboard.press("Enter")
+
+  const panel = page.getByRole("region", { name: "Câu hỏi bổ sung" })
+  await expect(panel.getByRole("tab")).toHaveCount(15)
+  await expect(panel.getByText("Còn 15 câu")).toBeVisible()
+  // Many tabs scroll inside the tab list, never the page.
+  const tabList = panel.getByRole("tablist")
+  expect(
+    await tabList.evaluate((node) => node.scrollWidth > node.clientWidth)
+  ).toBe(true)
+  await expectNoHorizontalScroll(page)
+
+  // Default mode: one input per column.
+  await expect(
+    panel.getByRole("button", { name: "Nhập từng cột" })
+  ).toHaveAttribute("aria-pressed", "true")
+  await panel.getByLabel("Điểm TX 1").fill("8")
+  await panel.getByRole("button", { name: "Thêm", exact: true }).click()
+  await panel.getByLabel("Điểm TX 2").fill("7")
+  await panel.getByRole("button", { name: "Thêm", exact: true }).click()
+  await panel.getByLabel("Điểm TX 3").fill("7")
+  await page.waitForTimeout(400)
+  await page.screenshot({
+    path: testInfo.outputPath(
+      `clarification-number-or-list-columns-${testInfo.project.name}.png`
+    ),
+  })
+
+  await panel.getByRole("button", { name: "Nhập sẵn" }).click()
+  await panel.getByLabel(/Điểm thường xuyên/).fill("7,3")
+  await page.waitForTimeout(400)
+  await page.screenshot({
+    path: testInfo.outputPath(
+      `clarification-number-or-list-single-${testInfo.project.name}.png`
+    ),
+  })
+
+  for (let index = 2; index <= 15; index += 1) {
+    await panel
+      .getByRole("tab", { name: new RegExp(`^Môn ${index}\\b`) })
+      .click()
+    await panel.getByLabel(`Điểm môn thứ ${index}`).fill("8")
+  }
+  await expectNoHorizontalScroll(page)
+  await panel.getByRole("button", { name: "Gửi câu trả lời" }).click()
+
+  const answers = server.streamBodies.at(-1)?.clarification?.answers ?? []
+  expect(answers).toHaveLength(15)
+  // Only the active mode is sent.
+  expect(answers[0]).toEqual({ number: "7.3", question_id: "q1" })
+  await expect(
+    page.getByRole("button", { name: "Đã trả lời · 15 câu hỏi" })
+  ).toBeVisible()
+  await expect(page.getByText("Nhập sẵn: 7.3")).toBeVisible()
 })
