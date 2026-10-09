@@ -7,11 +7,11 @@ import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
-import { AskUserFormCard } from "@/features/chat/components/ask-user-form"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import { CitationChips } from "@/features/chat/components/citation-chips"
+import { LegacyAskUserFormNotice } from "@/features/chat/components/legacy-ask-user-form-notice"
 import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
-import { extractAskUserForm } from "@/features/chat/utils/ask-user-form"
+import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
 import { useChatReplyTour } from "@/features/product-tour"
 import {
   groupCitationsByDocument,
@@ -93,19 +93,10 @@ export function ActiveConversation({
                   </p>
                 ) : (
                   <AssistantReply
-                    // The reply that followed this message - non-null only
-                    // once the student has answered, which is what marks any
-                    // ask_user_form in it as belonging to the past.
-                    answerText={
-                      messages.slice(index + 1).find((it) => it.role === "USER")
-                        ?.content ?? null
-                    }
                     content={message.content}
-                    disabled={isWaitingForReply}
                     isLatest={index === latestReplyIndex}
                     message={message}
                     onOpenCitation={onOpenCitation}
-                    onSendMessage={onSendMessage}
                     questionText={findQuestionBefore(messages, index)}
                     // Ids are only the server's once the stream is done and
                     // the messages are refetched.
@@ -134,31 +125,25 @@ export function ActiveConversation({
 }
 
 type AssistantReplyProps = {
-  answerText: string | null
   content: string
-  disabled: boolean
   // Only the newest reply carries tour anchors, so the reply tour points at
   // what the student just read rather than the top of a long thread.
   isLatest: boolean
   message: Message
   onOpenCitation: (citation: Citation) => void
-  onSendMessage: (content: string) => void
   questionText: string | null
   reportDisabled: boolean
 }
 
 function AssistantReply({
-  answerText,
   content,
-  disabled,
   isLatest,
   message,
   onOpenCitation,
-  onSendMessage,
   questionText,
   reportDisabled,
 }: AssistantReplyProps) {
-  const { form, text } = extractAskUserForm(content)
+  const { form: legacyForm, text } = stripLegacyAskUserForm(content)
   const citations = message.citations ?? []
   const numbers = markerNumbers(groupCitationsByDocument(citations))
 
@@ -191,14 +176,7 @@ function AssistantReply({
           />
         </div>
       ) : null}
-      {form ? (
-        <AskUserFormCard
-          answerText={answerText}
-          disabled={disabled}
-          form={form}
-          onSubmit={onSendMessage}
-        />
-      ) : null}
+      {legacyForm ? <LegacyAskUserFormNotice form={legacyForm} /> : null}
       <div
         {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyActions) : {})}
         className="flex items-center gap-1"
