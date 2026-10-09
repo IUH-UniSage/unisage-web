@@ -15,6 +15,7 @@ import { QuestionChoice } from "@/features/chat/components/clarification/questio
 import { QuestionCourseTable } from "@/features/chat/components/clarification/question-course-table"
 import { QuestionNumber } from "@/features/chat/components/clarification/question-number"
 import { QuestionNumberList } from "@/features/chat/components/clarification/question-number-list"
+import { QuestionNumberOrList } from "@/features/chat/components/clarification/question-number-or-list"
 import { QuestionText } from "@/features/chat/components/clarification/question-text"
 import type {
   ClarificationPanel as ClarificationPanelData,
@@ -354,6 +355,17 @@ function QuestionInput({
           draft={draft}
           error={error}
           onChange={onChange}
+          question={question}
+        />
+      )
+    case "number_or_list":
+      return (
+        <QuestionNumberOrList
+          disabled={disabled}
+          draft={draft}
+          error={error}
+          onChange={onChange}
+          onCommit={() => onCommit(false)}
           question={question}
         />
       )

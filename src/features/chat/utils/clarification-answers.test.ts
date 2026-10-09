@@ -13,7 +13,8 @@ import {
 } from "@/features/chat/utils/clarification-answers"
 import { CONTRACT_PANEL } from "@/test/fixtures/clarification"
 
-const [choiceQ, numberQ, numberListQ, courseQ] = CONTRACT_PANEL.questions
+const [choiceQ, numberQ, numberListQ, courseQ, numberOrListQ] =
+  CONTRACT_PANEL.questions
 const SCORE = { max: "10", min: "0", step: "0.01", unit: null }
 
 const textQ: Question = {
@@ -126,6 +127,53 @@ describe("validateQuestion", () => {
     ).toEqual({ message: "Tối đa 1 giá trị", state: "invalid" })
   })
 
+  it("number_or_list: sends only the active mode, with its display", () => {
+    const draft = {
+      kind: "number_or_list" as const,
+      mode: "list" as const,
+      value: "7.3",
+      values: ["8", "", "7,5"],
+    }
+    expect(validateQuestion(numberOrListQ, draft)).toEqual({
+      answer: { numbers: ["8", "7.5"], question_id: "q5" },
+      item: {
+        display: "Từng cột: 8, 7.5",
+        kind: "number_or_list",
+        prompt: numberOrListQ.prompt,
+        question_id: "q5",
+        tab_label: "Điểm TX",
+      },
+      state: "valid",
+    })
+    expect(
+      validateQuestion(numberOrListQ, { ...draft, mode: "single" })
+    ).toMatchObject({
+      answer: { number: "7.3", question_id: "q5" },
+      item: { display: "Nhập sẵn: 7.3" },
+    })
+    // The inactive mode's invalid text never blocks the active one.
+    expect(
+      validateQuestion(numberOrListQ, {
+        ...draft,
+        mode: "single",
+        values: ["99"],
+      }).state
+    ).toBe("valid")
+    expect(
+      validateQuestion(numberOrListQ, { ...draft, mode: "single", value: "11" })
+        .state
+    ).toBe("invalid")
+    expect(
+      validateQuestion(
+        { ...numberOrListQ, max_items: 1 },
+        { ...draft, values: ["8", "7"] }
+      )
+    ).toEqual({ message: "Tối đa 1 giá trị", state: "invalid" })
+    expect(
+      validateQuestion(numberOrListQ, { ...draft, values: ["", " "] }).state
+    ).toBe("empty")
+  })
+
   it("text: trimmed, not empty, max_length", () => {
     expect(validateQuestion(textQ, { kind: "text", value: "   " }).state).toBe(
       "empty"
@@ -179,6 +227,7 @@ describe("buildSubmission", () => {
       kind: "course_table",
       rows: [row("Toán", "3", "8.5"), row("", "2", "B+")],
     },
+    q5: { kind: "number_or_list", mode: "single", value: "7.3", values: [""] },
   }
 
   it("builds the contract answers (one per question, in tab order)", () => {
@@ -196,6 +245,7 @@ describe("buildSubmission", () => {
           { credits: 2, name: null, score: "B+" },
         ],
       },
+      { number: "7.3", question_id: "q5" },
     ])
     expect(submission?.card.panel_id).toBe(CONTRACT_PANEL.panel_id)
     expect(submission?.card.items.map((item) => item.display)).toEqual([
@@ -203,6 +253,7 @@ describe("buildSubmission", () => {
       "6.5",
       "9, 8",
       null,
+      "Nhập sẵn: 7.3",
     ])
     expect(submission?.summary).toContain("Khoá: K20")
   })
@@ -226,6 +277,7 @@ describe("buildSubmission", () => {
 describe("initialPanelDraft / hasDraftContent", () => {
   it("restores a stored draft per question and drops mismatched kinds", () => {
     const draft = initialPanelDraft(CONTRACT_PANEL, {
+      q5: { kind: "number_or_list", mode: "single", value: "7", values: [] },
       q1: { kind: "choice", optionId: "k19", other: false, otherText: "" },
       q2: { kind: "text", value: "wrong kind" },
       q9: { kind: "number", value: "1" },
@@ -238,6 +290,8 @@ describe("initialPanelDraft / hasDraftContent", () => {
       otherText: "",
     })
     expect(draft.q2).toEqual({ kind: "number", value: "" })
+    // The chosen number_or_list mode survives a reload.
+    expect(draft.q5).toMatchObject({ mode: "single", value: "7" })
     expect(draft).not.toHaveProperty("q9")
     expect(hasDraftContent(draft)).toBe(true)
   })

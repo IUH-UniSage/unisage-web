@@ -55,6 +55,15 @@ const numberListDraftSchema = z.object({
   kind: z.literal("number_list"),
   values: z.array(z.string()),
 })
+// `number_or_list`: either the already-aggregated value ("Nhập sẵn") or
+// every column ("Nhập từng cột"); both inputs are kept so switching back and
+// forth loses nothing, but only the active mode is sent.
+const numberOrListDraftSchema = z.object({
+  kind: z.literal("number_or_list"),
+  mode: z.enum(["single", "list"]),
+  value: z.string(),
+  values: z.array(z.string()),
+})
 const textDraftSchema = z.object({
   kind: z.literal("text"),
   value: z.string(),
@@ -73,6 +82,7 @@ const questionDraftSchema = z.discriminatedUnion("kind", [
   choiceDraftSchema,
   numberDraftSchema,
   numberListDraftSchema,
+  numberOrListDraftSchema,
   textDraftSchema,
   courseTableDraftSchema,
 ])
@@ -80,6 +90,8 @@ const questionDraftSchema = z.discriminatedUnion("kind", [
 export type ChoiceDraft = z.infer<typeof choiceDraftSchema>
 export type NumberDraft = z.infer<typeof numberDraftSchema>
 export type NumberListDraft = z.infer<typeof numberListDraftSchema>
+export type NumberOrListDraft = z.infer<typeof numberOrListDraftSchema>
+export type NumberOrListMode = NumberOrListDraft["mode"]
 export type TextDraft = z.infer<typeof textDraftSchema>
 export type CourseRowDraft = z.infer<typeof courseRowDraftSchema>
 export type CourseTableDraft = z.infer<typeof courseTableDraftSchema>
@@ -98,6 +110,8 @@ export function emptyQuestionDraft(question: Question): QuestionDraft {
       return { kind: "number", value: "" }
     case "number_list":
       return { kind: "number_list", values: [""] }
+    case "number_or_list":
+      return { kind: "number_or_list", mode: "list", value: "", values: [""] }
     case "text":
       return { kind: "text", value: "" }
     case "course_table":
@@ -141,6 +155,11 @@ export function hasDraftContent(draft: PanelDraft): boolean {
         return item.value.trim() !== ""
       case "number_list":
         return item.values.some((value) => value.trim() !== "")
+      case "number_or_list":
+        return (
+          item.value.trim() !== "" ||
+          item.values.some((value) => value.trim() !== "")
+        )
       case "course_table":
         return item.rows.some(
           (row) => row.name.trim() || row.credits.trim() || row.score.trim()
@@ -266,6 +285,52 @@ function baseItem(question: Question) {
   }
 }
 
+function validateSingleNumber(
+  question: Question,
+  raw: string,
+  display: (value: string) => string
+): QuestionResult {
+  if (!raw.trim()) return { state: "empty" }
+  if (!question.number) {
+    return { message: "Câu hỏi thiếu cấu hình số", state: "invalid" }
+  }
+  const error = validateDecimal(raw, question.number)
+  if (error) return { message: error, state: "invalid" }
+  const value = normalizeDecimal(raw) ?? raw.trim()
+  return {
+    answer: { number: value, question_id: question.id },
+    item: { ...baseItem(question), display: display(value) },
+    state: "valid",
+  }
+}
+
+function validateNumberList(
+  question: Question,
+  values: string[],
+  display: (numbers: string[]) => string
+): QuestionResult {
+  const filled = values.filter((value) => value.trim())
+  if (!filled.length) return { state: "empty" }
+  if (!question.number) {
+    return { message: "Câu hỏi thiếu cấu hình số", state: "invalid" }
+  }
+  const maxItems = question.max_items ?? NUMBER_LIST_MAX_ITEMS
+  if (filled.length > maxItems) {
+    return { message: `Tối đa ${maxItems} giá trị`, state: "invalid" }
+  }
+  const spec = question.number
+  const firstError = filled
+    .map((value) => validateDecimal(value, spec))
+    .find((error) => error !== null)
+  if (firstError) return { message: firstError, state: "invalid" }
+  const numbers = filled.map((value) => normalizeDecimal(value) ?? value.trim())
+  return {
+    answer: { numbers, question_id: question.id },
+    item: { ...baseItem(question), display: display(numbers) },
+    state: "valid",
+  }
+}
+
 /** Validates one question's draft and builds its contract `Answer`. */
 export function validateQuestion(
   question: Question,
@@ -313,48 +378,27 @@ export function validateQuestion(
         state: "valid",
       }
     }
-    case "number": {
-      if (!draft.value.trim()) return { state: "empty" }
-      if (!question.number)
-        return { message: "Câu hỏi thiếu cấu hình số", state: "invalid" }
-      const error = validateDecimal(draft.value, question.number)
-      if (error) return { message: error, state: "invalid" }
-      const value = normalizeDecimal(draft.value) ?? draft.value.trim()
-      return {
-        answer: { number: value, question_id: question.id },
-        item: {
-          ...baseItem(question),
-          display: withUnit(value, question.number),
-        },
-        state: "valid",
-      }
-    }
-    case "number_list": {
-      const filled = draft.values.filter((value) => value.trim())
-      if (!filled.length) return { state: "empty" }
-      if (!question.number)
-        return { message: "Câu hỏi thiếu cấu hình số", state: "invalid" }
-      const maxItems = question.max_items ?? NUMBER_LIST_MAX_ITEMS
-      if (filled.length > maxItems) {
-        return { message: `Tối đa ${maxItems} giá trị`, state: "invalid" }
-      }
-      const spec = question.number
-      const firstError = filled
-        .map((value) => validateDecimal(value, spec))
-        .find((error) => error !== null)
-      if (firstError) return { message: firstError, state: "invalid" }
-      const numbers = filled.map(
-        (value) => normalizeDecimal(value) ?? value.trim()
+    case "number":
+      return validateSingleNumber(question, draft.value, (value) =>
+        withUnit(value, question.number)
       )
-      return {
-        answer: { numbers, question_id: question.id },
-        item: {
-          ...baseItem(question),
-          display: withUnit(numbers.join(", "), spec),
-        },
-        state: "valid",
-      }
-    }
+    case "number_list":
+      return validateNumberList(question, draft.values, (numbers) =>
+        withUnit(numbers.join(", "), question.number)
+      )
+    case "number_or_list":
+      // Same display wording the agent stores (contract §5).
+      return draft.mode === "single"
+        ? validateSingleNumber(
+            question,
+            draft.value,
+            (value) => `Nhập sẵn: ${value}`
+          )
+        : validateNumberList(
+            question,
+            draft.values,
+            (numbers) => `Từng cột: ${numbers.join(", ")}`
+          )
     case "text": {
       const text = draft.value.trim()
       if (!text) return { state: "empty" }

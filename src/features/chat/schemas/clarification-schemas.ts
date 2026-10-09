@@ -9,6 +9,7 @@ export const questionKindSchema = z.enum([
   "choice",
   "number",
   "number_list",
+  "number_or_list",
   "text",
   "course_table",
 ])
@@ -49,7 +50,9 @@ export const questionSchema = z
 export const clarificationPanelSchema = z
   .object({
     panel_id: z.string().min(1),
-    questions: z.array(questionSchema).min(1).max(12),
+    // Every question of the turn is shown (ids q1..q99); the server rejects
+    // panels over 50 only as a sanity cap, so the client does not cut them.
+    questions: z.array(questionSchema).min(1).max(99),
     schema_version: z.literal(1),
   })
   .strict()

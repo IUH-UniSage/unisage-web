@@ -60,7 +60,36 @@ export const CONTRACT_PANEL: ClarificationPanel = {
       prompt: "Nhập các môn để tính GPA",
       tab_label: "Các môn",
     },
+    {
+      allow_other: false,
+      id: "q5",
+      kind: "number_or_list",
+      max_items: 20,
+      max_length: null,
+      number: { max: "10", min: "0", step: "0.01", unit: null },
+      options: [],
+      prompt:
+        "Điểm thường xuyên: nhập TBtx nếu đã biết, hoặc nhập từng cột TX1…TXn",
+      tab_label: "Điểm TX",
+    },
   ],
+  schema_version: 1,
+}
+
+// A panel with many tabs (contract §3: no 12-question cut, ids up to q99).
+export const MANY_TABS_PANEL: ClarificationPanel = {
+  panel_id: "7f1c2a9e-0000-4000-8000-000000000015",
+  questions: Array.from({ length: 15 }, (_, index) => ({
+    allow_other: false,
+    id: `q${index + 1}`,
+    kind: "number" as const,
+    max_items: null,
+    max_length: null,
+    number: { max: "10", min: "0", step: "0.01", unit: null },
+    options: [],
+    prompt: `Điểm môn thứ ${index + 1}`,
+    tab_label: `Môn học số ${index + 1}`,
+  })),
   schema_version: 1,
 }
 

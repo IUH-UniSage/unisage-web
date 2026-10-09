@@ -82,7 +82,7 @@ describe("CancelledClarificationCard", () => {
     const user = userEvent.setup()
     render(<CancelledClarificationCard panel={CONTRACT_PANEL} />)
 
-    const toggle = screen.getByRole("button", { name: "Đã huỷ · 4 câu hỏi" })
+    const toggle = screen.getByRole("button", { name: "Đã huỷ · 5 câu hỏi" })
     expect(toggle).toHaveAttribute("aria-expanded", "false")
     expect(screen.queryByText("Bạn thuộc khoá nào?")).not.toBeInTheDocument()
 

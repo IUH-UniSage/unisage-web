@@ -4,7 +4,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { ClarificationPanel } from "@/features/chat/components/clarification/clarification-panel"
 import type { ClarificationPanel as PanelData } from "@/features/chat/schemas/clarification-schemas"
-import { CONTRACT_PANEL } from "@/test/fixtures/clarification"
+import { CONTRACT_PANEL, MANY_TABS_PANEL } from "@/test/fixtures/clarification"
 
 // Choice + number + course_table, the three-tab panel of the e2e scenario.
 const PANEL: PanelData = {
@@ -175,5 +175,40 @@ describe("ClarificationPanel", () => {
 
     await user.click(screen.getByRole("radio", { name: /K20/ }))
     expect(screen.getByText("Còn 2 câu")).toBeInTheDocument()
+  })
+
+  it("switches number_or_list between Nhập từng cột and Nhập sẵn", async () => {
+    const user = userEvent.setup()
+    const { onSubmit } = renderPanel({
+      panel: { ...PANEL, questions: [CONTRACT_PANEL.questions[4]] },
+    })
+
+    const list = screen.getByRole("button", { name: "Nhập từng cột" })
+    const single = screen.getByRole("button", { name: "Nhập sẵn" })
+    expect(list).toHaveAttribute("aria-pressed", "true")
+
+    await user.type(screen.getByLabelText("Điểm TX 1"), "8")
+    await user.click(screen.getByRole("button", { name: "Thêm" }))
+    await user.type(screen.getByLabelText("Điểm TX 2"), "7")
+    await user.click(single)
+    expect(single).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByText("Còn 1 câu")).toBeInTheDocument()
+    await user.type(screen.getByLabelText(/Điểm thường xuyên/), "7,3")
+    await user.click(screen.getByRole("button", { name: "Gửi câu trả lời" }))
+    expect(onSubmit.mock.calls[0][0].answers).toEqual([
+      { number: "7.3", question_id: "q5" },
+    ])
+
+    // Back to the columns: what was typed there is still there.
+    await user.click(list)
+    expect(screen.getByLabelText("Điểm TX 2")).toHaveValue("7")
+  })
+
+  it("shows every tab of a long panel in a horizontally scrolling list", () => {
+    renderPanel({ panel: MANY_TABS_PANEL })
+
+    expect(screen.getAllByRole("tab")).toHaveLength(15)
+    expect(screen.getByText("Còn 15 câu")).toBeInTheDocument()
+    expect(screen.getByRole("tablist")).toHaveClass("overflow-x-auto")
   })
 })
