@@ -11,6 +11,8 @@ type ChatComposerProps = {
   isStreaming?: boolean
   onStop?: () => void
   onSubmit: (content: string) => void
+  // Overrides the default placeholder (e.g. while a question panel is open).
+  placeholder?: string
 }
 
 /**
@@ -81,6 +83,7 @@ export function ChatComposer({
   isStreaming = false,
   onStop,
   onSubmit,
+  placeholder,
 }: ChatComposerProps) {
   const [value, setValue] = useState("")
   const [isExpanded, setIsExpanded] = useState(false)
@@ -221,7 +224,8 @@ export function ChatComposer({
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           placeholder={
-            centered ? "Hỏi bất kỳ điều gì..." : "Đặt câu hỏi tiếp theo..."
+            placeholder ??
+            (centered ? "Hỏi bất kỳ điều gì..." : "Đặt câu hỏi tiếp theo...")
           }
           ref={textareaRef}
           rows={1}

@@ -8,9 +8,14 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
+import {
+  ClarificationPanel,
+  type ClarificationSubmitPayload,
+} from "@/features/chat/components/clarification/clarification-panel"
 import { CitationChips } from "@/features/chat/components/citation-chips"
 import { LegacyAskUserFormNotice } from "@/features/chat/components/legacy-ask-user-form-notice"
 import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
+import type { OpenPanel } from "@/features/chat/utils/clarification-state"
 import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
 import { useChatReplyTour } from "@/features/product-tour"
 import {
@@ -23,6 +28,16 @@ import { ReportMessageButton } from "@/features/support-tickets/components/repor
 const PENDING_STATUSES = new Set(["PENDING", "STREAMING"])
 
 type ActiveConversationProps = {
+  clarification: {
+    errors: Record<string, string>
+    isAwaitingPreviousAnswer: boolean
+    isCancelling: boolean
+    onCancel: () => void
+    onSubmit: (
+      payload: ClarificationSubmitPayload & { panel: OpenPanel["panel"] }
+    ) => void
+    openPanel: OpenPanel | null
+  }
   isSending: boolean
   isStreaming: boolean
   messages: Message[]
@@ -33,6 +48,7 @@ type ActiveConversationProps = {
 }
 
 export function ActiveConversation({
+  clarification,
   isSending,
   isStreaming,
   messages,
@@ -41,6 +57,7 @@ export function ActiveConversation({
   onStopGenerating,
   usageWarning,
 }: ActiveConversationProps) {
+  const { openPanel } = clarification
   const lastMessage = messages.at(-1)
   const isWaitingForReply =
     isSending ||
@@ -114,11 +131,32 @@ export function ActiveConversation({
         </div>
       </ScrollArea>
       {usageWarning}
+      {openPanel ? (
+        <ClarificationPanel
+          busy={clarification.isCancelling || isSending}
+          key={openPanel.panel.panel_id}
+          onCancel={clarification.onCancel}
+          onSubmit={(payload) =>
+            clarification.onSubmit({ ...payload, panel: openPanel.panel })
+          }
+          panel={openPanel.panel}
+          serverErrors={clarification.errors}
+        />
+      ) : null}
       <ChatComposer
-        disabled={isWaitingForReply}
+        // The student answers or cancels the panel before asking anything
+        // else; 4093 keeps it locked while the previous answer is processed.
+        disabled={
+          isWaitingForReply ||
+          Boolean(openPanel) ||
+          clarification.isAwaitingPreviousAnswer
+        }
         isStreaming={isStreaming}
         onStop={onStopGenerating}
         onSubmit={onSendMessage}
+        placeholder={
+          openPanel ? "Trả lời câu hỏi phía trên để tiếp tục" : undefined
+        }
       />
     </>
   )

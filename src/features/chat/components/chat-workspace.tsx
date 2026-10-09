@@ -185,6 +185,15 @@ export function ChatPage() {
           <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
             {workspace.activeConversationId ? (
               <ActiveConversation
+                clarification={{
+                  errors: workspace.clarificationErrors,
+                  isAwaitingPreviousAnswer: workspace.isAwaitingPreviousAnswer,
+                  isCancelling: workspace.isCancellingClarification,
+                  onCancel: () => void workspace.cancelClarification(),
+                  onSubmit: (submission) =>
+                    void workspace.submitClarification(submission),
+                  openPanel: workspace.openPanel,
+                }}
                 isSending={workspace.isSendingMessage}
                 isStreaming={workspace.isStreaming}
                 messages={workspace.messages}
