@@ -169,8 +169,7 @@ export const MANY_TABS_PANEL = {
       max_length: null,
       number: { max: "10", min: "0", step: "0.01", unit: null },
       options: [],
-      prompt:
-        "Điểm thường xuyên: nhập TBtx nếu đã biết, hoặc nhập từng cột TX1…TXn",
+      prompt: "Điểm thường xuyên (các cột TX), thang 10",
       tab_label: "Điểm TX",
     },
     ...Array.from({ length: 14 }, (_, index) => ({

@@ -35,29 +35,30 @@ export function QuestionNumberList({
     })
 
   return (
-    <div className="space-y-3">
-      <ul className="flex flex-wrap items-center gap-2.5">
+    <div className="space-y-2">
+      <ul className="flex flex-wrap items-center gap-2">
         {draft.values.map((value, index) => {
           const itemError =
             spec && value.trim() ? validateDecimal(value, spec) : null
           return (
             // Values have no identity of their own; the position is the key.
-            <li className="flex items-center gap-1" key={index}>
+            <li className="group relative" key={index}>
               <Input
                 aria-invalid={Boolean(itemError) || undefined}
                 aria-label={`${question.tab_label} ${index + 1}`}
-                className="h-10 w-28 rounded-lg text-center font-medium transition-all focus-visible:ring-1"
+                className="h-10 w-20 rounded-lg text-center text-sm font-medium"
                 disabled={disabled}
                 inputMode="decimal"
                 onChange={(event) => setValue(index, event.target.value)}
+                placeholder={`${index + 1}`}
                 title={itemError ?? undefined}
                 type="text"
                 value={value}
               />
               {draft.values.length > 1 ? (
-                <Button
+                <button
                   aria-label={`Xoá giá trị ${index + 1}`}
-                  className="size-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-destructive"
+                  className="absolute -top-1.5 -right-1.5 hidden size-4.5 cursor-pointer items-center justify-center rounded-full bg-muted text-muted-foreground group-focus-within:flex group-hover:flex hover:text-destructive"
                   disabled={disabled}
                   onClick={() =>
                     onChange({
@@ -65,37 +66,33 @@ export function QuestionNumberList({
                       values: draft.values.filter((_, at) => at !== index),
                     })
                   }
-                  size="icon"
                   type="button"
-                  variant="ghost"
                 >
-                  <X className="size-3.5" />
-                </Button>
+                  <X className="size-3" />
+                </button>
               ) : null}
             </li>
           )
         })}
+        {canAdd ? (
+          <li>
+            <Button
+              aria-label="Thêm cột"
+              className="size-10 rounded-lg text-muted-foreground"
+              disabled={disabled}
+              onClick={() =>
+                onChange({ ...draft, values: [...draft.values, ""] })
+              }
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <Plus className="size-4" />
+            </Button>
+          </li>
+        ) : null}
       </ul>
-      <div className="flex flex-wrap items-center gap-3 pt-0.5">
-        <Button
-          className="h-8.5 rounded-lg px-3 text-xs font-medium shadow-2xs transition-all"
-          disabled={disabled || !canAdd}
-          onClick={() => onChange({ ...draft, values: [...draft.values, ""] })}
-          size="sm"
-          type="button"
-          variant="outline"
-        >
-          <Plus className="mr-1 size-3.5" />
-          Thêm
-        </Button>
-        <span className="text-xs font-medium text-muted-foreground">
-          {draft.values.length}/{maxItems}
-          {spec?.unit ? ` · ${spec.unit}` : ""}
-        </span>
-      </div>
-      {error ? (
-        <p className="text-xs font-medium text-destructive">{error}</p>
-      ) : null}
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
   )
 }

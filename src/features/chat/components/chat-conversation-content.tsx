@@ -148,7 +148,7 @@ export function ActiveConversation({
       {openPanel ? (
         // The panel takes the composer's place (same container and width): the
         // student answers or cancels it before asking anything else.
-        <div className="border-t border-border/40 px-4 py-3 md:px-6">
+        <div className="px-4 py-3 md:px-6">
           <ClarificationPanel
             busy={clarification.isCancelling || isSending}
             key={openPanel.panel.panel_id}

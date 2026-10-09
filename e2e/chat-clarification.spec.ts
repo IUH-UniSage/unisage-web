@@ -226,13 +226,10 @@ test("answers a 15-tab panel with a number_or_list tab in both modes", async ({
   await expectNoHorizontalScroll(page)
 
   // Default mode: one input per column.
-  await expect(
-    panel.getByRole("button", { name: "Nhập từng cột" })
-  ).toHaveAttribute("aria-pressed", "true")
   await panel.getByLabel("Điểm TX 1").fill("8")
-  await panel.getByRole("button", { name: "Thêm", exact: true }).click()
+  await panel.getByRole("button", { name: "Thêm cột" }).click()
   await panel.getByLabel("Điểm TX 2").fill("7")
-  await panel.getByRole("button", { name: "Thêm", exact: true }).click()
+  await panel.getByRole("button", { name: "Thêm cột" }).click()
   await panel.getByLabel("Điểm TX 3").fill("7")
   await page.waitForTimeout(400)
   await page.screenshot({
@@ -241,7 +238,9 @@ test("answers a 15-tab panel with a number_or_list tab in both modes", async ({
     ),
   })
 
-  await panel.getByRole("button", { name: "Nhập sẵn" }).click()
+  await panel
+    .getByRole("button", { name: "Đã có điểm trung bình? Nhập trực tiếp" })
+    .click()
   await panel.getByLabel(/Điểm thường xuyên/).fill("7,3")
   await page.waitForTimeout(400)
   await page.screenshot({

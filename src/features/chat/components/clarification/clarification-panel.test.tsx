@@ -177,21 +177,21 @@ describe("ClarificationPanel", () => {
     expect(screen.getByText("Còn 2 câu")).toBeInTheDocument()
   })
 
-  it("switches number_or_list between Nhập từng cột and Nhập sẵn", async () => {
+  it("switches number_or_list between columns and the averaged value", async () => {
     const user = userEvent.setup()
     const { onSubmit } = renderPanel({
       panel: { ...PANEL, questions: [CONTRACT_PANEL.questions[4]] },
     })
 
-    const list = screen.getByRole("button", { name: "Nhập từng cột" })
-    const single = screen.getByRole("button", { name: "Nhập sẵn" })
-    expect(list).toHaveAttribute("aria-pressed", "true")
-
+    // Columns by default.
     await user.type(screen.getByLabelText("Điểm TX 1"), "8")
-    await user.click(screen.getByRole("button", { name: "Thêm" }))
+    await user.click(screen.getByRole("button", { name: "Thêm cột" }))
     await user.type(screen.getByLabelText("Điểm TX 2"), "7")
-    await user.click(single)
-    expect(single).toHaveAttribute("aria-pressed", "true")
+    await user.click(
+      screen.getByRole("button", {
+        name: "Đã có điểm trung bình? Nhập trực tiếp",
+      })
+    )
     expect(screen.getByText("Còn 1 câu")).toBeInTheDocument()
     await user.type(screen.getByLabelText(/Điểm thường xuyên/), "7,3")
     await user.click(screen.getByRole("button", { name: "Gửi câu trả lời" }))
@@ -200,7 +200,11 @@ describe("ClarificationPanel", () => {
     ])
 
     // Back to the columns: what was typed there is still there.
-    await user.click(list)
+    await user.click(
+      screen.getByRole("button", {
+        name: "Nhập từng cột thay vì điểm trung bình",
+      })
+    )
     expect(screen.getByLabelText("Điểm TX 2")).toHaveValue("7")
   })
 

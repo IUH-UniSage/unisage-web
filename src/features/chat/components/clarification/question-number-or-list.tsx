@@ -1,16 +1,7 @@
 import { QuestionNumber } from "@/features/chat/components/clarification/question-number"
 import { QuestionNumberList } from "@/features/chat/components/clarification/question-number-list"
 import type { Question } from "@/features/chat/schemas/clarification-schemas"
-import type {
-  NumberOrListDraft,
-  NumberOrListMode,
-} from "@/features/chat/utils/clarification-answers"
-import { cn } from "@/lib/utils"
-
-const MODES: { label: string; value: NumberOrListMode }[] = [
-  { label: "Nhập sẵn", value: "single" },
-  { label: "Nhập từng cột", value: "list" },
-]
+import type { NumberOrListDraft } from "@/features/chat/utils/clarification-answers"
 
 type QuestionNumberOrListProps = {
   disabled?: boolean
@@ -22,10 +13,10 @@ type QuestionNumberOrListProps = {
 }
 
 /**
- * `number_or_list`: the student either types the already-aggregated value
- * ("Nhập sẵn", sends `number`) or every column ("Nhập từng cột", sends
- * `numbers`). Both inputs keep their text while switching; only the active
- * mode is validated and sent.
+ * `number_or_list`: every column by default (sends `numbers`), or - through
+ * the link under it - the already-averaged value (sends `number`). Both
+ * inputs keep their text while switching; only the active mode is validated
+ * and sent.
  */
 export function QuestionNumberOrList({
   disabled = false,
@@ -35,35 +26,11 @@ export function QuestionNumberOrList({
   onCommit,
   question,
 }: QuestionNumberOrListProps) {
+  const isSingle = draft.mode === "single"
+
   return (
-    <div className="space-y-3.5 rounded-xl border border-border/60 bg-muted/20 p-3.5 sm:p-4">
-      <div
-        aria-label="Cách nhập"
-        className="inline-flex items-center rounded-lg border border-border/60 bg-muted/60 p-1"
-        role="group"
-      >
-        {MODES.map((mode) => {
-          const isActive = draft.mode === mode.value
-          return (
-            <button
-              aria-pressed={isActive}
-              className={cn(
-                "cursor-pointer rounded-md px-3.5 py-1 text-xs font-medium transition-all disabled:cursor-not-allowed",
-                isActive
-                  ? "bg-background font-semibold text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              disabled={disabled}
-              key={mode.value}
-              onClick={() => onChange({ ...draft, mode: mode.value })}
-              type="button"
-            >
-              {mode.label}
-            </button>
-          )
-        })}
-      </div>
-      {draft.mode === "single" ? (
+    <div className="space-y-2">
+      {isSingle ? (
         <QuestionNumber
           disabled={disabled}
           draft={{ kind: "number", value: draft.value }}
@@ -81,6 +48,18 @@ export function QuestionNumberOrList({
           question={question}
         />
       )}
+      <button
+        className="cursor-pointer text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline disabled:cursor-not-allowed"
+        disabled={disabled}
+        onClick={() =>
+          onChange({ ...draft, mode: isSingle ? "list" : "single" })
+        }
+        type="button"
+      >
+        {isSingle
+          ? "Nhập từng cột thay vì điểm trung bình"
+          : "Đã có điểm trung bình? Nhập trực tiếp"}
+      </button>
     </div>
   )
 }
