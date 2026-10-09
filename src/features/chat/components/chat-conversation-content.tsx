@@ -7,6 +7,7 @@ import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { CalculationFeedback } from "@/features/chat/components/calculation-feedback"
 import { ChatComposer } from "@/features/chat/components/chat-composer"
 import {
   AnsweredClarificationCard,
@@ -24,6 +25,10 @@ import {
   readAnsweredCard,
   readClarification,
 } from "@/features/chat/utils/clarification-state"
+import {
+  readCalculationFeedback,
+  readFeedbackItems,
+} from "@/features/chat/utils/calculation-feedback"
 import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
 import { useChatReplyTour } from "@/features/product-tour"
 import {
@@ -218,6 +223,8 @@ function AssistantReply({
 }: AssistantReplyProps) {
   const { form: legacyForm, text } = stripLegacyAskUserForm(content)
   const clarification = readClarification(message)
+  const feedbackItems = readFeedbackItems(message)
+  const feedback = readCalculationFeedback(message)
   const citations = message.citations ?? []
   const numbers = markerNumbers(groupCitationsByDocument(citations))
 
@@ -242,6 +249,21 @@ function AssistantReply({
           content={text}
         />
       </div>
+      {feedbackItems.length ? (
+        // One Đúng/Sai row per retrieved result, in `items` order.
+        <div className="space-y-2">
+          {feedbackItems.map((item) => (
+            <CalculationFeedback
+              conversationId={message.conversationId}
+              current={feedback[item.item_id]}
+              disabled={reportDisabled}
+              item={item}
+              key={item.item_id}
+              messageId={message.id}
+            />
+          ))}
+        </div>
+      ) : null}
       {citations.length ? (
         <div {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyCitations) : {})}>
           <CitationChips

@@ -359,3 +359,124 @@ export async function openConversationFromHistory(page: Page, title: string) {
   await sheet.getByRole("button", { name: "Đóng" }).click()
   await sheet.waitFor({ state: "hidden" })
 }
+
+// ---------------------------------------------------------------------------
+// Đúng/Sai feedback on a retrieved calculation (contracts/chat-sse.md §5b).
+
+const CALC_CONVERSATION_ID = "6f2b9a31-8c4d-4e5f-a061-2b3c4d5e6f71"
+const CALC_ASSISTANT_ID = "6f2b9a31-8c4d-4e5f-a061-2b3c4d5e6f73"
+const CALC_TITLE = "Học phí học kỳ"
+
+export async function mockCalculationFeedbackChat(page: Page) {
+  const createdAt = new Date().toISOString()
+  const feedbackBodies: Array<Record<string, unknown>> = []
+  const assistantMetadata: Record<string, unknown> = {
+    calculation: {
+      items: [
+        {
+          item_id: "T1",
+          mode: "retrieved",
+          result_summary: "Học phí học kỳ: 8.400.000 đồng",
+          run_id: "run-1",
+          source_summary: {
+            heading: "Chương II › Điều 8",
+            title: "QĐ-123.pdf",
+          },
+          status: "computed",
+        },
+        {
+          item_id: "T2",
+          mode: "builtin",
+          result_summary: "GPA: 3.2",
+          run_id: "run-2",
+          source_summary: null,
+          status: "computed",
+        },
+      ],
+      schema_version: 1,
+    },
+  }
+  const base = {
+    chatModelId: null,
+    citations: null,
+    conversationId: CALC_CONVERSATION_ID,
+    createdAt,
+    retrievalScore: null,
+    status: "COMPLETED",
+    ticketId: null,
+  }
+
+  await page.route("**/usage-limits/me", async (route) => {
+    await route.fulfill({
+      json: { code: 1000, data: null, message: "Successful" },
+    })
+  })
+  await page.route("**/conversations/guest", async (route) => {
+    await route.fulfill({
+      json: {
+        code: 1000,
+        data: [
+          {
+            createdAt,
+            id: CALC_CONVERSATION_ID,
+            title: CALC_TITLE,
+            userId: null,
+          },
+        ],
+        message: "Successful",
+      },
+    })
+  })
+  await page.route("**/messages/conversation/**", async (route) => {
+    await route.fulfill({
+      json: {
+        code: 1000,
+        data: [
+          {
+            ...base,
+            content: "Học phí học kỳ này của em bao nhiêu?",
+            id: "6f2b9a31-8c4d-4e5f-a061-2b3c4d5e6f72",
+            metadata: null,
+            role: "USER",
+          },
+          {
+            ...base,
+            content:
+              "**Kết quả tham khảo theo quy chế**\n\nHọc phí học kỳ: 8.400.000 đồng.",
+            id: CALC_ASSISTANT_ID,
+            metadata: assistantMetadata,
+            role: "ASSISTANT",
+          },
+        ],
+        message: "Successful",
+      },
+    })
+  })
+  await page.route("**/messages/*/calculation-feedback", async (route) => {
+    const body = route.request().postDataJSON() as Record<string, unknown>
+    feedbackBodies.push(body)
+    // The backend persists the verdict (never the note) on the message.
+    assistantMetadata.calculation_feedback = {
+      [String(body.itemId)]: {
+        at: new Date().toISOString(),
+        reason: body.reason,
+        verdict: body.verdict,
+      },
+    }
+    await route.fulfill({
+      json: {
+        code: 1000,
+        data: {
+          itemId: body.itemId,
+          reason: body.reason,
+          // Guests never get a ticket.
+          ticketCreated: false,
+          verdict: body.verdict,
+        },
+        message: "Successful",
+      },
+    })
+  })
+
+  return { assistantId: CALC_ASSISTANT_ID, feedbackBodies, title: CALC_TITLE }
+}
