@@ -26,6 +26,41 @@ test.beforeEach(async ({ page }, testInfo) => {
   await seeToursExcept(page, [])
 })
 
+// The open panel sits where the composer was: same width as the composer's form,
+// at the bottom of the page (only the disclaimer below it).
+// Width the conversation composer's form has in this layout: its container is the
+// same element that now wraps the panel (border-t px-4 py-3 md:px-6, form max-w-3xl).
+async function conversationComposerWidth(page: Page): Promise<number> {
+  const container = page
+    .getByRole("region", { name: "Câu hỏi bổ sung" })
+    .locator("xpath=..")
+  return container.evaluate((element) => {
+    const style = getComputedStyle(element)
+    const inner =
+      element.clientWidth -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight)
+    return Math.min(inner, 768)
+  })
+}
+
+async function expectPanelInComposerSlot(
+  page: Page,
+  composerWidth: number
+): Promise<void> {
+  const card = page
+    .getByRole("region", { name: "Câu hỏi bổ sung" })
+    .locator("> div")
+    .first()
+  const box = await card.boundingBox()
+  const viewport = page.viewportSize()
+  expect(box).not.toBeNull()
+  expect(viewport).not.toBeNull()
+  if (!box || !viewport) return
+  expect(Math.abs(box.width - composerWidth)).toBeLessThan(2)
+  expect(viewport.height - (box.y + box.height)).toBeLessThan(80)
+}
+
 test("answers a three-tab panel and keeps the answer card after reload", async ({
   page,
 }, testInfo) => {
@@ -35,14 +70,15 @@ test("answers a three-tab panel and keeps the answer card after reload", async (
   const composer = page.getByRole("textbox", { name: "Tin nhắn gửi UniSage" })
   await composer.fill("Tính GPA giúp em")
   await page.keyboard.press("Enter")
+  await expect(
+    page.getByRole("region", { name: "Câu hỏi bổ sung" })
+  ).toBeVisible()
 
   const panel = page.getByRole("region", { name: "Câu hỏi bổ sung" })
   await expect(panel).toBeVisible()
-  await expect(composer).toBeDisabled()
-  await expect(composer).toHaveAttribute(
-    "placeholder",
-    "Trả lời câu hỏi phía trên để tiếp tục"
-  )
+  // The panel takes the composer's place: same width, composer hidden.
+  await expect(composer).toHaveCount(0)
+  await expectPanelInComposerSlot(page, await conversationComposerWidth(page))
   const submit = panel.getByRole("button", { name: "Gửi câu trả lời" })
   await expect(submit).toBeDisabled()
   await expect(panel.getByText("Còn 3 câu")).toBeVisible()
@@ -140,7 +176,7 @@ test("keeps an open panel across reload, then cancels it", async ({
   await expect(panel.getByRole("radio", { name: /K19/ })).toBeChecked()
 
   const composer = page.getByRole("textbox", { name: "Tin nhắn gửi UniSage" })
-  await expect(composer).toBeDisabled()
+  await expect(composer).toHaveCount(0)
 
   await panel.getByRole("button", { name: "Huỷ câu hỏi" }).click()
   const dialog = page.getByRole("dialog", { name: "Huỷ câu hỏi?" })

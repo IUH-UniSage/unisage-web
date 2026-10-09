@@ -135,10 +135,7 @@ export function ClarificationPanel({
   }, [])
 
   return (
-    <section
-      aria-label="Câu hỏi bổ sung"
-      className="mx-auto w-full max-w-3xl px-4 pt-3 md:px-6"
-    >
+    <section aria-label="Câu hỏi bổ sung" className="mx-auto w-full max-w-3xl">
       <div className="flex max-h-[60vh] flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm">
         <Tabs
           className="min-h-0 gap-0"

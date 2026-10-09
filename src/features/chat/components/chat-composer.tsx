@@ -11,8 +11,6 @@ type ChatComposerProps = {
   isStreaming?: boolean
   onStop?: () => void
   onSubmit: (content: string) => void
-  // Overrides the default placeholder (e.g. while a question panel is open).
-  placeholder?: string
 }
 
 /**
@@ -83,7 +81,6 @@ export function ChatComposer({
   isStreaming = false,
   onStop,
   onSubmit,
-  placeholder,
 }: ChatComposerProps) {
   const [value, setValue] = useState("")
   const [isExpanded, setIsExpanded] = useState(false)
@@ -224,8 +221,7 @@ export function ChatComposer({
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           placeholder={
-            placeholder ??
-            (centered ? "Hỏi bất kỳ điều gì..." : "Đặt câu hỏi tiếp theo...")
+            centered ? "Hỏi bất kỳ điều gì..." : "Đặt câu hỏi tiếp theo..."
           }
           ref={textareaRef}
           rows={1}
@@ -261,10 +257,16 @@ export function ChatComposer({
         )}
       </form>
 
-      <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground">
-        UniSage có thể mắc sai sót. Hãy kiểm chứng quyết định quan trọng với
-        nguồn tài liệu được trích dẫn.
-      </p>
+      <ChatDisclaimer />
     </div>
+  )
+}
+
+export function ChatDisclaimer() {
+  return (
+    <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground">
+      UniSage có thể mắc sai sót. Hãy kiểm chứng quyết định quan trọng với nguồn
+      tài liệu được trích dẫn.
+    </p>
   )
 }

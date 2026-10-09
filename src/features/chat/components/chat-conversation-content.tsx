@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { CalculationFeedback } from "@/features/chat/components/calculation-feedback"
-import { ChatComposer } from "@/features/chat/components/chat-composer"
+import {
+  ChatComposer,
+  ChatDisclaimer,
+} from "@/features/chat/components/chat-composer"
 import {
   AnsweredClarificationCard,
   CancelledClarificationCard,
@@ -143,32 +146,30 @@ export function ActiveConversation({
       </ScrollArea>
       {usageWarning}
       {openPanel ? (
-        <ClarificationPanel
-          busy={clarification.isCancelling || isSending}
-          key={openPanel.panel.panel_id}
-          onCancel={clarification.onCancel}
-          onSubmit={(payload) =>
-            clarification.onSubmit({ ...payload, panel: openPanel.panel })
-          }
-          panel={openPanel.panel}
-          serverErrors={clarification.errors}
+        // The panel takes the composer's place (same container and width): the
+        // student answers or cancels it before asking anything else.
+        <div className="border-t border-border/40 px-4 py-3 md:px-6">
+          <ClarificationPanel
+            busy={clarification.isCancelling || isSending}
+            key={openPanel.panel.panel_id}
+            onCancel={clarification.onCancel}
+            onSubmit={(payload) =>
+              clarification.onSubmit({ ...payload, panel: openPanel.panel })
+            }
+            panel={openPanel.panel}
+            serverErrors={clarification.errors}
+          />
+          <ChatDisclaimer />
+        </div>
+      ) : (
+        <ChatComposer
+          // 4093 keeps it locked while the previous answer is still processed.
+          disabled={isWaitingForReply || clarification.isAwaitingPreviousAnswer}
+          isStreaming={isStreaming}
+          onStop={onStopGenerating}
+          onSubmit={onSendMessage}
         />
-      ) : null}
-      <ChatComposer
-        // The student answers or cancels the panel before asking anything
-        // else; 4093 keeps it locked while the previous answer is processed.
-        disabled={
-          isWaitingForReply ||
-          Boolean(openPanel) ||
-          clarification.isAwaitingPreviousAnswer
-        }
-        isStreaming={isStreaming}
-        onStop={onStopGenerating}
-        onSubmit={onSendMessage}
-        placeholder={
-          openPanel ? "Trả lời câu hỏi phía trên để tiếp tục" : undefined
-        }
-      />
+      )}
     </>
   )
 }
