@@ -7,11 +7,32 @@ import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
-import { AskUserFormCard } from "@/features/chat/components/ask-user-form"
-import { ChatComposer } from "@/features/chat/components/chat-composer"
+import { CalculationFeedback } from "@/features/chat/components/calculation-feedback"
+import {
+  ChatComposer,
+  ChatDisclaimer,
+} from "@/features/chat/components/chat-composer"
+import {
+  AnsweredClarificationCard,
+  CancelledClarificationCard,
+} from "@/features/chat/components/clarification/answered-clarification-card"
+import {
+  ClarificationPanel,
+  type ClarificationSubmitPayload,
+} from "@/features/chat/components/clarification/clarification-panel"
 import { CitationChips } from "@/features/chat/components/citation-chips"
+import { LegacyAskUserFormNotice } from "@/features/chat/components/legacy-ask-user-form-notice"
 import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
-import { extractAskUserForm } from "@/features/chat/utils/ask-user-form"
+import {
+  type OpenPanel,
+  readAnsweredCard,
+  readClarification,
+} from "@/features/chat/utils/clarification-state"
+import {
+  readCalculationFeedback,
+  readFeedbackItems,
+} from "@/features/chat/utils/calculation-feedback"
+import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
 import { useChatReplyTour } from "@/features/product-tour"
 import {
   groupCitationsByDocument,
@@ -23,6 +44,16 @@ import { ReportMessageButton } from "@/features/support-tickets/components/repor
 const PENDING_STATUSES = new Set(["PENDING", "STREAMING"])
 
 type ActiveConversationProps = {
+  clarification: {
+    errors: Record<string, string>
+    isAwaitingPreviousAnswer: boolean
+    isCancelling: boolean
+    onCancel: () => void
+    onSubmit: (
+      payload: ClarificationSubmitPayload & { panel: OpenPanel["panel"] }
+    ) => void
+    openPanel: OpenPanel | null
+  }
   isSending: boolean
   isStreaming: boolean
   messages: Message[]
@@ -33,6 +64,7 @@ type ActiveConversationProps = {
 }
 
 export function ActiveConversation({
+  clarification,
   isSending,
   isStreaming,
   messages,
@@ -41,6 +73,7 @@ export function ActiveConversation({
   onStopGenerating,
   usageWarning,
 }: ActiveConversationProps) {
+  const { openPanel } = clarification
   const lastMessage = messages.at(-1)
   const isWaitingForReply =
     isSending ||
@@ -61,9 +94,7 @@ export function ActiveConversation({
                 className="group flex animate-in flex-col items-end gap-1.5 duration-300 fade-in slide-in-from-bottom-2"
                 key={message.id}
               >
-                <div className="max-w-[85%] rounded-3xl bg-secondary px-5 py-3 text-[15px] leading-6 font-normal text-secondary-foreground shadow-2xs md:max-w-[75%]">
-                  <MarkdownRenderer content={message.content} />
-                </div>
+                <UserTurn message={message} previous={messages[index - 1]} />
               </div>
             ) : (
               <div
@@ -87,25 +118,16 @@ export function ActiveConversation({
                         "Không thể tạo câu trả lời. Vui lòng thử lại."}
                     </div>
                   </>
-                ) : !message.content ? (
+                ) : !message.content && !readClarification(message) ? (
                   <p className="text-sm text-muted-foreground italic">
                     Đã dừng tạo câu trả lời.
                   </p>
                 ) : (
                   <AssistantReply
-                    // The reply that followed this message - non-null only
-                    // once the student has answered, which is what marks any
-                    // ask_user_form in it as belonging to the past.
-                    answerText={
-                      messages.slice(index + 1).find((it) => it.role === "USER")
-                        ?.content ?? null
-                    }
                     content={message.content}
-                    disabled={isWaitingForReply}
                     isLatest={index === latestReplyIndex}
                     message={message}
                     onOpenCitation={onOpenCitation}
-                    onSendMessage={onSendMessage}
                     questionText={findQuestionBefore(messages, index)}
                     // Ids are only the server's once the stream is done and
                     // the messages are refetched.
@@ -123,42 +145,87 @@ export function ActiveConversation({
         </div>
       </ScrollArea>
       {usageWarning}
-      <ChatComposer
-        disabled={isWaitingForReply}
-        isStreaming={isStreaming}
-        onStop={onStopGenerating}
-        onSubmit={onSendMessage}
-      />
+      {openPanel ? (
+        // The panel takes the composer's place (same container and width): the
+        // student answers or cancels it before asking anything else.
+        <div className="px-4 py-3 md:px-6">
+          <ClarificationPanel
+            busy={clarification.isCancelling || isSending}
+            key={openPanel.panel.panel_id}
+            onCancel={clarification.onCancel}
+            onSubmit={(payload) =>
+              clarification.onSubmit({ ...payload, panel: openPanel.panel })
+            }
+            panel={openPanel.panel}
+            serverErrors={clarification.errors}
+          />
+          <ChatDisclaimer />
+        </div>
+      ) : (
+        <ChatComposer
+          // 4093 keeps it locked while the previous answer is still processed.
+          disabled={isWaitingForReply || clarification.isAwaitingPreviousAnswer}
+          isStreaming={isStreaming}
+          onStop={onStopGenerating}
+          onSubmit={onSendMessage}
+        />
+      )}
     </>
   )
 }
 
+// A submit turn of the question panel renders as the bordered answer card;
+// any other USER message stays a plain bubble.
+function UserTurn({
+  message,
+  previous,
+}: {
+  message: Message
+  previous: Message | undefined
+}) {
+  const answers = readAnsweredCard(message)
+  if (!answers) {
+    return (
+      <div className="max-w-[85%] rounded-3xl bg-secondary px-5 py-3 text-[15px] leading-6 font-normal text-secondary-foreground shadow-2xs md:max-w-[75%]">
+        <MarkdownRenderer content={message.content} />
+      </div>
+    )
+  }
+
+  const previousPanel =
+    previous?.role === "ASSISTANT"
+      ? (readClarification(previous)?.panel ?? null)
+      : null
+  return (
+    <div className="w-full max-w-[92%] md:max-w-[75%]">
+      <AnsweredClarificationCard answers={answers} panel={previousPanel} />
+    </div>
+  )
+}
+
 type AssistantReplyProps = {
-  answerText: string | null
   content: string
-  disabled: boolean
   // Only the newest reply carries tour anchors, so the reply tour points at
   // what the student just read rather than the top of a long thread.
   isLatest: boolean
   message: Message
   onOpenCitation: (citation: Citation) => void
-  onSendMessage: (content: string) => void
   questionText: string | null
   reportDisabled: boolean
 }
 
 function AssistantReply({
-  answerText,
   content,
-  disabled,
   isLatest,
   message,
   onOpenCitation,
-  onSendMessage,
   questionText,
   reportDisabled,
 }: AssistantReplyProps) {
-  const { form, text } = extractAskUserForm(content)
+  const { form: legacyForm, text } = stripLegacyAskUserForm(content)
+  const clarification = readClarification(message)
+  const feedbackItems = readFeedbackItems(message)
+  const feedback = readCalculationFeedback(message)
   const citations = message.citations ?? []
   const numbers = markerNumbers(groupCitationsByDocument(citations))
 
@@ -183,6 +250,21 @@ function AssistantReply({
           content={text}
         />
       </div>
+      {feedbackItems.length ? (
+        // One Đúng/Sai row per AI-computed result, in `items` order.
+        <div className="space-y-2">
+          {feedbackItems.map((item) => (
+            <CalculationFeedback
+              conversationId={message.conversationId}
+              current={feedback[item.item_id]}
+              disabled={reportDisabled}
+              item={item}
+              key={item.item_id}
+              messageId={message.id}
+            />
+          ))}
+        </div>
+      ) : null}
       {citations.length ? (
         <div {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyCitations) : {})}>
           <CitationChips
@@ -191,13 +273,9 @@ function AssistantReply({
           />
         </div>
       ) : null}
-      {form ? (
-        <AskUserFormCard
-          answerText={answerText}
-          disabled={disabled}
-          form={form}
-          onSubmit={onSendMessage}
-        />
+      {legacyForm ? <LegacyAskUserFormNotice form={legacyForm} /> : null}
+      {clarification?.status === "cancelled" ? (
+        <CancelledClarificationCard panel={clarification.panel} />
       ) : null}
       <div
         {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyActions) : {})}

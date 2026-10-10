@@ -257,10 +257,16 @@ export function ChatComposer({
         )}
       </form>
 
-      <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground">
-        UniSage có thể mắc sai sót. Hãy kiểm chứng quyết định quan trọng với
-        nguồn tài liệu được trích dẫn.
-      </p>
+      <ChatDisclaimer />
     </div>
+  )
+}
+
+export function ChatDisclaimer() {
+  return (
+    <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground">
+      UniSage có thể mắc sai sót. Hãy kiểm chứng quyết định quan trọng với nguồn
+      tài liệu được trích dẫn.
+    </p>
   )
 }

@@ -1,6 +1,13 @@
 import { useRef } from "react"
 
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
+import {
+  type ClarificationClosed,
+  clarificationClosedSchema,
+  type ClarificationPanel,
+  clarificationPanelSchema,
+  type ClarificationRequest,
+} from "@/features/chat/schemas/clarification-schemas"
 import { aiHttpClient } from "@/lib/ai-client"
 import { ApiResponseError } from "@/utils/api-response"
 import { STORAGE_KEYS, storage } from "@/utils/local-storage"
@@ -19,6 +26,31 @@ export type ChatStreamWarningPayload = {
   message: string
 }
 
+/**
+ * A non-2xx answer to `POST /chat/stream` (before any SSE). Carries the HTTP
+ * status next to the envelope's `code`/`errors` so the caller can react per
+ * contract §4 (4010's `errors` maps question_id -> reason; 503 on cancel).
+ */
+export class ChatStreamHttpError extends ApiResponseError {
+  readonly status: number
+
+  constructor(
+    status: number,
+    payload: {
+      code: number
+      errors?: Record<string, string> | null
+      message: string
+    }
+  ) {
+    super(payload)
+    // Keep the backend's own message rather than ApiResponseError's generic
+    // per-code text: the agent already tailors it to the caller.
+    if (payload.message) this.message = payload.message
+    this.name = "ChatStreamHttpError"
+    this.status = status
+  }
+}
+
 type ChatStreamCallbacks = {
   onChunk?: (token: string, fullText: string) => void
   onDone?: (fullText: string) => void
@@ -33,11 +65,32 @@ type ChatStreamCallbacks = {
    */
   onStreamError?: (payload: ChatStreamErrorPayload, fullText: string) => void
   onWarning?: (payload: ChatStreamWarningPayload) => void
+  /** `event: clarification` - the turn ends with a question panel. */
+  onClarification?: (panel: ClarificationPanel) => void
+  /** `event: clarification_closed` - the cancel was recorded. */
+  onClarificationClosed?: (payload: ClarificationClosed) => void
 }
 
-type ChatStreamInput = {
-  conversationId: string
-  message: string
+// Contract §1: a body carries exactly one of `message` or `clarification`.
+export type ChatStreamInput =
+  | { conversationId: string; message: string }
+  | { clarification: ClarificationRequest; conversationId: string }
+
+function buildRequestBody(input: ChatStreamInput) {
+  return "message" in input
+    ? { conversation_id: input.conversationId, message: input.message }
+    : {
+        clarification: input.clarification,
+        conversation_id: input.conversationId,
+      }
+}
+
+function parseJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return undefined
+  }
 }
 
 type ParsedSseEvent = {
@@ -69,21 +122,37 @@ async function readStreamErrorMessage(response: Response): Promise<Error> {
       "code" in body &&
       "message" in body
     ) {
-      const payload = body as { code: number; message: string }
-      const error = new ApiResponseError(payload)
-      // Keep the backend's own message rather than ApiResponseError's generic
-      // per-code text: the agent already tailors it to the caller (a plain
-      // message plus a reference code for students/guests, the technical
-      // cause for AI admins).
-      if (typeof payload.message === "string" && payload.message) {
-        error.message = payload.message
+      const payload = body as {
+        code: unknown
+        errors?: unknown
+        message: unknown
       }
-      return error
+      const errors =
+        payload.errors &&
+        typeof payload.errors === "object" &&
+        !Array.isArray(payload.errors)
+          ? Object.fromEntries(
+              Object.entries(payload.errors).filter(
+                (entry): entry is [string, string] =>
+                  typeof entry[1] === "string"
+              )
+            )
+          : null
+      return new ChatStreamHttpError(response.status, {
+        // A string code (e.g. BACKEND_JAVA_UNAVAILABLE) falls back to the
+        // HTTP status; callers branch on `status` for those.
+        code: typeof payload.code === "number" ? payload.code : response.status,
+        errors,
+        message: typeof payload.message === "string" ? payload.message : "",
+      })
     }
   } catch {
     // Response body wasn't the usual {code, message} envelope - fall through.
   }
-  return new Error(`Yêu cầu thất bại (mã trạng thái ${response.status}).`)
+  return new ChatStreamHttpError(response.status, {
+    code: response.status,
+    message: `Yêu cầu thất bại (mã trạng thái ${response.status}).`,
+  })
 }
 
 /**
@@ -116,10 +185,7 @@ export function useChatStream() {
     let response: Response
     try {
       response = await fetch(`${baseURL}${API_ENDPOINTS.aiChat.stream}`, {
-        body: JSON.stringify({
-          conversation_id: input.conversationId,
-          message: input.message,
-        }),
+        body: JSON.stringify(buildRequestBody(input)),
         credentials: "include",
         headers: {
           "Accept-Language": locale ?? "vi",
@@ -173,6 +239,12 @@ export function useChatStream() {
             callbacks.onStreamError?.(payload, fullText)
           } else if (event === "warning" && data !== undefined) {
             callbacks.onWarning?.(JSON.parse(data) as ChatStreamWarningPayload)
+          } else if (event === "clarification" && data !== undefined) {
+            const parsed = clarificationPanelSchema.safeParse(parseJson(data))
+            if (parsed.success) callbacks.onClarification?.(parsed.data)
+          } else if (event === "clarification_closed" && data !== undefined) {
+            const parsed = clarificationClosedSchema.safeParse(parseJson(data))
+            if (parsed.success) callbacks.onClarificationClosed?.(parsed.data)
           } else if (event === "done") {
             if (!sawError) callbacks.onDone?.(fullText)
           }

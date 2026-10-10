@@ -2,6 +2,12 @@ import { z } from "zod"
 
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
+  type CalculationFeedbackRequest,
+  calculationFeedbackRequestSchema,
+  type CalculationFeedbackResponse,
+  calculationFeedbackResponseSchema,
+} from "@/features/chat/schemas/calculation-schemas"
+import {
   type CitationDocument,
   citationDocumentSchema,
   type Conversation,
@@ -75,6 +81,18 @@ export const chatApi = {
     )
 
     return readSuccessData(response.data, z.array(messageSchema))
+  },
+
+  async submitCalculationFeedback(
+    messageId: string,
+    input: CalculationFeedbackRequest
+  ): Promise<CalculationFeedbackResponse> {
+    const request = calculationFeedbackRequestSchema.parse(input)
+    const response = await httpClient.post<
+      ApiResponse<CalculationFeedbackResponse>
+    >(API_ENDPOINTS.messages.calculationFeedback(messageId), request)
+
+    return readSuccessData(response.data, calculationFeedbackResponseSchema)
   },
 
   async softDeleteConversation(conversationId: string): Promise<void> {

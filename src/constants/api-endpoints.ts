@@ -89,6 +89,8 @@ export const API_ENDPOINTS = {
     conversationsGuest: "/conversations/guest",
   },
   messages: {
+    calculationFeedback: (messageId: string) =>
+      `/messages/${messageId}/calculation-feedback`,
     message: (messageId: string) => `/messages/${messageId}`,
     messages: "/messages",
     messagesByConversation: (conversationId: string) =>
