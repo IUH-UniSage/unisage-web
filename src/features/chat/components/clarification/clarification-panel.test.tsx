@@ -101,6 +101,23 @@ describe("ClarificationPanel", () => {
     )
   })
 
+  it("moves to the next tab when an option is clicked, but not on Khác", async () => {
+    const user = userEvent.setup()
+    renderPanel()
+
+    await user.click(screen.getByRole("radio", { name: "Khác" }))
+    expect(screen.getByRole("tab", { name: /Khoá/ })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+
+    await user.click(screen.getByText("K20"))
+    expect(screen.getByRole("tab", { name: /Điểm CK/ })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+  })
+
   it("requires text when Khác is chosen", async () => {
     const user = userEvent.setup()
     renderPanel()
