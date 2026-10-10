@@ -14,6 +14,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useCitationDocumentQuery } from "@/features/chat/queries/use-queries"
 import type { Citation } from "@/features/chat/schemas/chat-schemas"
 import { downloadFile } from "@/utils/download-file"
+import { getErrorCode } from "@/utils/error-handler"
+
+// ErrorCode.DOCUMENT_VIEW_FORBIDDEN: a private document the viewer's department
+// access doesn't clear (guests are refused every private document).
+const DOCUMENT_VIEW_FORBIDDEN = 2312
 
 type CitationDrawerProps = {
   citation: Citation | null
@@ -143,7 +148,9 @@ export function CitationDrawer({ citation, onClose }: CitationDrawerProps) {
             </div>
           ) : documentQuery.isError ? (
             <DrawerMessage>
-              Không tải được tài liệu. Vui lòng thử lại sau.
+              {getErrorCode(documentQuery.error) === DOCUMENT_VIEW_FORBIDDEN
+                ? "Bạn không có quyền xem tài liệu này."
+                : "Không tải được tài liệu. Vui lòng thử lại sau."}
             </DrawerMessage>
           ) : fileUrl ? (
             <DocumentFilePreview
