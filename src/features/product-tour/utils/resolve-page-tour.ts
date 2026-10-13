@@ -1,4 +1,3 @@
-import type { TourAnchor } from "@/constants/tour-anchors"
 import { PAGE_TOURS } from "@/features/product-tour/tours/staff-tours"
 import { getRouteTourForPath } from "@/features/product-tour/tours/route-tours"
 import type { TourStep } from "@/features/product-tour/tours/tour-step"
@@ -9,9 +8,6 @@ import {
 
 export type PageTour = {
   key: string
-  // On screen once the page has finished loading; the tour auto-starts only
-  // then. Defaults to the page header.
-  readyAnchor?: TourAnchor
   steps: readonly TourStep[]
 }
 

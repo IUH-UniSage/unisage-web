@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest"
 import { ROUTES } from "@/constants/paths"
 import {
   CHAT_REPLY_STEPS,
-  CHAT_REPLY_TOUR_KEY,
   CLIENT_PAGE_TOURS,
   getClientPageTour,
 } from "@/features/product-tour/tours/client-tours"
@@ -120,7 +119,7 @@ describe("client tours", () => {
     expect(getClientPageTour(ROUTES.notifications)).toBeNull()
   })
 
-  it("never shares a seen key with a staff tour", () => {
+  it("never reuses a staff tour key", () => {
     const staffKeys = [
       ...Object.keys(PAGE_TOURS),
       ...ROUTE_TOURS.map((tour) => tour.key),
@@ -129,7 +128,6 @@ describe("client tours", () => {
     CLIENT_PAGE_TOURS.forEach((tour) =>
       expect(staffKeys).not.toContain(tour.key)
     )
-    expect(staffKeys).not.toContain(CHAT_REPLY_TOUR_KEY)
   })
 
   it("replays the reply steps at the end of the chat tour", () => {

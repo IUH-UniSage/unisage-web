@@ -9,14 +9,13 @@ type ClientTourButtonProps = {
   pathname: string
 }
 
-// Student-facing pages (also open to guests): no workspace intro, each page
-// introduces itself.
+// Student-facing pages (also open to guests).
 export function ClientTourButton({
   className,
   pathname,
 }: ClientTourButtonProps) {
   const pageTour = useMemo(() => getClientPageTour(pathname), [pathname])
-  const { hasTour, start } = useProductTour({ pageTour })
+  const { hasTour, start } = useProductTour(pageTour)
 
   return hasTour ? (
     <TourHelpButton className={className} onClick={start} />
