@@ -1,12 +1,14 @@
 import { Check, Copy } from "lucide-react"
 import type { ReactNode } from "react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import { BrandMark } from "@/components/shared/brand/brand-mark"
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { useHeightVariable } from "@/hooks/use-height-variable"
+import { useKeepScrolledToBottom } from "@/hooks/use-keep-scrolled-to-bottom"
 import { CalculationFeedback } from "@/features/chat/components/calculation-feedback"
 import {
   ChatComposer,
@@ -83,11 +85,23 @@ export function ActiveConversation({
   )
   // Once the first answer is in, explain what can be done with it.
   useChatReplyTour(latestReplyIndex >= 0 && !isWaitingForReply && !isStreaming)
+  // Follows the latest message (an answer streaming in, the keyboard opening)
+  // while the reader is at the end.
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  useKeepScrolledToBottom(scrollAreaRef)
+  // The composer floats over the messages (they scroll behind it and fade out
+  // above it, like ChatGPT); the messages leave room for its current height.
+  const conversationRef = useRef<HTMLDivElement>(null)
+  const composerRef = useRef<HTMLDivElement>(null)
+  useHeightVariable(composerRef, conversationRef, "--composer-height")
 
   return (
-    <>
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="mx-auto max-w-3xl space-y-7 px-4 py-6 md:px-8 md:py-10">
+    <div
+      className="relative flex min-h-0 flex-1 flex-col"
+      ref={conversationRef}
+    >
+      <ScrollArea className="min-h-0 flex-1" ref={scrollAreaRef}>
+        <div className="mx-auto max-w-3xl space-y-7 px-4 pt-6 pb-[calc(var(--composer-height,8rem)+1rem)] md:px-8 md:pt-10">
           {messages.map((message, index) =>
             message.role === "USER" ? (
               <div
@@ -144,33 +158,40 @@ export function ActiveConversation({
           ) : null}
         </div>
       </ScrollArea>
-      {usageWarning}
-      {openPanel ? (
-        // The panel takes the composer's place (same container and width): the
-        // student answers or cancels it before asking anything else.
-        <div className="px-4 py-3 md:px-6">
-          <ClarificationPanel
-            busy={clarification.isCancelling || isSending}
-            key={openPanel.panel.panel_id}
-            onCancel={clarification.onCancel}
-            onSubmit={(payload) =>
-              clarification.onSubmit({ ...payload, panel: openPanel.panel })
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background from-75% to-transparent pt-8 *:pointer-events-auto"
+        ref={composerRef}
+      >
+        {usageWarning}
+        {openPanel ? (
+          // The panel takes the composer's place (same container and width): the
+          // student answers or cancels it before asking anything else.
+          <div className="px-4 py-3 md:px-6">
+            <ClarificationPanel
+              busy={clarification.isCancelling || isSending}
+              key={openPanel.panel.panel_id}
+              onCancel={clarification.onCancel}
+              onSubmit={(payload) =>
+                clarification.onSubmit({ ...payload, panel: openPanel.panel })
+              }
+              panel={openPanel.panel}
+              serverErrors={clarification.errors}
+            />
+            <ChatDisclaimer />
+          </div>
+        ) : (
+          <ChatComposer
+            // 4093 keeps it locked while the previous answer is still processed.
+            disabled={
+              isWaitingForReply || clarification.isAwaitingPreviousAnswer
             }
-            panel={openPanel.panel}
-            serverErrors={clarification.errors}
+            isStreaming={isStreaming}
+            onStop={onStopGenerating}
+            onSubmit={onSendMessage}
           />
-          <ChatDisclaimer />
-        </div>
-      ) : (
-        <ChatComposer
-          // 4093 keeps it locked while the previous answer is still processed.
-          disabled={isWaitingForReply || clarification.isAwaitingPreviousAnswer}
-          isStreaming={isStreaming}
-          onStop={onStopGenerating}
-          onSubmit={onSendMessage}
-        />
-      )}
-    </>
+        )}
+      </div>
+    </div>
   )
 }
 
