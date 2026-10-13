@@ -185,6 +185,10 @@ test("opens the mobile chat history drawer", async ({ page }, testInfo) => {
       name: "Điều kiện tốt nghiệp ngành Công nghệ thông tin Hôm nay",
     })
   ).toBeVisible()
+
+  // One close control in the drawer header (no sheet "×" stacked on top of it).
+  await drawer.getByRole("button", { name: "Thu gọn thanh bên" }).click()
+  await expect(drawer).toBeHidden()
 })
 
 test("links only to supported user workspaces", async ({ page }, testInfo) => {
