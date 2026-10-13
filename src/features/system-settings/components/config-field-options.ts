@@ -71,3 +71,37 @@ function withCurrentValue(
     ? extended.sort((a, b) => a.value.localeCompare(b.value))
     : extended
 }
+
+// The formats unisage-agent's ingestion parser can read (parser.py: txt,
+// html/htm, and pdf/docx through PyMuPDF). Anything else would upload fine
+// and then fail at ingestion, so the list is closed rather than free text.
+const FILE_EXTENSION_OPTIONS: ConfigOption[] = [
+  { label: ".pdf (PDF)", value: ".pdf" },
+  { label: ".docx (Word)", value: ".docx" },
+  { label: ".txt (Văn bản thuần)", value: ".txt" },
+  { label: ".html (Trang web)", value: ".html" },
+  { label: ".htm (Trang web)", value: ".htm" },
+]
+
+const MULTI_OPTIONS_BY_KEY: Record<string, ConfigOption[]> = {
+  "ingest.allowed_file_extensions": FILE_EXTENSION_OPTIONS,
+}
+
+/**
+ * The fixed choices for a JSON string-array config whose items come from a
+ * closed list, so it renders as a multi-select dropdown; null otherwise.
+ * Saved items outside the list stay selectable so they can be unticked.
+ */
+export function getConfigMultiOptions(
+  configKey: string,
+  currentItems: string[]
+): ConfigOption[] | null {
+  const options = MULTI_OPTIONS_BY_KEY[configKey]
+  if (!options) {
+    return null
+  }
+  const extras = currentItems
+    .filter((item) => !options.some((option) => option.value === item))
+    .map((item) => ({ label: item, value: item }))
+  return [...options, ...extras]
+}

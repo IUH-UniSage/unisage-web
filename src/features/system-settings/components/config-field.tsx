@@ -1,8 +1,14 @@
-import { Lock, X } from "lucide-react"
+import { ChevronDown, Lock, X } from "lucide-react"
 import { useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -13,7 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { getConfigOptions } from "@/features/system-settings/components/config-field-options"
+import {
+  type ConfigOption,
+  getConfigMultiOptions,
+  getConfigOptions,
+} from "@/features/system-settings/components/config-field-options"
 import type { SystemConfig } from "@/features/system-settings/schemas/system-config-schemas"
 import { cn } from "@/lib/utils"
 
@@ -104,6 +114,75 @@ function StringArrayField({
   )
 }
 
+// A string-array config whose items come from a closed list (see
+// getConfigMultiOptions): a dropdown of checkboxes, with the picked items
+// shown as chips on the trigger. Items keep the list's order when saved.
+function MultiSelectField({
+  disabled,
+  fieldId,
+  items,
+  onChange,
+  options,
+}: {
+  disabled: boolean
+  fieldId: string
+  items: string[]
+  onChange: (items: string[]) => void
+  options: ConfigOption[]
+}) {
+  const toggle = (value: string, checked: boolean) => {
+    const next = checked
+      ? [...items, value]
+      : items.filter((item) => item !== value)
+    onChange(
+      options
+        .map((option) => option.value)
+        .filter((option) => next.includes(option))
+    )
+  }
+
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild disabled={disabled}>
+        <button
+          className="flex min-h-9 w-full items-center gap-2 rounded-md border bg-transparent px-2 py-1.5 text-left text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+          id={fieldId}
+          type="button"
+        >
+          <span className="flex min-w-0 flex-1 flex-wrap gap-1">
+            {items.length === 0 ? (
+              <span className="px-1 text-muted-foreground">Chưa chọn</span>
+            ) : (
+              items.map((item) => (
+                <Badge className="font-mono" key={item} variant="secondary">
+                  {item}
+                </Badge>
+              ))
+            )}
+          </span>
+          <ChevronDown className="size-4 shrink-0 opacity-50" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-(--radix-dropdown-menu-trigger-width) min-w-48"
+      >
+        {options.map((option) => (
+          <DropdownMenuCheckboxItem
+            checked={items.includes(option.value)}
+            key={option.value}
+            onCheckedChange={(checked) => toggle(option.value, checked)}
+            // Keep the menu open so several items can be ticked in a row.
+            onSelect={(event) => event.preventDefault()}
+          >
+            {option.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 type ConfigFieldProps = {
   config: SystemConfig
   error?: string
@@ -115,9 +194,9 @@ type ConfigFieldProps = {
 // One settings row: label + description on the left, a compact control on
 // the right, stacked on narrow screens. The control follows `valueType` -
 // STRING/NUMBER get an Input (a Select when the key has fixed choices, see
-// config-field-options.ts), BOOLEAN a checkbox, JSON the chip editor or a
-// raw Textarea; the last two take the full row width since their content is
-// long. `label`/`description` always come from the backend row (Vietnamese
+// config-field-options.ts), BOOLEAN a checkbox, JSON a multi-select when the
+// items come from a closed list, else the chip editor or a raw Textarea; the
+// last two take the full row width since their content is long. `label`/`description` always come from the backend row (Vietnamese
 // copy) - never hardcoded here. `isEditable: false` renders the control
 // disabled but still visible, per the backend contract.
 export function ConfigField({
@@ -135,7 +214,11 @@ export function ConfigField({
     config.valueType === "STRING"
       ? getConfigOptions(config.configKey, value)
       : null
-  const isWide = config.valueType === "JSON"
+  const multiOptions =
+    stringArrayItems !== null
+      ? getConfigMultiOptions(config.configKey, stringArrayItems)
+      : null
+  const isWide = config.valueType === "JSON" && multiOptions === null
 
   return (
     <div
@@ -202,6 +285,14 @@ export function ConfigField({
               ))}
             </SelectContent>
           </Select>
+        ) : stringArrayItems !== null && multiOptions !== null ? (
+          <MultiSelectField
+            disabled={disabled}
+            fieldId={fieldId}
+            items={stringArrayItems}
+            onChange={(items) => onChange(JSON.stringify(items))}
+            options={multiOptions}
+          />
         ) : stringArrayItems !== null ? (
           <StringArrayField
             disabled={disabled}

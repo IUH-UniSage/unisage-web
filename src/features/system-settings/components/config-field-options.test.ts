@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { getConfigOptions } from "@/features/system-settings/components/config-field-options"
+import {
+  getConfigMultiOptions,
+  getConfigOptions,
+} from "@/features/system-settings/components/config-field-options"
 
 const values = (key: string, current: string) =>
   getConfigOptions(key, current)?.map((option) => option.value)
@@ -36,5 +39,28 @@ describe("getConfigOptions", () => {
 
   it("returns null for free-text configs", () => {
     expect(getConfigOptions("chat.system_prompt", "anything")).toBeNull()
+  })
+})
+
+describe("getConfigMultiOptions", () => {
+  it("offers only the formats the ingestion parser reads", () => {
+    expect(
+      getConfigMultiOptions("ingest.allowed_file_extensions", [".pdf"])?.map(
+        (option) => option.value
+      )
+    ).toEqual([".pdf", ".docx", ".txt", ".html", ".htm"])
+  })
+
+  it("keeps a saved extension outside the list so it can be unticked", () => {
+    expect(
+      getConfigMultiOptions("ingest.allowed_file_extensions", [
+        ".pdf",
+        ".doc",
+      ])?.at(-1)
+    ).toEqual({ label: ".doc", value: ".doc" })
+  })
+
+  it("returns null for other array configs", () => {
+    expect(getConfigMultiOptions("ingest.something_else", [])).toBeNull()
   })
 })
