@@ -187,6 +187,29 @@ export const CLIENT_PAGE_TOURS: readonly ClientPageTour[] = [
     ],
   },
   {
+    key: "ticket-detail",
+    paths: [`${ROUTES.tickets}/:ticketId`],
+    readyAnchor: TOUR_ANCHORS.ticketDetailContent,
+    steps: [
+      headerStep(
+        "Chi tiết yêu cầu",
+        "Trạng thái xử lý, nội dung bạn đã báo cáo và phản hồi của cán bộ."
+      ),
+      fieldStep(
+        TOUR_ANCHORS.ticketDetailContent,
+        "Nội dung đã gửi",
+        "Loại vấn đề, mô tả của bạn, câu hỏi gốc và câu trả lời bị báo cáo."
+      ),
+      fieldStep(
+        TOUR_ANCHORS.ticketDetailResolution,
+        "Phản hồi từ cán bộ",
+        "Hiện ở đây khi yêu cầu được giải quyết. Yêu cầu Đã đóng sẽ không được cập nhật thêm.",
+        "top"
+      ),
+      TOUR_BUTTON_STEP,
+    ],
+  },
+  {
     key: "profile",
     paths: [ROUTES.profile],
     steps: [

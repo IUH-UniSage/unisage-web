@@ -8,6 +8,11 @@ export const ticketTypeSchema = z.enum([
   "AI_SECURITY_BREACH",
   "AI_INAPPROPRIATE",
   "OTHER",
+  "AI_CALCULATION_WRONG",
+])
+// AI_CALCULATION_WRONG is filed by the calculation feedback flow only - POST /tickets rejects it.
+export const reportableTicketTypeSchema = ticketTypeSchema.exclude([
+  "AI_CALCULATION_WRONG",
 ])
 export const ticketStatusSchema = z.enum([
   "OPEN",
@@ -20,6 +25,7 @@ export type TicketType = z.infer<typeof ticketTypeSchema>
 export type TicketStatus = z.infer<typeof ticketStatusSchema>
 
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
+  AI_CALCULATION_WRONG: "AI tính sai theo quy chế",
   AI_INAPPROPRIATE: "Nội dung không phù hợp",
   AI_SECURITY_BREACH: "Nghi ngờ lộ thông tin bảo mật",
   AI_SYSTEM_ERROR: "AI trả lời sai hoặc lỗi hệ thống",
@@ -86,7 +92,7 @@ export const createTicketRequestSchema = z.object({
   description: z.string(),
   messageId: z.uuid(),
   title: z.string(),
-  type: ticketTypeSchema,
+  type: reportableTicketTypeSchema,
 })
 
 export type CreateTicketRequest = z.infer<typeof createTicketRequestSchema>
@@ -109,7 +115,7 @@ export const createTicketFormSchema = z.object({
       TICKET_TITLE_MAX_LENGTH,
       `Tiêu đề không được vượt quá ${TICKET_TITLE_MAX_LENGTH} ký tự.`
     ),
-  type: ticketTypeSchema,
+  type: reportableTicketTypeSchema,
 })
 
 export type CreateTicketFormValues = z.infer<typeof createTicketFormSchema>

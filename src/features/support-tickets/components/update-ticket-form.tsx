@@ -4,14 +4,6 @@ import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -20,13 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
-import { DialogTourButton } from "@/features/product-tour"
-import { TicketDetailContent } from "@/features/support-tickets/components/ticket-detail-content"
 import { useUpdateTicketMutation } from "@/features/support-tickets/queries/use-mutations"
-import { useTicketQuery } from "@/features/support-tickets/queries/use-queries"
 import {
   TICKET_RESOLUTION_MAX_LENGTH,
   TICKET_STATUS_LABELS,
@@ -47,13 +35,7 @@ const updateFormSchema = z.object({
 
 type UpdateFormValues = z.infer<typeof updateFormSchema>
 
-function UpdateTicketForm({
-  onDone,
-  ticket,
-}: {
-  onDone: () => void
-  ticket: TicketDetail
-}) {
+export function UpdateTicketForm({ ticket }: { ticket: TicketDetail }) {
   const isClosed = ticket.status === "CLOSED"
   const {
     control,
@@ -81,7 +63,6 @@ function UpdateTicketForm({
 
     try {
       await updateTicket.mutateAsync({ input: values, ticketId: ticket.id })
-      onDone()
     } catch (error) {
       if (!applyFieldErrors(error, setError)) {
         setError("root", { message: getErrorMessage(error) })
@@ -90,12 +71,12 @@ function UpdateTicketForm({
   })
 
   return (
-    <form className="space-y-4 border-t pt-4" onSubmit={onSubmit}>
+    <form className="space-y-4" onSubmit={onSubmit}>
       <div
         {...tourAnchor(TOUR_ANCHORS.ticketFormStatus)}
         className="space-y-1.5"
       >
-        <Label htmlFor="ticket-status">Trạng thái</Label>
+        <Label htmlFor="ticket-status">Trạng thái xử lý</Label>
         <Controller
           control={control}
           name="status"
@@ -105,7 +86,7 @@ function UpdateTicketForm({
               onValueChange={field.onChange}
               value={field.value}
             >
-              <SelectTrigger className="w-full" id="ticket-status">
+              <SelectTrigger className="w-full sm:w-60" id="ticket-status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -154,10 +135,7 @@ function UpdateTicketForm({
         </p>
       ) : null}
 
-      <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
-        <Button onClick={onDone} type="button" variant="outline">
-          Đóng
-        </Button>
+      <div className="flex justify-end pt-2">
         {isClosed ? null : (
           <Button disabled={isSubmitting} type="submit">
             {isSubmitting ? (
@@ -169,62 +147,7 @@ function UpdateTicketForm({
             Lưu thay đổi
           </Button>
         )}
-      </DialogFooter>
+      </div>
     </form>
-  )
-}
-
-type AdminTicketDialogProps = {
-  canUpdate: boolean
-  onClose: () => void
-  ticketId: string
-}
-
-export function AdminTicketDialog({
-  canUpdate,
-  onClose,
-  ticketId,
-}: AdminTicketDialogProps) {
-  const { data: ticket, error } = useTicketQuery(ticketId)
-
-  return (
-    <Dialog onOpenChange={(open) => !open && onClose()} open>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogTourButton tourKey="ticket-detail" />
-        <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
-          <DialogTitle>{ticket?.title ?? "Chi tiết yêu cầu"}</DialogTitle>
-          <DialogDescription>
-            Xem yêu cầu hỗ trợ và cập nhật trạng thái xử lý.
-          </DialogDescription>
-        </DialogHeader>
-        {ticket ? (
-          <>
-            <div {...tourAnchor(TOUR_ANCHORS.ticketDetailContent)}>
-              <TicketDetailContent showRequester ticket={ticket} />
-            </div>
-            {canUpdate ? (
-              // Remount on a refetched ticket so the form shows its new values.
-              <UpdateTicketForm
-                key={`${ticket.id}-${ticket.updatedAt ?? ""}`}
-                onDone={onClose}
-                ticket={ticket}
-              />
-            ) : (
-              <DialogFooter {...tourAnchor(TOUR_ANCHORS.dialogFooter)}>
-                <Button onClick={onClose} type="button" variant="outline">
-                  Đóng
-                </Button>
-              </DialogFooter>
-            )}
-          </>
-        ) : error ? (
-          <p className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive">
-            {getErrorMessage(error)}
-          </p>
-        ) : (
-          <Skeleton className="h-64 rounded-xl" />
-        )}
-      </DialogContent>
-    </Dialog>
   )
 }

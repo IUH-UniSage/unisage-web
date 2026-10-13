@@ -56,6 +56,10 @@ export const ROUTES = {
 
 export type RouteKey = keyof typeof ROUTES
 
+export function ticketDetailPath(ticketId: string): string {
+  return `${ROUTES.tickets}/${ticketId}`
+}
+
 export function ingesterIngestWizardPath(documentId: string): string {
   return `${ROUTES.ingesterProcessing}/${documentId}`
 }
