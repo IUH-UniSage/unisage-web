@@ -37,6 +37,14 @@ export const API_ENDPOINTS = {
     usageLogSummary: "/usage-logs/summary",
     usageLogs: "/usage-logs",
   },
+  backups: {
+    overview: "/admin/backups/overview",
+    postgresRestore: "/admin/backups/restores/postgres",
+    postgresRestoreStatus: "/admin/backups/restores/postgres/status",
+    qdrantRestore: "/admin/backups/restores/qdrant",
+    restores: "/admin/backups/restores",
+    runs: "/admin/backups/runs",
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
