@@ -37,20 +37,20 @@ export function TicketDetailView() {
     <div className="mx-auto mt-6 mb-8 w-full max-w-[1000px] space-y-6 px-4">
       <div
         {...tourAnchor(TOUR_ANCHORS.pageHeader)}
-        className="flex flex-col gap-4 rounded-xl bg-gradient-to-r from-primary to-primary/75 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-4 rounded-xl bg-gradient-to-r from-primary to-primary/75 p-4 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6"
       >
         <div className="flex min-w-0 items-center gap-4">
-          <div className="grid size-14 shrink-0 place-items-center rounded-full bg-white/15 text-white">
-            <LifeBuoy aria-hidden="true" className="size-7" />
+          <div className="grid size-12 shrink-0 place-items-center rounded-full bg-white/15 text-white sm:size-14">
+            <LifeBuoy aria-hidden="true" className="size-6 sm:size-7" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-white/80">
               {canRead ? "Quản trị · Hỗ trợ" : "Hỗ trợ sinh viên"}
             </p>
-            <h1 className="truncate text-2xl font-bold text-white">
+            <h1 className="text-xl font-bold text-white sm:truncate sm:text-2xl">
               Chi tiết yêu cầu hỗ trợ
             </h1>
-            <p className="truncate text-sm text-white/80">
+            <p className="line-clamp-2 text-sm text-white/80 sm:truncate">
               {ticket
                 ? ticket.title
                 : isPending
