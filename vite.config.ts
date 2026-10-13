@@ -15,7 +15,17 @@ export default defineConfig({
     host: true,
     allowedHosts: [".trycloudflare.com"],
     proxy: {
-      "/api": { target: "http://localhost:8400", changeOrigin: true, ws: true },
+      "/api": {
+        target: "http://localhost:8400",
+        changeOrigin: true,
+        ws: true,
+        // The browser sees /api as same-origin, but the gateway's CORS filter
+        // compares Origin (the tunnel URL) to Host and would 403 it.
+        configure: (proxy) => {
+          proxy.on("proxyReq", (req) => req.removeHeader("origin"))
+          proxy.on("proxyReqWs", (req) => req.removeHeader("origin"))
+        },
+      },
     },
   },
   test: {
