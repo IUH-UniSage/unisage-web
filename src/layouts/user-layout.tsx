@@ -17,7 +17,7 @@ import { ROUTES } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { LogoutButton } from "@/features/auth/components/logout-button"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import { ClientTourButton } from "@/features/product-tour"
+import { ClientOverviewTour, ClientTourButton } from "@/features/product-tour"
 
 const userNavigation = [
   {
@@ -69,6 +69,7 @@ export function UserLayout() {
 
   return (
     <div className="min-h-svh bg-background">
+      <ClientOverviewTour />
       <header className="sticky top-0 z-30 shadow-[0_8px_24px_rgb(21_56_152_/_0.08)]">
         <div className="hidden bg-sidebar text-white lg:block dark:border-b dark:border-white/[0.05]">
           <div className="mx-auto flex h-10 max-w-[1200px] items-center justify-between px-4 text-[11px] font-medium">

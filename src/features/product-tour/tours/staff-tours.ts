@@ -14,63 +14,6 @@ import {
   toolbarStep,
   type TourStep,
 } from "@/features/product-tour/tours/tour-step"
-import type { StaffWorkspace } from "@/routes/feature-registry"
-
-const SIDEBAR_STEP: TourStep = {
-  anchor: TOUR_ANCHORS.sidebarNav,
-  description:
-    "Chuyển giữa các trang quản lý. Bạn chỉ thấy những mục mà vai trò của mình được phép truy cập.",
-  side: "right",
-  title: "Thanh điều hướng",
-}
-
-const SEARCH_STEP: TourStep = {
-  anchor: TOUR_ANCHORS.workspaceSearch,
-  description:
-    "Gõ tên trang hoặc chức năng để nhảy tới nhanh. Phím tắt: Ctrl + K.",
-  side: "bottom",
-  title: "Tìm kiếm nhanh",
-}
-
-const TOUR_BUTTON_STEP: TourStep = {
-  anchor: TOUR_ANCHORS.tourButton,
-  description:
-    "Bấm biểu tượng ? bất cứ lúc nào để xem lại hướng dẫn của trang đang mở. Các hộp thoại cũng có biểu tượng ? riêng ở góc trên.",
-  side: "bottom",
-  title: "Xem lại hướng dẫn",
-}
-
-// Shown once per workspace, ahead of whichever page the staff member lands
-// on first, so every page tour can stay focused on its own content.
-export const WORKSPACE_INTRO_STEPS: Record<StaffWorkspace, TourStep[]> = {
-  ingester: [
-    {
-      description:
-        "Đây là nơi bạn tải tài liệu lên, theo dõi quá trình xử lý và quản lý nội dung tri thức. Hướng dẫn ngắn này giới thiệu các khu vực chính.",
-      title: "Chào mừng đến không gian Nạp tài liệu",
-    },
-    SIDEBAR_STEP,
-    SEARCH_STEP,
-    TOUR_BUTTON_STEP,
-  ],
-  "system-admin": [
-    {
-      description:
-        "Đây là nơi bạn quản lý người dùng, phân quyền, nội dung, mô hình AI và cấu hình hệ thống UniSage. Hướng dẫn ngắn này giới thiệu các khu vực chính.",
-      title: "Chào mừng đến không gian Quản trị hệ thống",
-    },
-    SIDEBAR_STEP,
-    SEARCH_STEP,
-    {
-      anchor: TOUR_ANCHORS.accountMenu,
-      description:
-        "Xem thông tin cá nhân, đổi mật khẩu, về trang chủ hoặc đăng xuất.",
-      side: "bottom",
-      title: "Tài khoản",
-    },
-    TOUR_BUTTON_STEP,
-  ],
-}
 
 const STATUS_ROW_ACTIONS =
   "Bấm biểu tượng ⋯ để Xem chi tiết, Chỉnh sửa hoặc Vô hiệu hoá. Mục đã vô hiệu hoá vẫn được giữ lại và có thể Khôi phục bất cứ lúc nào."

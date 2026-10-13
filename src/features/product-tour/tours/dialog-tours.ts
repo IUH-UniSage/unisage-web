@@ -9,9 +9,6 @@ import {
 } from "@/features/product-tour/tours/tour-step"
 
 export type DialogTour = {
-  // Anchor that must be on screen before the tour auto-starts, for dialogs
-  // that open on a skeleton while their data loads. Defaults to the header.
-  readyAnchor?: (typeof TOUR_ANCHORS)[keyof typeof TOUR_ANCHORS]
   steps: readonly TourStep[]
 }
 
@@ -276,7 +273,6 @@ export const DIALOG_TOURS = {
     ],
   },
   "my-ticket-detail": {
-    readyAnchor: TOUR_ANCHORS.ticketDetailContent,
     steps: [
       dialogHeaderStep(
         "Chi tiết yêu cầu",
@@ -356,7 +352,6 @@ export const DIALOG_TOURS = {
     ],
   },
   "ticket-detail": {
-    readyAnchor: TOUR_ANCHORS.ticketDetailContent,
     steps: [
       dialogHeaderStep(
         "Yêu cầu hỗ trợ",

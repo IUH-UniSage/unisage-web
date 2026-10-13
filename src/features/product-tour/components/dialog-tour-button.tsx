@@ -10,7 +10,7 @@ type DialogTourButtonProps = {
 }
 
 // Render as the first child of DialogContent / SheetContent: it sits next to
-// the close button and auto-starts the dialog's tour the first time it opens.
+// the close button and starts the dialog's tour on click.
 export function DialogTourButton({ tourKey }: DialogTourButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const { start } = useDialogTour(tourKey, buttonRef)
