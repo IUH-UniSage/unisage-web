@@ -24,7 +24,10 @@ export function AppProviders({ children }: PropsWithChildren) {
             <Toaster position="bottom-right" richColors />
           </TooltipProvider>
         </AuthProvider>
-        {import.meta.env.DEV ? <ReactQueryDevtools /> : null}
+        {import.meta.env.DEV &&
+        import.meta.env.VITE_ENABLE_QUERY_DEVTOOLS === "true" ? (
+          <ReactQueryDevtools />
+        ) : null}
       </QueryClientProvider>
     </ThemeProvider>
   )
