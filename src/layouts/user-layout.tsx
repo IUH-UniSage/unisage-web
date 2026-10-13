@@ -162,7 +162,7 @@ export function UserLayout() {
                   showCloseButton={false}
                   side="right"
                 >
-                  <SheetHeader className="knowledge-network relative flex h-28 justify-center bg-[linear-gradient(135deg,#153898,#3159c4)] px-5 py-0 text-white">
+                  <SheetHeader className="knowledge-network relative flex h-28 justify-center bg-hero px-5 py-0 text-white">
                     <SheetTitle className="sr-only">
                       Điều hướng người dùng
                     </SheetTitle>
