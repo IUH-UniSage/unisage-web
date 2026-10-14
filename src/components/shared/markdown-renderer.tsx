@@ -84,7 +84,7 @@ function CitationMarker({ indexes }: { indexes: number[] }) {
         markers?.indexes.includes(index) ? (
           <button
             aria-label={`Xem nguồn ${markers.numbers?.[index] ?? index}`}
-            className="mx-0.5 cursor-pointer rounded bg-primary/10 px-1 align-super text-[11px] leading-none font-semibold text-primary transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="ml-0.5 cursor-pointer rounded bg-primary/10 px-1 align-super text-[11px] leading-none font-semibold text-primary transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             key={index}
             onClick={() => markers.onSelect(index)}
             type="button"
@@ -93,7 +93,7 @@ function CitationMarker({ indexes }: { indexes: number[] }) {
           </button>
         ) : (
           <sup
-            className="mx-0.5 rounded bg-primary/10 px-1 text-[11px] font-semibold text-primary"
+            className="ml-0.5 rounded bg-primary/10 px-1 text-[11px] font-semibold text-primary"
             key={index}
           >
             {index}
@@ -409,10 +409,15 @@ function renderInline(text: string): React.ReactNode[] {
   // referencing the numbered source list at the end of the reply).
   const regex =
     /(<br\s*\/?>|\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|https?:\/\/[^\s<>()[\]]*[^\s<>()[\].,;:!?'"]|\[\d+(?:\s*,\s*\d+)*\])/gi
-  const merged = text.replace(
-    /\[(\d+(?:\s*,\s*\d+)*)\](?:\s*\[(\d+(?:\s*,\s*\d+)*)\](?!\())+/g,
-    (match) => `[${(match.match(/\d+/g) ?? []).join(", ")}]`
-  )
+  const merged = text
+    .replace(
+      /\[(\d+(?:\s*,\s*\d+)*)\](?:\s*\[(\d+(?:\s*,\s*\d+)*)\](?!\())+/g,
+      (match) => `[${(match.match(/\d+/g) ?? []).join(", ")}]`
+    )
+    // A marker sits on the word it cites, like a footnote: "2026) [1] ." reads
+    // "2026)¹." - no space before it, none between it and the punctuation.
+    .replace(/(\S)[ \t]+(\[\d+(?:\s*,\s*\d+)*\](?!\())/g, "$1$2")
+    .replace(/(\[\d+(?:\s*,\s*\d+)*\](?!\())[ \t]+(?=[.,;:!?])/g, "$1")
   const parts = merged.split(regex)
 
   return parts.map((part, index) => {

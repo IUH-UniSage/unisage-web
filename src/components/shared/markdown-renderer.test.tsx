@@ -39,3 +39,15 @@ describe("MarkdownRenderer links", () => {
     expect(screen.getByText(/bấm vào/)).toBeInTheDocument()
   })
 })
+
+describe("MarkdownRenderer citation markers", () => {
+  afterEach(cleanup)
+
+  it("attaches a marker to the cited text and the punctuation after it", () => {
+    const { container } = render(
+      <MarkdownRenderer content="đến hết thứ Tư (ngày 02/09/2026) [1] ." />
+    )
+
+    expect(container.textContent).toBe("đến hết thứ Tư (ngày 02/09/2026)1.")
+  })
+})

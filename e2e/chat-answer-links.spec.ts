@@ -50,7 +50,7 @@ test("opens a page the answer points to in a new tab", async ({
               },
               {
                 ...base,
-                content: `Bạn có thể xem điểm chuẩn tại các trang sau:\n\n- Điểm chuẩn trúng tuyển 2026: ${PAGE_URL}`,
+                content: `Điểm chuẩn được công bố trên website tuyển sinh (ngày 20/08/2026) [1] . Bạn có thể xem điểm chuẩn tại các trang sau:\n\n- Điểm chuẩn trúng tuyển 2026: ${PAGE_URL}`,
                 id: "7c1d2a90-1b2c-4d3e-8f40-5a6b7c8d9e02",
                 role: "ASSISTANT",
               },
