@@ -67,8 +67,10 @@ export function QdrantSnapshotSection({
           <TableBody>
             {snapshots.map((snapshot) => (
               <TableRow key={snapshot.id}>
-                <TableCell className="font-medium">{snapshot.target}</TableCell>
-                <TableCell>
+                <TableCell className="font-medium whitespace-nowrap">
+                  {snapshot.target}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
                   {formatDateTime(snapshot.finishedAt ?? snapshot.startedAt)}
                   <span className="ml-2 text-xs text-muted-foreground">
                     {formatRelativeTime(
@@ -76,7 +78,7 @@ export function QdrantSnapshotSection({
                     )}
                   </span>
                 </TableCell>
-                <TableCell className="text-right tabular-nums">
+                <TableCell className="text-right whitespace-nowrap tabular-nums">
                   {formatFileSize(snapshot.sizeBytes)}
                 </TableCell>
                 {canRestore && (
