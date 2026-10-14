@@ -1,5 +1,5 @@
 import { Check, Copy } from "lucide-react"
-import { createContext, useContext, useState } from "react"
+import { createContext, type ReactNode, useContext, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -403,11 +403,12 @@ function renderInline(text: string): React.ReactNode[] {
   // marker for a wrapped cell - see table_normalizer.py's `strip_markup`
   // docstring: "A `<br>` is kept - it is a line break inside the cell"),
   // bold **text**, italic *text*, inline code `code`, links [text](url),
-  // and bare citation markers [1] (the agent's citation_rules prompt has
-  // the model emit these inline, e.g. "...khóa tuyển sinh [1][2]",
+  // bare http(s) URLs (the ticket fallback lists official pages by their
+  // address), and bare citation markers [1] (the agent's citation_rules
+  // prompt has the model emit these inline, e.g. "...khóa tuyển sinh [1][2]",
   // referencing the numbered source list at the end of the reply).
   const regex =
-    /(<br\s*\/?>|\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|\[\d+(?:\s*,\s*\d+)*\])/gi
+    /(<br\s*\/?>|\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|https?:\/\/[^\s<>()[\]]*[^\s<>()[\].,;:!?'"]|\[\d+(?:\s*,\s*\d+)*\])/gi
   const merged = text.replace(
     /\[(\d+(?:\s*,\s*\d+)*)\](?:\s*\[(\d+(?:\s*,\s*\d+)*)\](?!\())+/g,
     (match) => `[${(match.match(/\d+/g) ?? []).join(", ")}]`
@@ -464,19 +465,53 @@ function renderInline(text: string): React.ReactNode[] {
     // Link
     const linkMatch = part.match(/^\[(.*?)\]\((.*?)\)$/)
     if (linkMatch) {
-      return (
-        <a
-          className="font-medium text-primary underline underline-offset-2 hover:text-primary/80"
-          href={linkMatch[2]}
-          key={index}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
+      return isSafeHref(linkMatch[2]) ? (
+        <ExternalLink href={linkMatch[2]} key={index}>
           {linkMatch[1]}
-        </a>
+        </ExternalLink>
+      ) : (
+        linkMatch[1]
+      )
+    }
+
+    // Bare URL: clickable, opened in a new tab like any other link
+    if (/^https?:\/\//i.test(part)) {
+      return (
+        <ExternalLink className="break-all" href={part} key={index}>
+          {part}
+        </ExternalLink>
       )
     }
 
     return part
   })
+}
+
+// Only web and mail links: a model-written `[x](javascript:...)` stays text.
+function isSafeHref(href: string): boolean {
+  return /^(https?:\/\/|mailto:)/i.test(href.trim())
+}
+
+function ExternalLink({
+  children,
+  className,
+  href,
+}: {
+  children: ReactNode
+  className?: string
+  href: string
+}) {
+  return (
+    <a
+      className={cn(
+        "font-medium text-primary underline underline-offset-2 hover:text-primary/80",
+        className
+      )}
+      href={href}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      {children}
+    </a>
+  )
 }
