@@ -84,3 +84,83 @@ test("shows what the turn is doing and how long it has run", async ({
     path: testInfo.outputPath(`chat-progress-${testInfo.project.name}.png`),
   })
 })
+
+test("shows the stored response time at the right of the answer's actions", async ({
+  page,
+}, testInfo) => {
+  // mockGuestChat's conversation, its answer stored with the turn's response time.
+  let answered = false
+  page.on("request", (request) => {
+    if (request.url().includes("/chat/stream")) answered = true
+  })
+  await page.route("**/messages/conversation/**", async (route) => {
+    const createdAt = new Date().toISOString()
+    const base = {
+      chatModelId: null,
+      citations: null,
+      conversationId: "4d0f7f4e-8a3b-4c55-9d2e-0c7a3e9b1a11",
+      createdAt,
+      retrievalScore: null,
+      status: "COMPLETED",
+      ticketId: null,
+    }
+    await route.fulfill({
+      json: {
+        code: 1000,
+        data: answered
+          ? [
+              {
+                ...base,
+                content: "Điều kiện tốt nghiệp là gì?",
+                id: "7c1d2a90-1b2c-4d3e-8f40-5a6b7c8d9e01",
+                metadata: null,
+                role: "USER",
+              },
+              {
+                ...base,
+                content:
+                  "Sinh viên cần tích lũy đủ số tín chỉ của chương trình.",
+                id: "7c1d2a90-1b2c-4d3e-8f40-5a6b7c8d9e02",
+                metadata: null,
+                responseTimeMs: 16240,
+                role: "ASSISTANT",
+              },
+            ]
+          : [],
+        message: "Successful",
+      },
+    })
+  })
+  await page.goto("/chat")
+
+  await page
+    .getByRole("textbox", { name: "Tin nhắn gửi UniSage" })
+    .fill("Điều kiện tốt nghiệp là gì?")
+  await page.keyboard.press("Enter")
+
+  const total = page.getByText("16,24s", { exact: true })
+  await expect(total).toBeVisible()
+  // On the actions' row, at its right edge (as far right as the answer).
+  const report = page
+    .getByRole("button", { name: "Báo cáo câu trả lời này" })
+    .last()
+  const [totalBox, reportBox] = await Promise.all([
+    total.boundingBox(),
+    report.boundingBox(),
+  ])
+  const answerBox = await page
+    .getByText("Sinh viên cần tích lũy đủ số tín chỉ của chương trình.")
+    .boundingBox()
+  expect(totalBox && reportBox && totalBox.x > reportBox.x + 40).toBe(true)
+  expect(
+    totalBox &&
+      reportBox &&
+      Math.abs(totalBox.y - reportBox.y) < reportBox.height
+  ).toBe(true)
+  expect(answerBox).not.toBeNull()
+  await page.screenshot({
+    path: testInfo.outputPath(
+      `chat-response-time-${testInfo.project.name}.png`
+    ),
+  })
+})

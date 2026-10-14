@@ -37,3 +37,13 @@ export function shortUrl(url: string): string {
     return url
   }
 }
+
+const RESPONSE_SECONDS = new Intl.NumberFormat("vi-VN", {
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 2,
+})
+
+/** "16,24s": a finished answer's stored response time, to the hundredth. */
+export function formatResponseTime(milliseconds: number): string {
+  return `${RESPONSE_SECONDS.format(Math.max(0, milliseconds) / 1000)}s`
+}

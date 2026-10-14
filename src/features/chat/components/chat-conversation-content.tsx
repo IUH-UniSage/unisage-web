@@ -45,6 +45,7 @@ import {
   groupCitationsByDocument,
   markerNumbers,
 } from "@/features/chat/utils/citations"
+import { formatResponseTime } from "@/features/chat/utils/turn-progress"
 import { findQuestionBefore } from "@/features/chat/utils/question-before"
 import { ReportMessageButton } from "@/features/support-tickets/components/report-message-button"
 
@@ -327,6 +328,15 @@ function AssistantReply({
           message={message}
           questionText={questionText}
         />
+        {message.responseTimeMs != null ? (
+          // Pushed to the row's right edge, under the end of the answer.
+          <span
+            className="ml-auto text-xs text-muted-foreground tabular-nums"
+            title="Thời gian từ lúc gửi câu hỏi tới khi trả lời xong"
+          >
+            {formatResponseTime(message.responseTimeMs)}
+          </span>
+        ) : null}
       </div>
     </>
   )

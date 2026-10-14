@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   formatElapsed,
+  formatResponseTime,
   progressLabel,
   shortUrl,
 } from "@/features/chat/utils/turn-progress"
@@ -45,5 +46,13 @@ describe("shortUrl", () => {
       "pdt.iuh.edu.vn/thông-báo"
     )
     expect(shortUrl("not a url")).toBe("not a url")
+  })
+})
+
+describe("formatResponseTime", () => {
+  it("shows hundredths of a second with a decimal comma", () => {
+    expect(formatResponseTime(16240)).toBe("16,24s")
+    expect(formatResponseTime(400)).toBe("0,40s")
+    expect(formatResponseTime(1955)).toBe("1,96s")
   })
 })

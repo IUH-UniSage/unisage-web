@@ -52,6 +52,9 @@ export const messageSchema = z.object({
   createdAt: z.string(),
   id: z.uuid(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
+  // Total time of an assistant turn in ms (unisage-agent contracts/chat-sse.md
+  // §5c); null for USER, failed or older messages.
+  responseTimeMs: z.number().int().nonnegative().nullish().catch(null),
   retrievalScore: z.number().nullable(),
   role: msgRoleSchema,
   status: msgStatusSchema,
