@@ -213,6 +213,7 @@ export function ChatPage() {
                 onOpenCitation={openCitation}
                 onSendMessage={workspace.sendMessage}
                 onStopGenerating={workspace.stopGenerating}
+                turnProgress={workspace.turnProgress}
                 usageWarning={usageWarning}
               />
             ) : (

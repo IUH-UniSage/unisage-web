@@ -37,6 +37,11 @@ import {
 import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
 import { useChatReplyTour } from "@/features/product-tour"
 import {
+  ElapsedTime,
+  TurnProgressIndicator,
+} from "@/features/chat/components/turn-progress"
+import type { TurnProgress } from "@/features/chat/hooks/use-turn-progress"
+import {
   groupCitationsByDocument,
   markerNumbers,
 } from "@/features/chat/utils/citations"
@@ -62,6 +67,8 @@ type ActiveConversationProps = {
   onOpenCitation: (citation: Citation) => void
   onSendMessage: (content: string) => void
   onStopGenerating: () => void
+  /** The in-flight turn's clock and status, shown in its assistant bubble. */
+  turnProgress: TurnProgress | null
   usageWarning?: ReactNode
 }
 
@@ -73,6 +80,7 @@ export function ActiveConversation({
   onOpenCitation,
   onSendMessage,
   onStopGenerating,
+  turnProgress,
   usageWarning,
 }: ActiveConversationProps) {
   const { openPanel } = clarification
@@ -116,9 +124,13 @@ export function ActiveConversation({
                 key={message.id}
               >
                 {PENDING_STATUSES.has(message.status) && !message.content ? (
-                  <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground">
-                    <span className="animate-pulse">Đang suy nghĩ...</span>
-                  </div>
+                  turnProgress?.messageId === message.id ? (
+                    <TurnProgressIndicator progress={turnProgress} />
+                  ) : (
+                    <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground">
+                      <span className="animate-pulse">Đang suy nghĩ...</span>
+                    </div>
+                  )
                 ) : message.status === "ERROR" ? (
                   <>
                     {/* What streamed before the failure stays readable. */}
@@ -150,6 +162,13 @@ export function ActiveConversation({
                     }
                   />
                 )}
+                {/* The clock keeps running while the answer streams in. */}
+                {turnProgress?.messageId === message.id && message.content ? (
+                  <ElapsedTime
+                    className="block text-xs text-muted-foreground"
+                    startedAt={turnProgress.startedAt}
+                  />
+                ) : null}
               </div>
             )
           )}
