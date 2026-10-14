@@ -421,6 +421,39 @@ export const PAGE_TOURS: Partial<Record<string, TourStep[]>> = {
     },
     PAGINATION_STEP,
   ],
+  "admin-backups": [
+    headerStep(
+      "Sao lưu & khôi phục",
+      "Theo dõi các bản sao lưu và khôi phục dữ liệu ngay trong ứng dụng."
+    ),
+    {
+      anchor: TOUR_ANCHORS.backupStatus,
+      description:
+        "Bản mới nhất của từng loại sao lưu. Bấm Sao lưu ngay để tạo một bản ngoài lịch.",
+      side: "bottom",
+      title: "Các loại sao lưu",
+    },
+    {
+      anchor: TOUR_ANCHORS.backupRestore,
+      description:
+        "Đưa toàn bộ dữ liệu về một bản sao lưu hoặc một thời điểm. Hệ thống tự tạo bản an toàn trước khi khôi phục.",
+      side: "bottom",
+      title: "Khôi phục cơ sở dữ liệu",
+    },
+    {
+      anchor: TOUR_ANCHORS.backupQdrant,
+      description:
+        "Khôi phục vector của tài liệu đã nạp từ một snapshot Qdrant.",
+      side: "top",
+      title: "Khôi phục Qdrant",
+    },
+    {
+      anchor: TOUR_ANCHORS.backupHistory,
+      description: "Mọi lần sao lưu và khôi phục, kể cả lần thất bại.",
+      side: "top",
+      title: "Lịch sử",
+    },
+  ],
   "admin-settings": [
     headerStep(
       "Cài đặt hệ thống",

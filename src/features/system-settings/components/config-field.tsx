@@ -1,12 +1,31 @@
-import { Lock, X } from "lucide-react"
+import { ChevronDown, Lock, X } from "lucide-react"
 import { useState } from "react"
 
-import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  type ConfigOption,
+  getConfigMultiOptions,
+  getConfigOptions,
+} from "@/features/system-settings/components/config-field-options"
 import type { SystemConfig } from "@/features/system-settings/schemas/system-config-schemas"
+import { cn } from "@/lib/utils"
 
 /** Parses `value` as a JSON array of strings, or returns null if it isn't one. */
 function parseStringArray(value: string): string[] | null {
@@ -95,23 +114,95 @@ function StringArrayField({
   )
 }
 
+// A string-array config whose items come from a closed list (see
+// getConfigMultiOptions): a dropdown of checkboxes, with the picked items
+// shown as chips on the trigger. Items keep the list's order when saved.
+function MultiSelectField({
+  disabled,
+  fieldId,
+  items,
+  onChange,
+  options,
+}: {
+  disabled: boolean
+  fieldId: string
+  items: string[]
+  onChange: (items: string[]) => void
+  options: ConfigOption[]
+}) {
+  const toggle = (value: string, checked: boolean) => {
+    const next = checked
+      ? [...items, value]
+      : items.filter((item) => item !== value)
+    onChange(
+      options
+        .map((option) => option.value)
+        .filter((option) => next.includes(option))
+    )
+  }
+
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild disabled={disabled}>
+        <button
+          className="flex min-h-9 w-full items-center gap-2 rounded-md border bg-transparent px-2 py-1.5 text-left text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+          id={fieldId}
+          type="button"
+        >
+          <span className="flex min-w-0 flex-1 flex-wrap gap-1">
+            {items.length === 0 ? (
+              <span className="px-1 text-muted-foreground">Chưa chọn</span>
+            ) : (
+              items.map((item) => (
+                <Badge className="font-mono" key={item} variant="secondary">
+                  {item}
+                </Badge>
+              ))
+            )}
+          </span>
+          <ChevronDown className="size-4 shrink-0 opacity-50" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-(--radix-dropdown-menu-trigger-width) min-w-48"
+      >
+        {options.map((option) => (
+          <DropdownMenuCheckboxItem
+            checked={items.includes(option.value)}
+            key={option.value}
+            onCheckedChange={(checked) => toggle(option.value, checked)}
+            // Keep the menu open so several items can be ticked in a row.
+            onSelect={(event) => event.preventDefault()}
+          >
+            {option.label}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 type ConfigFieldProps = {
   config: SystemConfig
   error?: string
+  isDirty?: boolean
   onChange: (value: string) => void
   value: string
 }
 
-// Renders one config row's field, shaped by its `valueType` - STRING/NUMBER
-// get a plain Input, BOOLEAN reuses ToggleOptionCard (bordered
-// checkbox+label+description row, same as rbac's "Kích hoạt vai trò"), JSON
-// gets a raw-text Textarea. `label`/`description` always come from the
-// backend row (Vietnamese copy) - never hardcoded here. `isEditable: false`
-// renders the field disabled but still visible, per the backend contract
-// (none of the 11 seeded rows currently set this, but the field exists).
+// One settings row: label + description on the left, a compact control on
+// the right, stacked on narrow screens. The control follows `valueType` -
+// STRING/NUMBER get an Input (a Select when the key has fixed choices, see
+// config-field-options.ts), BOOLEAN a checkbox, JSON a multi-select when the
+// items come from a closed list, else the chip editor or a raw Textarea; the
+// last two take the full row width since their content is long. `label`/`description` always come from the backend row (Vietnamese
+// copy) - never hardcoded here. `isEditable: false` renders the control
+// disabled but still visible, per the backend contract.
 export function ConfigField({
   config,
   error,
+  isDirty = false,
   onChange,
   value,
 }: ConfigFieldProps) {
@@ -119,66 +210,118 @@ export function ConfigField({
   const fieldId = `system-config-${config.configKey}`
   const stringArrayItems =
     config.valueType === "JSON" ? parseStringArray(value) : null
-
-  if (config.valueType === "BOOLEAN") {
-    return (
-      <div className="space-y-1.5">
-        <ToggleOptionCard
-          checked={value === "true"}
-          description={config.description ?? ""}
-          label={config.label}
-          onCheckedChange={(checked) =>
-            !disabled && onChange(checked ? "true" : "false")
-          }
-        />
-        {disabled ? <ReadOnlyBadge /> : null}
-      </div>
-    )
-  }
+  const options =
+    config.valueType === "STRING"
+      ? getConfigOptions(config.configKey, value)
+      : null
+  const multiOptions =
+    stringArrayItems !== null
+      ? getConfigMultiOptions(config.configKey, stringArrayItems)
+      : null
+  const isWide = config.valueType === "JSON" && multiOptions === null
 
   return (
-    <div className="space-y-1.5 rounded-xl border p-3">
-      <div className="flex items-start justify-between gap-2">
-        <Label className="text-sm font-medium" htmlFor={fieldId}>
-          {config.label}
-        </Label>
-        {disabled ? <ReadOnlyBadge /> : null}
+    <div
+      className={cn(
+        "grid gap-x-8 gap-y-3 py-4",
+        !isWide && "sm:grid-cols-[minmax(0,1fr)_16rem] sm:items-center"
+      )}
+    >
+      <div className="min-w-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <Label className="text-sm font-semibold" htmlFor={fieldId}>
+            {config.label}
+          </Label>
+          {isDirty ? (
+            <Badge className="h-5 px-1.5 text-[11px]" variant="secondary">
+              Chưa lưu
+            </Badge>
+          ) : null}
+          {disabled ? <ReadOnlyBadge /> : null}
+        </div>
+        {config.description ? (
+          <p className="max-w-prose text-[13px] leading-5 text-muted-foreground">
+            {config.description}
+          </p>
+        ) : null}
       </div>
 
-      {stringArrayItems !== null ? (
-        <StringArrayField
-          disabled={disabled}
-          fieldId={fieldId}
-          items={stringArrayItems}
-          onChange={(items) => onChange(JSON.stringify(items))}
-        />
-      ) : config.valueType === "JSON" ? (
-        <Textarea
-          aria-invalid={Boolean(error)}
-          className="font-mono text-xs"
-          disabled={disabled}
-          id={fieldId}
-          onChange={(event) => onChange(event.target.value)}
-          rows={4}
-          value={value}
-        />
-      ) : (
-        <Input
-          aria-invalid={Boolean(error)}
-          disabled={disabled}
-          id={fieldId}
-          onChange={(event) => onChange(event.target.value)}
-          type={config.valueType === "NUMBER" ? "number" : "text"}
-          value={value}
-        />
-      )}
-
-      {config.description ? (
-        <p className="text-xs leading-5 text-muted-foreground">
-          {config.description}
-        </p>
-      ) : null}
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      <div className="min-w-0 space-y-1.5">
+        {config.valueType === "BOOLEAN" ? (
+          <label
+            className="flex h-9 cursor-pointer items-center gap-2.5 text-sm sm:justify-end"
+            htmlFor={fieldId}
+          >
+            <span
+              className={cn(
+                value === "true" ? "font-medium" : "text-muted-foreground"
+              )}
+            >
+              {value === "true" ? "Đang bật" : "Đang tắt"}
+            </span>
+            <Checkbox
+              checked={value === "true"}
+              disabled={disabled}
+              id={fieldId}
+              onCheckedChange={(checked) =>
+                onChange(checked === true ? "true" : "false")
+              }
+            />
+          </label>
+        ) : options !== null ? (
+          <Select disabled={disabled} onValueChange={onChange} value={value}>
+            <SelectTrigger
+              aria-invalid={Boolean(error)}
+              className="w-full"
+              id={fieldId}
+            >
+              <SelectValue placeholder="Chọn giá trị" />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : stringArrayItems !== null && multiOptions !== null ? (
+          <MultiSelectField
+            disabled={disabled}
+            fieldId={fieldId}
+            items={stringArrayItems}
+            onChange={(items) => onChange(JSON.stringify(items))}
+            options={multiOptions}
+          />
+        ) : stringArrayItems !== null ? (
+          <StringArrayField
+            disabled={disabled}
+            fieldId={fieldId}
+            items={stringArrayItems}
+            onChange={(items) => onChange(JSON.stringify(items))}
+          />
+        ) : config.valueType === "JSON" ? (
+          <Textarea
+            aria-invalid={Boolean(error)}
+            className="font-mono text-xs"
+            disabled={disabled}
+            id={fieldId}
+            onChange={(event) => onChange(event.target.value)}
+            rows={4}
+            value={value}
+          />
+        ) : (
+          <Input
+            aria-invalid={Boolean(error)}
+            disabled={disabled}
+            id={fieldId}
+            onChange={(event) => onChange(event.target.value)}
+            type={config.valueType === "NUMBER" ? "number" : "text"}
+            value={value}
+          />
+        )}
+        {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      </div>
     </div>
   )
 }

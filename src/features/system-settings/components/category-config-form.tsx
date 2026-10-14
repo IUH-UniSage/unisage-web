@@ -151,37 +151,43 @@ export function CategoryConfigForm({
     <ConfigField
       config={config}
       error={fieldErrors[config.configKey]}
+      isDirty={dirtyKeys.includes(config.configKey)}
       key={config.configKey}
       onChange={(value) => handleChange(config.configKey, value)}
       value={draft[config.configKey]}
     />
   )
 
+  const sections: ConfigGroup[] = groups ?? [{ configs, title: "" }]
+
   return (
-    <div className="space-y-4">
-      {groups ? (
-        <div className="space-y-4">
-          {groups.map((group) => (
-            <div
-              className="space-y-3 rounded-xl border bg-card p-4 shadow-xs"
-              key={group.title}
-            >
-              <h3 className="text-xs font-black tracking-widest text-muted-foreground uppercase">
-                {group.title}
-              </h3>
-              <div className="space-y-3">{group.configs.map(renderField)}</div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-3">{configs.map(renderField)}</div>
-      )}
+    <div className="space-y-5">
+      {sections.map((section) => (
+        <section
+          className="rounded-xl border bg-card shadow-xs"
+          key={section.title || "all"}
+        >
+          {section.title ? (
+            <h3 className="border-b px-5 py-3 text-sm font-bold text-foreground">
+              {section.title}
+            </h3>
+          ) : null}
+          <div className="divide-y px-5">
+            {section.configs.map(renderField)}
+          </div>
+        </section>
+      ))}
 
       {canUpdate ? (
         <div
           {...tourAnchor(TOUR_ANCHORS.settingsSave)}
-          className="flex justify-end"
+          className="sticky bottom-0 z-10 flex items-center justify-end gap-3 rounded-xl border bg-background/95 px-4 py-3 shadow-sm backdrop-blur"
         >
+          <span className="text-sm text-muted-foreground">
+            {isDirty
+              ? `${dirtyKeys.length} thay đổi chưa lưu`
+              : "Không có thay đổi"}
+          </span>
           <Button disabled={!isDirty || isSaving} onClick={handleSave}>
             <Save aria-hidden="true" />
             Lưu thay đổi

@@ -65,6 +65,16 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   // Hạn mức sử dụng
   2150: "Hệ thống chưa cấu hình gói hạn mức mặc định.",
 
+  // Sao lưu & khôi phục (UNISAGE-102)
+  2159: "Giá trị cấu hình sao lưu không hợp lệ.",
+  2160: "Đang có một tác vụ sao lưu hoặc khôi phục chạy, thử lại sau khi nó xong nhé.",
+  2161: "Không tìm thấy bản sao lưu này.",
+  2162: "Bản sao lưu này không dùng để khôi phục được (chưa thành công hoặc đã bị xóa theo chính sách giữ lại).",
+  2163: "Chưa khôi phục được từ ứng dụng: container cơ sở dữ liệu chưa chạy cấu hình mới hoặc chưa cấu hình thư mục khôi phục.",
+  2164: "Thời điểm khôi phục nằm ngoài khoảng có thể khôi phục.",
+  2165: "Chọn đúng một trong hai: một bản sao lưu, hoặc một thời điểm.",
+  2166: "Chưa chạy được loại sao lưu này (Differential cần một bản Full, Transaction log cần cấu hình WAL archive).",
+
   // System
   9999: "Có lỗi xảy ra, bạn thử lại sau nhé.",
 
