@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { citationSchema } from "@/features/chat/schemas/chat-schemas"
+
 // Mirror backend TicketType / TicketStatus (name + displayName). Update both
 // together when the backend enums change.
 export const ticketTypeSchema = z.enum([
@@ -60,11 +62,54 @@ export const ticketSchema = z.object({
 
 export type Ticket = z.infer<typeof ticketSchema>
 
+// One chunk given to the LLM for the reported answer, cited or not - the
+// staff-only trace unisage-agent pushes per turn (POST /internal/message-traces).
+export const ticketContextChunkSchema = z.object({
+  chunkId: z.string().nullish(),
+  cited: z.boolean().nullish(),
+  content: z.string().nullish(),
+  documentId: z.string().nullish(),
+  headingPath: z.array(z.string()).nullish().catch(null),
+  index: z.number().int().nullish(),
+  pageEnd: z.number().nullish(),
+  pageStart: z.number().nullish(),
+  score: z.number().nullish(),
+  section: z.string().nullish(),
+  sourceType: z.string().nullish(),
+  title: z.string().nullish(),
+})
+
+// A web page given to the LLM: its content was in the prompt (CONTENT), or it
+// was only offered as a link to an official page (LINK, no `index`).
+export const ticketWebSourceSchema = z.object({
+  cited: z.boolean().nullish(),
+  content: z.string().nullish(),
+  index: z.number().int().nullish(),
+  kind: z.enum(["CONTENT", "LINK"]).nullish().catch(null),
+  score: z.number().nullish(),
+  title: z.string().nullish(),
+  // Only http(s) - it becomes a link target.
+  url: z
+    .url({ protocol: /^https?$/ })
+    .nullish()
+    .catch(null),
+})
+
+export type TicketContextChunk = z.infer<typeof ticketContextChunkSchema>
+export type TicketWebSource = z.infer<typeof ticketWebSourceSchema>
+
 // Detail adds the conversation context the backend resolves at read time.
+// `citations`, `traceId`, `contextChunks` and `webSources` are staff-only:
+// null on the owner's own view, and the last three also on an answer stored
+// before the agent pushed traces.
 export const ticketDetailSchema = ticketSchema.extend({
+  citations: z.array(citationSchema).nullish().catch(null),
+  contextChunks: z.array(ticketContextChunkSchema).nullish().catch(null),
   conversationId: z.uuid(),
   messageContent: z.string().nullish(),
   questionContent: z.string().nullish(),
+  traceId: z.string().nullish(),
+  webSources: z.array(ticketWebSourceSchema).nullish().catch(null),
 })
 
 export type TicketDetail = z.infer<typeof ticketDetailSchema>

@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ticketDetailPath } from "@/constants/paths"
+import { adminTicketDetailPath } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { TicketStatusBadge } from "@/features/support-tickets/components/ticket-status-badge"
 import { useTicketsQuery } from "@/features/support-tickets/queries/use-queries"
@@ -117,7 +117,7 @@ export function AdminTickets() {
             size="icon-sm"
             variant="ghost"
           >
-            <Link to={ticketDetailPath(row.original.id)}>
+            <Link to={adminTicketDetailPath(row.original.id)}>
               <Eye aria-hidden="true" />
             </Link>
           </Button>
@@ -253,7 +253,7 @@ export function AdminTickets() {
                     · {formatAuditDate(ticket.createdAt)}
                   </p>
                   <Button asChild className="mt-3" size="sm" variant="outline">
-                    <Link to={ticketDetailPath(ticket.id)}>
+                    <Link to={adminTicketDetailPath(ticket.id)}>
                       <Eye aria-hidden="true" />
                       Xem chi tiết
                     </Link>

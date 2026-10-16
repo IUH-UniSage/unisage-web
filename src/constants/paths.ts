@@ -60,6 +60,10 @@ export function ticketDetailPath(ticketId: string): string {
   return `${ROUTES.tickets}/${ticketId}`
 }
 
+export function adminTicketDetailPath(ticketId: string): string {
+  return `${ROUTES.adminTickets}/${ticketId}`
+}
+
 export function ingesterIngestWizardPath(documentId: string): string {
   return `${ROUTES.ingesterProcessing}/${documentId}`
 }
