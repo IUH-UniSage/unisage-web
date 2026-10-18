@@ -1,8 +1,10 @@
 import { useMutation } from "@tanstack/react-query"
 
 import { chatModelApi } from "@/features/chat-models/api/chat-model-api"
+import { embeddingIndexApi } from "@/features/chat-models/api/embedding-index-api"
 import {
   chatModelKeys,
+  embeddingIndexKeys,
   verificationJobKeys,
 } from "@/features/chat-models/queries/keys"
 import type {
@@ -71,13 +73,15 @@ type UpdateChatModelStatusVariables = {
 
 // Covers both activate and deactivate - the backend only ever accepts
 // ACTIVE/INACTIVE here (see chatModelStatusRequestSchema); a rejected
-// activate (e.g. EMBEDDING_REINDEX_REQUIRED, EMBEDDING_ACTIVE_CONFLICT) still
-// invalidates the list on settle, so the row refetches its real state.
+// activate (e.g. EMBEDDING_ACTIVE_CONFLICT) still invalidates the list on
+// settle, so the row refetches its real state. Errors are shown by the caller:
+// EMBEDDING_REINDEX_REQUIRED opens the re-index dialog instead of a toast.
 export function useUpdateChatModelStatusMutation() {
   return useMutation({
     meta: {
-      invalidatesQuery: chatModelKeys.all,
+      invalidatesQueries: [chatModelKeys.all, embeddingIndexKeys.all],
       successMessage: "Đã cập nhật trạng thái mô hình chat.",
+      suppressGlobalError: true,
     },
     mutationFn: ({ chatModelId, status }: UpdateChatModelStatusVariables) =>
       chatModelApi.updateChatModelStatus(chatModelId, status),
@@ -92,5 +96,30 @@ export function useVerifyChatModelMutation() {
     },
     mutationFn: (chatModelId: string) =>
       chatModelApi.verifyChatModel(chatModelId),
+  })
+}
+
+// A re-index changes which model ends up ACTIVE, so the model list refetches too.
+const EMBEDDING_INDEX_QUERIES = [embeddingIndexKeys.all, chatModelKeys.all]
+
+export function useStartEmbeddingReindexMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQueries: EMBEDDING_INDEX_QUERIES,
+      successMessage:
+        "Đã bắt đầu re-index. Mô hình mới được kích hoạt khi re-index xong.",
+    },
+    mutationFn: (chatModelId: string) =>
+      embeddingIndexApi.startReindex(chatModelId),
+  })
+}
+
+export function useCancelEmbeddingReindexMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQueries: EMBEDDING_INDEX_QUERIES,
+      successMessage: "Đã huỷ re-index. Chỉ mục hiện tại giữ nguyên.",
+    },
+    mutationFn: (runId: string) => embeddingIndexApi.cancelReindex(runId),
   })
 }
