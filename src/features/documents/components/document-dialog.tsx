@@ -311,6 +311,19 @@ export function DocumentDialog({
                     {errors.file.message}
                   </p>
                 ) : null}
+                {selectedFile && document && document.status !== "PENDING" ? (
+                  <p className="text-xs text-muted-foreground">
+                    Tài liệu đã nạp sẽ được gỡ khỏi chỉ mục tìm kiếm và chuyển
+                    sang trạng thái Lỗi thời. Hãy chạy Xử lý nạp liệu lại với
+                    tệp mới.
+                  </p>
+                ) : null}
+                {document?.status === "COMPLETED" && !selectedFile ? (
+                  <p className="text-xs text-muted-foreground">
+                    Đổi phòng ban, cấp độ truy cập hoặc chế độ công khai sẽ cập
+                    nhật ngay quyền xem của các đoạn đã nạp.
+                  </p>
+                ) : null}
               </div>
             ) : (
               <>

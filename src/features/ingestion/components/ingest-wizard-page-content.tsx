@@ -1,8 +1,9 @@
 import { Check } from "lucide-react"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { INGEST_RESTART_PARAM } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { ChunkEditorPanel } from "@/features/ingestion/components/steps/chunking/chunk-editor-panel"
@@ -93,8 +94,39 @@ export function IngestWizardPageContent({
   backTo,
   document,
 }: IngestWizardPageContentProps) {
+  const [searchParams, setSearchParams] = useSearchParams()
+  // A nonce, not a flag: each "Chunk & embed lại" remounts the wizard fresh.
+  const restartNonce = searchParams.get(INGEST_RESTART_PARAM)
+
+  const restartWizard = () =>
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
+        next.set(INGEST_RESTART_PARAM, String(Date.now()))
+        return next
+      },
+      { replace: true }
+    )
+
+  return (
+    <IngestWizard
+      backTo={backTo}
+      document={document}
+      key={restartNonce ?? "resume"}
+      onRestart={restartWizard}
+      restart={restartNonce != null}
+    />
+  )
+}
+
+function IngestWizard({
+  backTo,
+  document,
+  onRestart,
+  restart,
+}: IngestWizardPageContentProps & { onRestart: () => void; restart: boolean }) {
   const navigate = useNavigate()
-  const wizard = useIngestWizard(document)
+  const wizard = useIngestWizard(document, { restart })
   const visualStep = stepToVisualStep(wizard.step)
   const [activeChunkIndex, setActiveChunkIndex] = useState<number>()
 
@@ -159,7 +191,11 @@ export function IngestWizardPageContent({
                 </div>
               ) : null}
               {wizard.step === "embedding" ? (
-                <EmbeddingStep onFinish={goToQueue} wizard={wizard} />
+                <EmbeddingStep
+                  onFinish={goToQueue}
+                  onRestart={onRestart}
+                  wizard={wizard}
+                />
               ) : null}
             </>
           )}
