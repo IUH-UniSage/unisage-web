@@ -3,6 +3,7 @@ export const ROUTE_SEGMENTS = {
   auth: "auth",
   categories: "categories",
   chat: "chat",
+  chatConversation: ":conversationId",
   costManagement: "cost-management",
   departments: "departments",
   documents: "documents",
@@ -137,4 +138,10 @@ export function ingesterDocumentEditPath(documentId: string): string {
 
 export function ingesterDocumentChunksPath(documentId: string): string {
   return `${ROUTES.ingesterDocuments}/${documentId}/chunks`
+}
+
+/** `/chat/<id>`: the open conversation lives in the URL, so a reload or a shared link
+ * lands on the same conversation (like ChatGPT's `/c/<id>`). */
+export function chatConversationPath(conversationId: string): string {
+  return `${ROUTES.chat}/${conversationId}`
 }

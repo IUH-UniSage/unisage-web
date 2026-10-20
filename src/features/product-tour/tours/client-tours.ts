@@ -110,7 +110,7 @@ export const CLIENT_PAGE_TOURS: readonly ClientPageTour[] = [
   },
   {
     key: "chat",
-    paths: [ROUTES.chat],
+    paths: [ROUTES.chat, `${ROUTES.chat}/:conversationId`],
     steps: [
       fieldStep(
         TOUR_ANCHORS.chatComposer,

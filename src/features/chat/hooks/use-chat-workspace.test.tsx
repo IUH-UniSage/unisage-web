@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
+import { MemoryRouter, Route, Routes } from "react-router-dom"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
+import { ROUTES } from "@/constants/paths"
 import { useChatWorkspace } from "@/features/chat/hooks/use-chat-workspace"
 import { chatKeys } from "@/features/chat/queries/keys"
 import type { Message } from "@/features/chat/schemas/chat-schemas"
@@ -69,8 +71,15 @@ describe("useChatWorkspace clarification", () => {
     vi.unstubAllGlobals()
   })
 
+  // The hook reads the open conversation from the `/chat/:conversationId` route.
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[ROUTES.chat]}>
+        <Routes>
+          <Route path={`${ROUTES.chat}/:conversationId?`} element={children} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   )
 
   it("writes an open clarification into the streamed assistant message", async () => {

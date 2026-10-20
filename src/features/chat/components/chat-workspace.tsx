@@ -16,6 +16,7 @@ import {
 } from "@/features/chat/components/conversation-history"
 import { SearchConversationDialog } from "@/features/chat/components/search-conversation-dialog"
 import { CitationDrawer } from "@/features/chat/components/citation-drawer"
+import { DESKTOP_MEDIA_QUERY, useMediaQuery } from "@/hooks/use-media-query"
 import { SourcePanel } from "@/features/chat/components/source-panel"
 import { UsageWarningPanel } from "@/features/usage-limits/components/usage-warning-panel"
 import { useChatWorkspace } from "@/features/chat/hooks/use-chat-workspace"
@@ -33,12 +34,21 @@ export function ChatPage() {
   const [isResizing, setIsResizing] = useState(false)
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
   const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
+  // On desktop the document opens as a column next to the chat (nothing dimmed, the
+  // conversation keeps working); the history sidebar folds away to make room. On
+  // smaller screens it slides over the page as a sheet.
+  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY)
   // A web-search source opens its page in a new tab; a document opens the drawer.
   const openCitation = (citation: Citation) => {
     const url = webCitationUrl(citation)
-    if (url) window.open(url, "_blank", "noopener,noreferrer")
-    else setActiveCitation(citation)
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer")
+      return
+    }
+    setActiveCitation(citation)
+    if (isDesktop) workspace.setIsHistoryOpen(false)
   }
+  const isCitationColumnOpen = isDesktop && activeCitation !== null
   const sourceCitations = latestCitations(workspace.messages)
   // Closing the low-usage warning lasts until the page is reloaded.
   const [isUsageWarningDismissed, setIsUsageWarningDismissed] = useState(false)
@@ -177,8 +187,11 @@ export function ChatPage() {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
           <DesktopChatHeader
             activeConversation={workspace.activeConversation}
-            isSourcesOpen={workspace.isSourcesOpen}
-            onOpenSources={() => workspace.setIsSourcesOpen(true)}
+            isSourcesOpen={workspace.isSourcesOpen && !isCitationColumnOpen}
+            onOpenSources={() => {
+              setActiveCitation(null)
+              workspace.setIsSourcesOpen(true)
+            }}
             sourceCount={groupCitationsByDocument(sourceCitations).length}
           />
 
@@ -212,8 +225,14 @@ export function ChatPage() {
           </section>
         </div>
 
-        {/* Right Source Panel (Pushed all the way to top level, matching Sidebar height) */}
-        {workspace.isSourcesOpen ? (
+        {/* Right column: the open document (desktop) or the source list */}
+        {isCitationColumnOpen ? (
+          <CitationDrawer
+            citation={activeCitation}
+            inline
+            onClose={() => setActiveCitation(null)}
+          />
+        ) : workspace.isSourcesOpen ? (
           <SourcePanel
             citations={sourceCitations}
             onClose={() => workspace.setIsSourcesOpen(false)}
@@ -223,8 +242,9 @@ export function ChatPage() {
         ) : null}
       </div>
 
+      {/* Smaller screens: the document slides over the page instead */}
       <CitationDrawer
-        citation={activeCitation}
+        citation={isDesktop ? null : activeCitation}
         onClose={() => setActiveCitation(null)}
       />
 
