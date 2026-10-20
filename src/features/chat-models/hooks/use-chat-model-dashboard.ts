@@ -1,11 +1,14 @@
 import { useState } from "react"
 import { useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import {
+  useCancelEmbeddingReindexMutation,
   useCreateChatModelMutation,
   useDeleteChatModelMutation,
   useRecoverChatModelMutation,
+  useStartEmbeddingReindexMutation,
   useUpdateChatModelMutation,
   useUpdateChatModelStatusMutation,
   useVerifyChatModelMutation,
@@ -17,7 +20,12 @@ import type {
   ChatModelStatus,
   CreateChatModelRequest,
 } from "@/features/chat-models/schemas/chat-model-schemas"
+import {
+  EMBEDDING_REINDEX_REQUIRED_CODE,
+  type EmbeddingReindexRun,
+} from "@/features/chat-models/schemas/embedding-index-schemas"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
+import { getErrorCode, getErrorMessage } from "@/utils/error-handler"
 import { PERMISSIONS } from "@/utils/permissions"
 
 export const CHAT_MODEL_PAGE_SIZE = 12
@@ -117,16 +125,25 @@ export function useChatModelDashboard() {
   const recoverChatModel = useRecoverChatModelMutation()
   const updateChatModelStatus = useUpdateChatModelStatusMutation()
   const verifyChatModel = useVerifyChatModelMutation()
+  const startEmbeddingReindex = useStartEmbeddingReindexMutation()
+  const cancelEmbeddingReindex = useCancelEmbeddingReindexMutation()
 
   const { canCreate, canDelete, canRead, canUpdate } =
     useResourcePermissions("chat_model")
-  const { can } = usePermissions()
+  const { can, canAny } = usePermissions()
   const canRecover = can(PERMISSIONS.chatModelAll)
+  const canReindex = canAny([
+    PERMISSIONS.chatModelReindex,
+    PERMISSIONS.chatModelAll,
+  ])
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingChatModel, setEditingChatModel] = useState<ChatModel>()
   const [viewingChatModel, setViewingChatModel] = useState<ChatModel>()
   const [statusChatModel, setStatusChatModel] = useState<ChatModel>()
+  // Open re-index dialog; `modelId` is the model whose activation needed it.
+  const [reindexDialog, setReindexDialog] = useState<{ modelId?: string }>()
+  const [cancellingRun, setCancellingRun] = useState<EmbeddingReindexRun>()
 
   const chatModels = chatModelsQuery.data?.data ?? EMPTY_CHAT_MODELS
 
@@ -167,17 +184,55 @@ export function useChatModelDashboard() {
 
   // "status" here is the ACTIVE/INACTIVE/PENDING/DISABLED state machine, a
   // separate axis from the isActive soft-delete toggle above.
-  const activateChatModel = (chatModel: ChatModel) =>
-    updateChatModelStatus.mutateAsync({
-      chatModelId: chatModel.id,
-      status: "ACTIVE",
-    })
+  // An EMBEDDING model whose vectors differ from the live index cannot be
+  // activated directly: offer to re-index into it instead (UNISAGE-103).
+  const activateChatModel = async (chatModel: ChatModel) => {
+    try {
+      await updateChatModelStatus.mutateAsync({
+        chatModelId: chatModel.id,
+        status: "ACTIVE",
+      })
+    } catch (error) {
+      if (
+        canReindex &&
+        chatModel.modelPurpose === "EMBEDDING" &&
+        getErrorCode(error) === EMBEDDING_REINDEX_REQUIRED_CODE
+      ) {
+        setReindexDialog({ modelId: chatModel.id })
+        return
+      }
+      toast.error(getErrorMessage(error))
+    }
+  }
 
-  const deactivateChatModel = (chatModel: ChatModel) =>
-    updateChatModelStatus.mutateAsync({
-      chatModelId: chatModel.id,
-      status: "INACTIVE",
-    })
+  const deactivateChatModel = async (chatModel: ChatModel) => {
+    try {
+      await updateChatModelStatus.mutateAsync({
+        chatModelId: chatModel.id,
+        status: "INACTIVE",
+      })
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    }
+  }
+
+  const openReindexDialog = () => setReindexDialog({})
+  const closeReindexDialog = () => setReindexDialog(undefined)
+
+  const confirmReindex = async (chatModelId: string) => {
+    await startEmbeddingReindex.mutateAsync(chatModelId)
+    setReindexDialog(undefined)
+  }
+
+  const requestReindexCancel = (run: EmbeddingReindexRun) =>
+    setCancellingRun(run)
+  const closeReindexCancel = () => setCancellingRun(undefined)
+
+  const confirmReindexCancel = async () => {
+    if (!cancellingRun) return
+    await cancelEmbeddingReindex.mutateAsync(cancellingRun.id)
+    setCancellingRun(undefined)
+  }
 
   const reverifyChatModel = (chatModel: ChatModel) =>
     verifyChatModel.mutateAsync(chatModel.id)
@@ -238,11 +293,17 @@ export function useChatModelDashboard() {
     canDelete,
     canRead,
     canRecover,
+    canReindex,
     canUpdate,
+    cancellingRun,
     chatModels,
     closeChatModelDetail,
     closeDialog,
+    closeReindexCancel,
+    closeReindexDialog,
     closeStatusDialog,
+    confirmReindex,
+    confirmReindexCancel,
     confirmStatusChange,
     deactivateChatModel,
     editingChatModel,
@@ -251,15 +312,20 @@ export function useChatModelDashboard() {
     isPending: chatModelsQuery.isPending,
     isSaving: createChatModel.isPending || updateChatModel.isPending,
     isUpdatingChatModelStatus: updateChatModelStatus.isPending,
+    isCancellingReindex: cancelEmbeddingReindex.isPending,
+    isStartingReindex: startEmbeddingReindex.isPending,
     isUpdatingStatus: deleteChatModel.isPending || recoverChatModel.isPending,
     isVerifying: verifyChatModel.isPending,
     modelStatusFilter: draftModelStatus,
     openChatModelDetail,
     openCreate,
     openEdit,
+    openReindexDialog,
     page,
     prioritySort: draftSort,
     purposeFilter: draftPurpose,
+    reindexDialog,
+    requestReindexCancel,
     requestStatusChange,
     resetFilters,
     reverifyChatModel,

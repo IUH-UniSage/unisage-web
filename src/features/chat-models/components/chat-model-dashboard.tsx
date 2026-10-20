@@ -23,6 +23,11 @@ import { ChatModelDetailDialog } from "@/features/chat-models/components/chat-mo
 import { ChatModelDialog } from "@/features/chat-models/components/chat-model-dialog"
 import { ChatModelList } from "@/features/chat-models/components/chat-model-list"
 import { ChatModelStatusDialog } from "@/features/chat-models/components/chat-model-status-dialog"
+import { EmbeddingIndexPanel } from "@/features/chat-models/components/embedding-index-panel"
+import {
+  CancelEmbeddingReindexDialog,
+  EmbeddingReindexDialog,
+} from "@/features/chat-models/components/embedding-reindex-dialog"
 import { VerificationJobList } from "@/features/chat-models/components/verification-job-list"
 import { chatModelKeys } from "@/features/chat-models/queries/keys"
 import { useChatModelDashboard } from "@/features/chat-models/hooks/use-chat-model-dashboard"
@@ -119,6 +124,13 @@ export function ChatModelDashboard() {
             className="space-y-5"
             value="models"
           >
+            <EmbeddingIndexPanel
+              canReindex={dashboard.canReindex}
+              isCancelling={dashboard.isCancellingReindex}
+              onCancel={dashboard.requestReindexCancel}
+              onStartReindex={dashboard.openReindexDialog}
+            />
+
             <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
               <ListToolbar
                 isFiltered={dashboard.isFiltered}
@@ -279,6 +291,27 @@ export function ChatModelDashboard() {
           }}
           onSubmit={dashboard.save}
           open
+        />
+      ) : null}
+
+      {dashboard.reindexDialog ? (
+        <EmbeddingReindexDialog
+          isSubmitting={dashboard.isStartingReindex}
+          onConfirm={dashboard.confirmReindex}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeReindexDialog()
+          }}
+          preselectedModelId={dashboard.reindexDialog.modelId}
+        />
+      ) : null}
+
+      {dashboard.cancellingRun ? (
+        <CancelEmbeddingReindexDialog
+          isSubmitting={dashboard.isCancellingReindex}
+          onConfirm={dashboard.confirmReindexCancel}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeReindexCancel()
+          }}
         />
       ) : null}
 

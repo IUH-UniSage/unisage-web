@@ -56,12 +56,31 @@ export const ROUTES = {
 
 export type RouteKey = keyof typeof ROUTES
 
-export function ingesterIngestWizardPath(documentId: string): string {
-  return `${ROUTES.ingesterProcessing}/${documentId}`
+// `restart`: chunk and embed an already-ingested document again from the
+// preview step, instead of opening its saved progress (UNISAGE-103).
+type IngestWizardPathOptions = { restart?: boolean }
+
+function withRestart(path: string, options?: IngestWizardPathOptions) {
+  return options?.restart
+    ? `${path}?${INGEST_RESTART_PARAM}=${Date.now()}`
+    : path
 }
 
-export function adminDocumentIngestWizardPath(documentId: string): string {
-  return `${ROUTES.adminDocuments}/${documentId}/ingest`
+/** Search param that opens the ingest wizard from scratch; its value is a nonce. */
+export const INGEST_RESTART_PARAM = "restart"
+
+export function ingesterIngestWizardPath(
+  documentId: string,
+  options?: IngestWizardPathOptions
+): string {
+  return withRestart(`${ROUTES.ingesterProcessing}/${documentId}`, options)
+}
+
+export function adminDocumentIngestWizardPath(
+  documentId: string,
+  options?: IngestWizardPathOptions
+): string {
+  return withRestart(`${ROUTES.adminDocuments}/${documentId}/ingest`, options)
 }
 
 export function adminUserNewPath(): string {

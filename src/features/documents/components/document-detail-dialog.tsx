@@ -7,6 +7,7 @@ import {
   FileText,
   Globe,
   Pencil,
+  RotateCcw,
   ShieldAlert,
   User,
 } from "lucide-react"
@@ -39,6 +40,8 @@ type DocumentDetailDialogProps = {
   documentId?: string
   onEdit: (document: Document) => void
   onOpenChange: (open: boolean) => void
+  /** Chunk and embed an ingested document again; absent = not allowed. */
+  onReprocess?: (document: Document) => void
   open?: boolean
 }
 
@@ -47,6 +50,7 @@ export function DocumentDetailDialog({
   documentId,
   onEdit,
   onOpenChange,
+  onReprocess,
 }: DocumentDetailDialogProps) {
   const documentQuery = useDocumentQuery(documentId)
   const document = documentQuery.data
@@ -119,11 +123,21 @@ export function DocumentDetailDialog({
 
         <div
           {...tourAnchor(TOUR_ANCHORS.pageActions)}
-          className="flex items-center gap-3 self-end sm:self-center"
+          className="flex flex-wrap items-center justify-end gap-3 self-end sm:self-center"
         >
           <Button onClick={handleBack} type="button" variant="outline">
             Quay lại
           </Button>
+          {onReprocess && document?.status === "COMPLETED" ? (
+            <Button
+              onClick={() => onReprocess(document)}
+              type="button"
+              variant="outline"
+            >
+              <RotateCcw className="mr-2 size-4" />
+              Chunk & embed lại
+            </Button>
+          ) : null}
           {canUpdate ? (
             <Button onClick={handleEdit} type="button">
               <Pencil className="mr-2 size-4" />

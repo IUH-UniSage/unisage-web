@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { ChatModelsParams } from "@/features/chat-models/api/chat-model-api"
 import {
   chatModelOptions,
+  embeddingIndexOptions,
   verificationJobOptions,
 } from "@/features/chat-models/queries/options"
 
@@ -23,4 +24,8 @@ export function useVerificationJobQuery(jobId: string | undefined) {
     ...verificationJobOptions.detail(jobId ?? ""),
     enabled: Boolean(jobId),
   })
+}
+
+export function useEmbeddingIndexQuery() {
+  return useQuery(embeddingIndexOptions.detail())
 }

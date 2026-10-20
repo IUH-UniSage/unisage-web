@@ -77,6 +77,10 @@ export const API_ENDPOINTS = {
     chatModelVerify: (chatModelId: string) =>
       `/chat-models/${chatModelId}/verify`,
     chatModels: "/chat-models",
+    embeddingIndex: "/chat-models/embedding-index",
+    embeddingReindex: "/chat-models/embedding-index/reindex",
+    embeddingReindexCancel: (runId: string) =>
+      `/chat-models/embedding-index/reindex/${runId}/cancel`,
     verificationJob: (jobId: string) => `/chat-models/verifications/${jobId}`,
     verificationJobs: "/chat-models/verifications",
   },
