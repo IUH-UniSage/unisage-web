@@ -13,6 +13,8 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:8400",
         changeOrigin: true,
+        // /api/v1/ai/ingestion/events is a WebSocket (ingestion progress frames).
+        ws: true,
       },
     },
     allowedHosts: [".devtunnels.ms"],

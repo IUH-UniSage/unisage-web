@@ -153,10 +153,18 @@ export function useIngestWizard(
 
     const job = jobQuery.data
     if (restart) {
-      // Stays on preview (auto-started below); only the strategy carries over.
+      // "Chunk & embed lại": reuse the document's saved chunk list (the one that
+      // was embedded, manual edits included) and open it for review straight
+      // away - the strategy panel stays available for anyone who does want to
+      // re-chunk. Only a document with no draft falls back to preview (auto-
+      // started below) so it can be chunked for the first time.
       if (job) {
         setChunkingStrategy(job.chunking_strategy)
         setChunkingParams(job.chunking_params)
+        if (job.chunks.length > 0) {
+          setChunks(job.chunks)
+          setStep("review")
+        }
       }
     } else if (alreadyComplete) {
       setStep("embedding")
