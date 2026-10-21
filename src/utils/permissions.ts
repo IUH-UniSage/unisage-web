@@ -42,6 +42,7 @@ export const PERMISSIONS = {
   chatModelCreate: "CHAT_MODEL_CREATE",
   chatModelUpdate: "CHAT_MODEL_UPDATE",
   chatModelDelete: "CHAT_MODEL_DELETE",
+  chatModelReindex: "CHAT_MODEL_REINDEX",
   conversationAll: "CONVERSATION_ALL",
   conversationRead: "CONVERSATION_READ",
   conversationCreate: "CONVERSATION_CREATE",

@@ -16,3 +16,7 @@ export const verificationJobKeys = {
     filters?: { chatModelId?: string; status?: string }
   ) => [...verificationJobKeys.all, "list", { filters, limit, page }] as const,
 }
+
+export const embeddingIndexKeys = {
+  all: ["embeddingIndex"] as const,
+}

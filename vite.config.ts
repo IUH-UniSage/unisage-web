@@ -6,6 +6,19 @@ import { defineConfig } from "vitest/config"
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    // Dev proxy: web calls /api/v1/master and /api/v1/ai on its own origin (see .env),
+    // forward them to the api-gateway so one forwarded port (5173) is enough over a tunnel.
+    proxy: {
+      "/api": {
+        target: "http://localhost:8400",
+        changeOrigin: true,
+        // /api/v1/ai/ingestion/events is a WebSocket (ingestion progress frames).
+        ws: true,
+      },
+    },
+    allowedHosts: [".devtunnels.ms"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
