@@ -1,5 +1,5 @@
 import { PanelLeftOpen, Sparkles } from "lucide-react"
-import type { ReactNode } from "react"
+import { type ReactNode, useState } from "react"
 import { Link } from "react-router-dom"
 
 import { BrandMark } from "@/components/shared/brand/brand-mark"
@@ -19,13 +19,17 @@ import { ClientTourButton } from "@/features/product-tour"
 import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 
 type MobileChatHeaderProps = {
-  historyContent: ReactNode
+  // The history gets the function that closes the sheet: its own close button,
+  // picking a conversation and starting a new one all close it (it covers the chat).
+  renderHistory: (closeSheet: () => void) => ReactNode
 }
 
-export function MobileChatHeader({ historyContent }: MobileChatHeaderProps) {
+export function MobileChatHeader({ renderHistory }: MobileChatHeaderProps) {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+
   return (
     <header className="flex h-14 shrink-0 items-center border-b bg-card px-2.5 xl:hidden dark:border-white/[0.06]">
-      <Sheet>
+      <Sheet onOpenChange={setIsHistoryOpen} open={isHistoryOpen}>
         <SheetTrigger asChild>
           <Button
             {...tourAnchor(TOUR_ANCHORS.chatHistoryToggle)}
@@ -36,11 +40,17 @@ export function MobileChatHeader({ historyContent }: MobileChatHeaderProps) {
             <PanelLeftOpen aria-hidden="true" className="size-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent className="w-[88vw] max-w-[320px] gap-0 p-0" side="left">
+        <SheetContent
+          className="w-[88vw] max-w-[320px] gap-0 p-0"
+          showCloseButton={false}
+          side="left"
+        >
           <SheetHeader className="sr-only">
             <SheetTitle>Lịch sử trò chuyện</SheetTitle>
           </SheetHeader>
-          <div className="min-h-0 flex-1">{historyContent}</div>
+          <div className="min-h-0 flex-1">
+            {renderHistory(() => setIsHistoryOpen(false))}
+          </div>
         </SheetContent>
       </Sheet>
 

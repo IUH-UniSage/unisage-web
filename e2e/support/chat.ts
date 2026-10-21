@@ -411,8 +411,7 @@ export async function openConversationFromHistory(page: Page, title: string) {
   await toggle.click()
   const sheet = page.getByRole("dialog", { name: "Lịch sử trò chuyện" })
   await sheet.getByRole("button", { name: title, exact: true }).click()
-  // Picking a conversation leaves the sheet open on mobile.
-  await sheet.getByRole("button", { name: "Đóng" }).click()
+  // Picking a conversation closes the sheet on mobile (it covers the chat).
   await sheet.waitFor({ state: "hidden" })
 }
 

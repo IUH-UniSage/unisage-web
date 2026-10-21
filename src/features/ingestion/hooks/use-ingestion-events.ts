@@ -91,7 +91,16 @@ export function useIngestionEvents(
     return () => {
       closedByUnmount = true
       if (reconnectTimer) window.clearTimeout(reconnectTimer)
-      socket?.close()
+      // close() while still CONNECTING makes the browser abort the TCP
+      // connection (StrictMode's dev double-mount hits this every time) -
+      // wait for the handshake and close cleanly instead.
+      const current = socket
+      if (current?.readyState === WebSocket.CONNECTING) {
+        current.onmessage = null
+        current.onopen = () => current.close()
+      } else {
+        current?.close()
+      }
     }
   }, [enabled])
 

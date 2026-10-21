@@ -58,6 +58,10 @@ export function useUpdateTicketMutation() {
         ticketKeys.detail(updatedTicket.id),
         updatedTicket
       )
+      queryClient.setQueryData(
+        ticketKeys.myDetail(updatedTicket.id),
+        updatedTicket
+      )
     },
   })
 }

@@ -144,7 +144,20 @@ export function ChatPage() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
       <MobileChatHeader
-        historyContent={<ConversationHistory {...historyProps} />}
+        renderHistory={(closeSheet) => (
+          <ConversationHistory
+            {...historyProps}
+            onClose={closeSheet}
+            onNewConversation={() => {
+              closeSheet()
+              workspace.startNewConversation()
+            }}
+            onSelectConversation={(id) => {
+              closeSheet()
+              workspace.selectConversation(id)
+            }}
+          />
+        )}
       />
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -213,6 +226,7 @@ export function ChatPage() {
                 onOpenCitation={openCitation}
                 onSendMessage={workspace.sendMessage}
                 onStopGenerating={workspace.stopGenerating}
+                turnProgress={workspace.turnProgress}
                 usageWarning={usageWarning}
               />
             ) : (

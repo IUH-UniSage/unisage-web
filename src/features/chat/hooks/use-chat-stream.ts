@@ -2,6 +2,10 @@ import { useRef } from "react"
 
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
+  type ChatStatus,
+  chatStatusSchema,
+} from "@/features/chat/schemas/chat-progress-schemas"
+import {
   type ClarificationClosed,
   clarificationClosedSchema,
   type ClarificationPanel,
@@ -65,6 +69,8 @@ type ChatStreamCallbacks = {
    */
   onStreamError?: (payload: ChatStreamErrorPayload, fullText: string) => void
   onWarning?: (payload: ChatStreamWarningPayload) => void
+  /** `event: status` - what the turn is doing now (analyzing, retrieving, ...). */
+  onStatus?: (status: ChatStatus) => void
   /** `event: clarification` - the turn ends with a question panel. */
   onClarification?: (panel: ClarificationPanel) => void
   /** `event: clarification_closed` - the cancel was recorded. */
@@ -237,6 +243,9 @@ export function useChatStream() {
             sawError = true
             const payload = JSON.parse(data) as ChatStreamErrorPayload
             callbacks.onStreamError?.(payload, fullText)
+          } else if (event === "status" && data !== undefined) {
+            const parsed = chatStatusSchema.safeParse(parseJson(data))
+            if (parsed.success) callbacks.onStatus?.(parsed.data)
           } else if (event === "warning" && data !== undefined) {
             callbacks.onWarning?.(JSON.parse(data) as ChatStreamWarningPayload)
           } else if (event === "clarification" && data !== undefined) {

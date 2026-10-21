@@ -21,7 +21,10 @@ export const ingestionApi = {
   async chunk(input: ChunkingRequest): Promise<ChunkingResponse> {
     const response = await aiHttpClient.post(
       API_ENDPOINTS.ingestion.chunking,
-      input
+      input,
+      // Parsing + semantic chunking a large document runs well past the
+      // shared 30s default (observed ~80s).
+      { timeout: 180_000 }
     )
 
     return readSuccessData(response.data, chunkingResponseSchema)
