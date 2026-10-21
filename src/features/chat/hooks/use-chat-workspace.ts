@@ -10,6 +10,7 @@ import {
   type ChatStreamInput,
   useChatStream,
 } from "@/features/chat/hooks/use-chat-stream"
+import { useTurnProgress } from "@/features/chat/hooks/use-turn-progress"
 import { chatKeys } from "@/features/chat/queries/keys"
 import {
   useCreateConversationMutation,
@@ -71,6 +72,7 @@ export function useChatWorkspace() {
   const userId = session?.userId ?? ""
   const queryClient = useQueryClient()
   const chatStream = useChatStream()
+  const turnProgress = useTurnProgress()
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(true)
   const [isSourcesOpen, setIsSourcesOpen] = useState(false)
@@ -138,6 +140,7 @@ export function useChatWorkspace() {
 
   const startNewConversation = () => {
     chatStream.abort()
+    turnProgress.stop()
     setIsStreaming(false)
     setActiveConversationId(null)
     setIsSourcesOpen(false)
@@ -146,6 +149,7 @@ export function useChatWorkspace() {
 
   const selectConversation = (id: string) => {
     chatStream.abort()
+    turnProgress.stop()
     setIsStreaming(false)
     setActiveConversationId(id)
     setIsSourcesOpen(true)
@@ -418,6 +422,8 @@ export function useChatWorkspace() {
       userMessage,
       assistantMessage,
     ])
+    // The clock runs from the moment the question is in the conversation.
+    turnProgress.start(assistantMessageId)
 
     setIsStreaming(true)
     const conversationIdForStream = conversationId
@@ -439,6 +445,11 @@ export function useChatWorkspace() {
           )
         )
       },
+      onStatus: (status) => {
+        if (inFlightRef.current?.assistantMessageId === assistantMessageId) {
+          turnProgress.push(status)
+        }
+      },
       onClarification: (panel) => {
         // Lets deriveOpenPanel show the panel before the refetch lands;
         // the server has already stored the same metadata (contract §2).
@@ -451,6 +462,7 @@ export function useChatWorkspace() {
       },
       onDone: () => {
         setIsStreaming(false)
+        turnProgress.stop()
         inFlightRef.current = null
         if (turn.submittedPanel) {
           clearClarificationDraft(turn.submittedPanel.panelId)
@@ -481,11 +493,13 @@ export function useChatWorkspace() {
         // race with that PATCH; the next natural refetch reconciles.
         toast.error(payload.message)
         setIsStreaming(false)
+        turnProgress.stop()
         inFlightRef.current = null
         markFailed(conversationIdForStream, assistantMessageId, payload.message)
       },
       onError: (error) => {
         setIsStreaming(false)
+        turnProgress.stop()
         inFlightRef.current = null
         if (
           handleClarificationHttpError(
@@ -522,6 +536,7 @@ export function useChatWorkspace() {
 
   const stopGenerating = () => {
     chatStream.abort()
+    turnProgress.stop()
     setIsStreaming(false)
 
     const inFlight = inFlightRef.current
@@ -583,5 +598,6 @@ export function useChatWorkspace() {
     setSearchQuery,
     startNewConversation,
     stopGenerating,
+    turnProgress: turnProgress.progress,
   }
 }

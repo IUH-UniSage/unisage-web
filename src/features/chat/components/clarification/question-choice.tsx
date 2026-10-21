@@ -14,6 +14,8 @@ type QuestionChoiceProps = {
   draft: ChoiceDraft
   error: string | null
   onChange: (draft: ChoiceDraft) => void
+  // A listed option was clicked (not arrow-keyed, not Khác): the panel moves on.
+  onPick?: () => void
   question: Question
 }
 
@@ -22,6 +24,7 @@ export function QuestionChoice({
   draft,
   error,
   onChange,
+  onPick,
   question,
 }: QuestionChoiceProps) {
   const value = draft.other ? OTHER_VALUE : (draft.optionId ?? "")
@@ -54,6 +57,13 @@ export function QuestionChoice({
               )}
               htmlFor={itemId}
               key={option.id}
+              onClick={(event) => {
+                // Radix checks a radio on arrow-key focus with a synthetic
+                // click (detail 0); only a real pointer click moves on.
+                if (disabled || event.detail === 0) return
+                onChange({ ...draft, optionId: option.id, other: false })
+                onPick?.()
+              }}
             >
               <RadioGroupItem
                 className="mt-0.5"

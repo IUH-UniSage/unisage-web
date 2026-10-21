@@ -143,6 +143,20 @@ export function ClarificationPanel({
     else submit()
   }
 
+  // A clicked option: next tab; on the last tab, the first unanswered one.
+  // Never submits - a stray click should not send the answers.
+  const advanceAfterPick = (fromId: string) => {
+    const order = panel.questions.map((question) => question.id)
+    const index = order.indexOf(fromId)
+    if (index < order.length - 1) {
+      goToTab(order[index + 1])
+      return
+    }
+    const latest = validatePanel(panel, draftRef.current)
+    const unanswered = order.find((id) => latest[id].state !== "valid")
+    if (unanswered) goToTab(unanswered)
+  }
+
   const onContentKeyDown = (
     questionId: string,
     event: ReactKeyboardEvent<HTMLDivElement>
@@ -269,6 +283,7 @@ export function ClarificationPanel({
                       draft={draft[question.id] ?? emptyQuestionDraft(question)}
                       error={serverErrorOf(question.id) ?? localError}
                       onChange={(next) => updateDraft(question.id, next)}
+                      onPick={() => advanceAfterPick(question.id)}
                       question={question}
                     />
                   </TabsContent>
@@ -366,12 +381,14 @@ function QuestionInput({
   draft,
   error,
   onChange,
+  onPick,
   question,
 }: {
   disabled: boolean
   draft: QuestionDraft
   error: string | null
   onChange: (draft: QuestionDraft) => void
+  onPick: () => void
   question: Question
 }) {
   switch (draft.kind) {
@@ -382,6 +399,7 @@ function QuestionInput({
           draft={draft}
           error={error}
           onChange={onChange}
+          onPick={onPick}
           question={question}
         />
       )

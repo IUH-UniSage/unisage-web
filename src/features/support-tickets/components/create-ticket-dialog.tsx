@@ -28,8 +28,8 @@ import {
   createTicketFormSchema,
   TICKET_DESCRIPTION_MAX_LENGTH,
   TICKET_TITLE_MAX_LENGTH,
+  reportableTicketTypeSchema,
   TICKET_TYPE_LABELS,
-  ticketTypeSchema,
   type CreateTicketFormValues,
 } from "@/features/support-tickets/schemas/ticket-schemas"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
@@ -107,7 +107,7 @@ export function CreateTicketDialog({
                     <SelectValue placeholder="Chọn loại vấn đề" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ticketTypeSchema.options.map((type) => (
+                    {reportableTicketTypeSchema.options.map((type) => (
                       <SelectItem key={type} value={type}>
                         {TICKET_TYPE_LABELS[type]}
                       </SelectItem>

@@ -156,8 +156,9 @@ export function ChatComposer({
   return (
     <div
       className={cn(
-        "bg-transparent px-4 py-3 transition-all",
-        centered ? "w-full px-0 md:px-0" : "border-t border-border/40 md:px-6"
+        "bg-transparent px-4 py-3 transition-all in-data-[keyboard=open]:pb-2",
+        // In a conversation it floats over the messages: no separator line.
+        centered ? "w-full px-0 md:px-0" : "md:px-6"
       )}
     >
       <form
@@ -207,12 +208,13 @@ export function ChatComposer({
           <Plus aria-hidden="true" className="size-5" />
         </Button>
 
-        {/* Persistent Auto-Growing Textarea with Rich HTML -> Markdown Paste */}
+        {/* Persistent Auto-Growing Textarea with Rich HTML -> Markdown Paste.
+            16px below md: iOS Safari zooms the page into a smaller field on focus. */}
         <textarea
           aria-label="Tin nhắn gửi UniSage"
           autoFocus={centered}
           className={cn(
-            "min-h-[26px] flex-1 resize-none overflow-y-auto border-0 bg-transparent! py-1.5 text-[15px] leading-6 shadow-none outline-none placeholder:text-muted-foreground/70 dark:text-white",
+            "min-h-[26px] flex-1 resize-none overflow-y-auto border-0 bg-transparent! py-1.5 text-base leading-6 shadow-none outline-none placeholder:text-muted-foreground/70 md:text-[15px] dark:text-white",
             isMultiline && "pr-8",
             isExpanded ? "h-[380px] max-h-[65vh]" : "max-h-[220px]"
           )}
@@ -263,8 +265,10 @@ export function ChatComposer({
 }
 
 export function ChatDisclaimer() {
+  // Hidden while the on-screen keyboard is up (`useVisualViewport`): the
+  // composer then sits right on the keyboard, like ChatGPT's.
   return (
-    <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground">
+    <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground in-data-[keyboard=open]:hidden">
       UniSage có thể mắc sai sót. Hãy kiểm chứng quyết định quan trọng với nguồn
       tài liệu được trích dẫn.
     </p>

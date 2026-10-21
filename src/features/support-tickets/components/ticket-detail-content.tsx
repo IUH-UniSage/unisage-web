@@ -23,24 +23,29 @@ function Block({ children, title }: { children: ReactNode; title: string }) {
   )
 }
 
-// Read-only view of one ticket, shared by the user's "my tickets" dialog and
-// the admin dialog (which also shows who filed it).
+// Read-only view of one ticket, shared by the user's ticket page and the
+// admin detail page (whose header already shows status, type and date, so it
+// hides the summary row).
 export function TicketDetailContent({
   showRequester = false,
+  showSummary = true,
   ticket,
 }: {
   showRequester?: boolean
+  showSummary?: boolean
   ticket: TicketDetail
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <TicketStatusBadge status={ticket.status} />
-        <Badge variant="outline">{TICKET_TYPE_LABELS[ticket.type]}</Badge>
-        <span className="text-xs text-muted-foreground">
-          Gửi ngày {formatAuditDate(ticket.createdAt)}
-        </span>
-      </div>
+      {showSummary ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <TicketStatusBadge status={ticket.status} />
+          <Badge variant="outline">{TICKET_TYPE_LABELS[ticket.type]}</Badge>
+          <span className="text-xs text-muted-foreground">
+            Gửi ngày {formatAuditDate(ticket.createdAt)}
+          </span>
+        </div>
+      ) : null}
 
       {showRequester ? (
         <p className="text-sm text-muted-foreground">

@@ -43,6 +43,12 @@ const RoleFormPage = lazy(async () => {
   return { default: RoleFormPage }
 })
 
+const TicketDetailPage = lazy(async () => {
+  const { TicketDetailPage } =
+    await import("@/pages/system-admin/ticket-detail-page")
+  return { default: TicketDetailPage }
+})
+
 const DocumentDetailPage = lazy(async () => {
   const { DocumentDetailPage } =
     await import("@/pages/shared/document-detail-page")
@@ -135,6 +141,14 @@ export const systemAdminRoutes: RouteObject = {
         </PermissionRoute>
       ),
       path: `${ROUTE_SEGMENTS.rbac}/:roleId`,
+    },
+    {
+      element: (
+        <PermissionRoute requiredPermissions={PERMISSION_POLICIES.adminTickets}>
+          <TicketDetailPage />
+        </PermissionRoute>
+      ),
+      path: `${ROUTE_SEGMENTS.tickets}/:ticketId`,
     },
     {
       element: (

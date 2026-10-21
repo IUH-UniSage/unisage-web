@@ -70,6 +70,32 @@ describe("useChatStream", () => {
     expect(onDone).not.toHaveBeenCalled()
   })
 
+  it("forwards event: status and skips a malformed one", async () => {
+    const events = [
+      'event: status\ndata: {"stage":"retrieving"}\n\n',
+      'event: status\ndata: {"stage":"web_searching","url":"https://pdt.iuh.edu.vn/a"}\n\n',
+      'event: status\ndata: {"url":"no stage"}\n\n',
+      "event: status\ndata: not json\n\n",
+      'event: token\ndata: "x"\n\n',
+      "event: done\ndata: {}\n\n",
+    ]
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(sseResponse(events)))
+    const { result } = renderHook(() => useChatStream())
+    const onStatus = vi.fn()
+    const onDone = vi.fn()
+
+    await result.current.stream(
+      { conversationId: "conv-1", message: "hi" },
+      { onDone, onStatus }
+    )
+
+    expect(onStatus.mock.calls).toEqual([
+      [{ stage: "retrieving" }],
+      [{ stage: "web_searching", url: "https://pdt.iuh.edu.vn/a" }],
+    ])
+    expect(onDone).toHaveBeenCalledWith("x")
+  })
+
   it("calls onDone (not onStreamError) for a clean stream with no error event", async () => {
     const events = [
       'event: token\ndata: "x"\n\n',

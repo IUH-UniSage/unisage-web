@@ -52,6 +52,7 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2134: "API key không được để trống khi nguồn là Cloud API.",
   2300: "Thông tin nhập chưa hợp lệ, kiểm tra lại giúp mình.",
   2310: "Bạn không có quyền tạo tài liệu này.",
+  2312: "Bạn không có quyền xem tài liệu này.",
 
   // File storage (24xx)
   2401: "Tải file lên thất bại, thử lại nhé.",

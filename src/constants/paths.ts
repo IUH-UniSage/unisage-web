@@ -59,6 +59,14 @@ export const ROUTES = {
 
 export type RouteKey = keyof typeof ROUTES
 
+export function ticketDetailPath(ticketId: string): string {
+  return `${ROUTES.tickets}/${ticketId}`
+}
+
+export function adminTicketDetailPath(ticketId: string): string {
+  return `${ROUTES.adminTickets}/${ticketId}`
+}
+
 // `restart`: chunk and embed an already-ingested document again from the
 // preview step, instead of opening its saved progress (UNISAGE-103).
 type IngestWizardPathOptions = { restart?: boolean }

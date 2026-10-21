@@ -2,6 +2,8 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Eye } from "lucide-react"
 import { useMemo, useState } from "react"
 
+import { Link } from "react-router-dom"
+
 import { DataTable } from "@/components/shared/list/data-table"
 import { ListToolbar } from "@/components/shared/list/list-toolbar"
 import { Pagination } from "@/components/shared/list/pagination"
@@ -16,8 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { adminTicketDetailPath } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
-import { AdminTicketDialog } from "@/features/support-tickets/components/admin-ticket-dialog"
 import { TicketStatusBadge } from "@/features/support-tickets/components/ticket-status-badge"
 import { useTicketsQuery } from "@/features/support-tickets/queries/use-queries"
 import {
@@ -29,7 +31,6 @@ import {
   type TicketStatus,
   type TicketType,
 } from "@/features/support-tickets/schemas/ticket-schemas"
-import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { formatAuditDate } from "@/utils/date-format"
 import { getErrorMessage } from "@/utils/error-handler"
 
@@ -41,11 +42,9 @@ type Filters = { q: string; status?: TicketStatus; type?: TicketType }
 // Admin list: filters are drafted in the toolbar and applied with "Lọc",
 // like the other admin lists.
 export function AdminTickets() {
-  const { canUpdate } = useResourcePermissions("ticket")
   const [page, setPage] = useState(1)
   const [draft, setDraft] = useState<Filters>({ q: "" })
   const [applied, setApplied] = useState<Filters>({ q: "" })
-  const [openTicketId, setOpenTicketId] = useState<string>()
   const { data, error, isPending } = useTicketsQuery({
     page,
     size: PAGE_SIZE,
@@ -113,12 +112,14 @@ export function AdminTickets() {
       {
         cell: ({ row }) => (
           <Button
+            asChild
             aria-label={`Xem yêu cầu ${row.original.title}`}
-            onClick={() => setOpenTicketId(row.original.id)}
             size="icon-sm"
             variant="ghost"
           >
-            <Eye aria-hidden="true" />
+            <Link to={adminTicketDetailPath(row.original.id)}>
+              <Eye aria-hidden="true" />
+            </Link>
           </Button>
         ),
         header: "Hành động",
@@ -251,14 +252,11 @@ export function AdminTickets() {
                     {ticket.userName || "—"} · {TICKET_TYPE_LABELS[ticket.type]}{" "}
                     · {formatAuditDate(ticket.createdAt)}
                   </p>
-                  <Button
-                    className="mt-3"
-                    onClick={() => setOpenTicketId(ticket.id)}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Eye aria-hidden="true" />
-                    Xem chi tiết
+                  <Button asChild className="mt-3" size="sm" variant="outline">
+                    <Link to={adminTicketDetailPath(ticket.id)}>
+                      <Eye aria-hidden="true" />
+                      Xem chi tiết
+                    </Link>
                   </Button>
                 </article>
               ))}
@@ -274,14 +272,6 @@ export function AdminTickets() {
           pageSize={PAGE_SIZE}
           totalItems={data.totalItems}
           totalPages={data.totalPages}
-        />
-      ) : null}
-
-      {openTicketId ? (
-        <AdminTicketDialog
-          canUpdate={canUpdate}
-          onClose={() => setOpenTicketId(undefined)}
-          ticketId={openTicketId}
         />
       ) : null}
     </div>
