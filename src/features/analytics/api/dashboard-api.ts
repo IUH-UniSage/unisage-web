@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
   dashboardSummarySchema,
+  type DashboardPeriod,
   type DashboardSummary,
 } from "@/features/analytics/schemas/dashboard-schemas"
 import { httpClient } from "@/lib/axios-client"
@@ -8,9 +9,10 @@ import { readSuccessData } from "@/utils/api-response"
 import type { ApiResponse } from "@/utils/api-response"
 
 export const dashboardApi = {
-  async getSummary(): Promise<DashboardSummary> {
+  async getSummary(period: DashboardPeriod): Promise<DashboardSummary> {
     const response = await httpClient.get<ApiResponse<DashboardSummary>>(
-      API_ENDPOINTS.dashboard.summary
+      API_ENDPOINTS.dashboard.summary,
+      { params: { period } }
     )
 
     return readSuccessData(response.data, dashboardSummarySchema)
