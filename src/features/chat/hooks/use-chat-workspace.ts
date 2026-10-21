@@ -1,7 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import { ROUTES, chatConversationPath } from "@/constants/paths"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import {
   ChatStreamHttpError,
@@ -73,9 +75,24 @@ export function useChatWorkspace() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(true)
   const [isSourcesOpen, setIsSourcesOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeConversationId, setActiveConversationId] = useState<
-    string | null
-  >(null)
+  // The open conversation is the `:conversationId` URL segment (ROUTES.chat children),
+  // so a reload, the back button or a pasted link all land on the same conversation.
+  // `setActiveConversationId` therefore navigates instead of setting state; the
+  // render after the navigation reads the new id back from the params.
+  const navigate = useNavigate()
+  const { conversationId: routeConversationId } = useParams<{
+    conversationId?: string
+  }>()
+  const activeConversationId = routeConversationId ?? null
+  const setActiveConversationId = (
+    id: string | null,
+    options: { replace?: boolean } = {}
+  ) => {
+    if (id === activeConversationId) return
+    void navigate(id ? chatConversationPath(id) : ROUTES.chat, {
+      replace: options.replace ?? false,
+    })
+  }
   const [isStreaming, setIsStreaming] = useState(false)
   const [isCancellingClarification, setIsCancellingClarification] =
     useState(false)
@@ -104,6 +121,16 @@ export function useChatWorkspace() {
 
   const conversations = conversationsQuery.data ?? []
   const messages = messagesQuery.data ?? []
+
+  // The id in the URL cannot be read (deleted, someone else's, or a stale link): back
+  // to the empty composer, with one message instead of the generic error toast.
+  useEffect(() => {
+    if (!routeConversationId || !messagesQuery.isError) return
+    toast.error("Không mở được đoạn chat này. Có thể nó đã bị xoá.")
+    void navigate(ROUTES.chat, { replace: true })
+    // Only the (id, error) pair matters; `navigate` is stable for the router's lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeConversationId, messagesQuery.isError])
   const activeConversation =
     conversations.find(
       (conversation) => conversation.id === activeConversationId
@@ -249,7 +276,9 @@ export function useChatWorkspace() {
         title: content.slice(0, CONVERSATION_TITLE_MAX_LENGTH),
       })
       conversationId = created.id
-      setActiveConversationId(created.id)
+      // Replace, not push: "back" from the new conversation should not land on
+      // the empty composer that created it.
+      setActiveConversationId(created.id, { replace: true })
       setIsSourcesOpen(true)
     }
 
@@ -519,7 +548,7 @@ export function useChatWorkspace() {
     deleteConversationMutation.mutate(id)
 
     if (activeConversationId === id) {
-      setActiveConversationId(null)
+      setActiveConversationId(null, { replace: true })
       setIsSourcesOpen(false)
     }
   }

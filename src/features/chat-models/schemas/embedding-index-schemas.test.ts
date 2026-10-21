@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   embeddingIndexSchema,
+  embeddingReindexRunSchema,
   isOpenReindexRun,
 } from "@/features/chat-models/schemas/embedding-index-schemas"
 import {
@@ -52,6 +53,15 @@ describe("embeddingIndexSchema", () => {
     expect(
       isOpenReindexRun({ ...index.currentRun!, status: "SUCCEEDED" })
     ).toBe(false)
+  })
+})
+
+describe("embeddingReindexRunSchema", () => {
+  it("accepts a run without the rebuild flag (older backend) and keeps it when present", () => {
+    expect(embeddingReindexRunSchema.parse(run).rebuild).toBeUndefined()
+    expect(
+      embeddingReindexRunSchema.parse({ ...run, rebuild: true }).rebuild
+    ).toBe(true)
   })
 })
 

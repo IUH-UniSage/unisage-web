@@ -45,5 +45,8 @@ export const chatOptions = {
       queryKey: chatKeys.messages(conversationId),
       refetchOnWindowFocus: false,
       staleTime: Infinity,
+      // A failure here is handled by useChatWorkspace (the id in the URL is gone or not
+      // the caller's): it leaves the conversation and says so itself.
+      meta: { suppressGlobalError: true },
     }),
 }

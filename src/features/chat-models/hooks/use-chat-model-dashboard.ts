@@ -23,6 +23,7 @@ import type {
 import {
   EMBEDDING_REINDEX_REQUIRED_CODE,
   type EmbeddingReindexRun,
+  type StartEmbeddingReindexInput,
 } from "@/features/chat-models/schemas/embedding-index-schemas"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { getErrorCode, getErrorMessage } from "@/utils/error-handler"
@@ -219,8 +220,8 @@ export function useChatModelDashboard() {
   const openReindexDialog = () => setReindexDialog({})
   const closeReindexDialog = () => setReindexDialog(undefined)
 
-  const confirmReindex = async (chatModelId: string) => {
-    await startEmbeddingReindex.mutateAsync(chatModelId)
+  const confirmReindex = async (input: StartEmbeddingReindexInput) => {
+    await startEmbeddingReindex.mutateAsync(input)
     setReindexDialog(undefined)
   }
 

@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query"
 
 import { chatModelApi } from "@/features/chat-models/api/chat-model-api"
+import type { StartEmbeddingReindexInput } from "@/features/chat-models/schemas/embedding-index-schemas"
 import { embeddingIndexApi } from "@/features/chat-models/api/embedding-index-api"
 import {
   chatModelKeys,
@@ -107,10 +108,10 @@ export function useStartEmbeddingReindexMutation() {
     meta: {
       invalidatesQueries: EMBEDDING_INDEX_QUERIES,
       successMessage:
-        "Đã bắt đầu re-index. Mô hình mới được kích hoạt khi re-index xong.",
+        "Đã bắt đầu re-index. Chỉ mục mới được dùng khi re-index xong.",
     },
-    mutationFn: (chatModelId: string) =>
-      embeddingIndexApi.startReindex(chatModelId),
+    mutationFn: (input: StartEmbeddingReindexInput) =>
+      embeddingIndexApi.startReindex(input),
   })
 }
 

@@ -149,7 +149,8 @@ function ReindexRunSummary({
           {RUN_STATUS_LABELS[run.status]}
         </Badge>
         <span className="min-w-0 break-words text-muted-foreground">
-          sang {run.targetModel.displayName || run.targetModel.llmModelName}
+          {run.rebuild ? "xây lại chỉ mục (thêm BM25) với " : "sang "}
+          {run.targetModel.displayName || run.targetModel.llmModelName}
           {run.targetModel.embeddingDimension
             ? ` (${run.targetModel.embeddingDimension} chiều)`
             : ""}
