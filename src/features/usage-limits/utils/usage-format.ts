@@ -54,21 +54,6 @@ export function describeUsageLimitExceeded(
     : `Bạn đã dùng hết hạn mức ${windowLabel}. Hãy quay lại sau khi hạn mức được làm mới.`
 }
 
-// Message for a request refused by the per-minute rate limit (backend
-// ErrorCode.MESSAGE_RATE_LIMITED); `errors` is the API's
-// { limit, windowSeconds, retryAfterSeconds } detail.
-export function describeMessageRateLimited(
-  errors?: Record<string, string> | null
-) {
-  const limit = Number(errors?.limit)
-  const retryAfter = Number(errors?.retryAfterSeconds)
-  const cap =
-    Number.isFinite(limit) && limit > 0 ? ` (tối đa ${limit} tin mỗi phút)` : ""
-  return Number.isFinite(retryAfter) && retryAfter > 0
-    ? `Bạn gửi tin quá nhanh${cap}. Thử lại sau ${retryAfter} giây nhé.`
-    : `Bạn gửi tin quá nhanh${cap}. Chờ một chút rồi thử lại nhé.`
-}
-
 export function formatTokenLimit(limit: number | null | undefined) {
   return limit == null ? "Không giới hạn" : limit.toLocaleString("vi-VN")
 }

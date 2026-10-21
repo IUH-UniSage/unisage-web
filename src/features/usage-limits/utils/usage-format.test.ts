@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import type { UsageWindow } from "@/features/usage-limits/schemas/usage-limit-schemas"
 import {
-  describeMessageRateLimited,
   formatTimeUntil,
   formatTokenLimit,
   isRunningLow,
@@ -71,25 +70,5 @@ describe("formatTokenLimit", () => {
 
   it("groups digits", () => {
     expect(formatTokenLimit(30000)).toMatch(/^30[.\s ,]000$/)
-  })
-})
-
-describe("describeMessageRateLimited", () => {
-  it("names the cap and the wait from the API detail", () => {
-    expect(
-      describeMessageRateLimited({
-        limit: "3",
-        windowSeconds: "60",
-        retryAfterSeconds: "13",
-      })
-    ).toBe(
-      "Bạn gửi tin quá nhanh (tối đa 3 tin mỗi phút). Thử lại sau 13 giây nhé."
-    )
-  })
-
-  it("falls back to a generic line without detail", () => {
-    expect(describeMessageRateLimited(null)).toBe(
-      "Bạn gửi tin quá nhanh. Chờ một chút rồi thử lại nhé."
-    )
   })
 })
