@@ -37,6 +37,7 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2126: "Phân quyền phòng ban này đã có rồi.",
   2129: "Hội thoại này đã có người khác nhận rồi.",
   2130: "Bạn đã dùng hết hạn mức sử dụng. Hãy quay lại sau khi hạn mức được làm mới nhé.",
+  2159: "Bạn gửi tin quá nhanh. Chờ một chút rồi thử lại nhé.",
   2132: "Access Level này đã tồn tại.",
   2152: "Tên gói hạn mức này đã tồn tại.",
   2153: "Không thể xóa hoặc bỏ đánh dấu gói mặc định. Hãy chọn gói mặc định khác trước.",

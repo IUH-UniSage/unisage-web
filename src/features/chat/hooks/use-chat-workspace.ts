@@ -31,12 +31,17 @@ import {
   readClarification,
 } from "@/features/chat/utils/clarification-state"
 import { usageLimitKeys } from "@/features/usage-limits/queries/keys"
-import { describeUsageLimitExceeded } from "@/features/usage-limits/utils/usage-format"
+import {
+  describeMessageRateLimited,
+  describeUsageLimitExceeded,
+} from "@/features/usage-limits/utils/usage-format"
 import { ApiResponseError } from "@/utils/api-response"
 import { getErrorMessage } from "@/utils/error-handler"
 
 // Backend ErrorCode.USAGE_LIMIT_EXCEEDED
 const USAGE_LIMIT_EXCEEDED_CODE = 2130
+// Backend ErrorCode.MESSAGE_RATE_LIMITED (per-minute message rate limit)
+const MESSAGE_RATE_LIMITED_CODE = 2159
 const STREAM_FAILED_FALLBACK = "Không thể tạo câu trả lời. Vui lòng thử lại."
 
 // unisage-agent contract chat-sse.md §4.
@@ -504,7 +509,10 @@ export function useChatWorkspace() {
           error instanceof ApiResponseError &&
           error.code === USAGE_LIMIT_EXCEEDED_CODE
             ? describeUsageLimitExceeded(error.errors)
-            : getErrorMessage(error, STREAM_FAILED_FALLBACK)
+            : error instanceof ApiResponseError &&
+                error.code === MESSAGE_RATE_LIMITED_CODE
+              ? describeMessageRateLimited(error.errors)
+              : getErrorMessage(error, STREAM_FAILED_FALLBACK)
         toast.error(errorMessage)
         // Deliberately not invalidating here: backend-java may not have
         // persisted anything past the USER message (or may be left
