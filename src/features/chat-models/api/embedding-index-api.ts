@@ -4,6 +4,7 @@ import {
   embeddingIndexSchema,
   type EmbeddingReindexRun,
   embeddingReindexRunSchema,
+  type StartEmbeddingReindexInput,
 } from "@/features/chat-models/schemas/embedding-index-schemas"
 import { httpClient } from "@/lib/axios-client"
 import { readSuccessData } from "@/utils/api-response"
@@ -26,10 +27,14 @@ export const embeddingIndexApi = {
     return readSuccessData(response.data, embeddingIndexSchema)
   },
 
-  async startReindex(chatModelId: string): Promise<EmbeddingReindexRun> {
+  async startReindex(
+    input: StartEmbeddingReindexInput
+  ): Promise<EmbeddingReindexRun> {
     const response = await httpClient.post<ApiResponse<EmbeddingReindexRun>>(
       API_ENDPOINTS.chatModels.embeddingReindex,
-      { chatModelId }
+      input.rebuild
+        ? { rebuild: true }
+        : { chatModelId: input.chatModelId, rebuild: false }
     )
 
     return readSuccessData(response.data, embeddingReindexRunSchema)

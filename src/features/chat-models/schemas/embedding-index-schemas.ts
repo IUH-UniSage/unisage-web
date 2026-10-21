@@ -20,6 +20,9 @@ export const embeddingReindexRunSchema = z.object({
   finishedAt: z.string().nullish(),
   id: z.uuid(),
   processedPoints: z.number().int(),
+  // True = the live collection is rebuilt with the same model to add the BM25
+  // sparse vector (hybrid retrieval, UNISAGE-104); no embedding call.
+  rebuild: z.boolean().nullish(),
   sourceCollection: z.string(),
   startedAt: z.string().nullish(),
   status: embeddingReindexStatusSchema,
@@ -66,3 +69,8 @@ export type EmbeddingIndex = z.infer<typeof embeddingIndexSchema>
 export function isOpenReindexRun(run: EmbeddingReindexRun | null | undefined) {
   return run?.status === "QUEUED" || run?.status === "RUNNING"
 }
+
+/** `POST /chat-models/embedding-index/reindex` body. */
+export type StartEmbeddingReindexInput =
+  | { chatModelId: string; rebuild?: false }
+  | { chatModelId?: undefined; rebuild: true }
