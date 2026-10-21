@@ -37,6 +37,15 @@ export const API_ENDPOINTS = {
     usageLogSummary: "/usage-logs/summary",
     usageLogs: "/usage-logs",
   },
+  backups: {
+    overview: "/admin/backups/overview",
+    postgresRestore: "/admin/backups/restores/postgres",
+    postgresRestoreStatus: "/admin/backups/restores/postgres/status",
+    qdrantRestore: "/admin/backups/restores/qdrant",
+    restores: "/admin/backups/restores",
+    runFiles: (runId: string) => `/admin/backups/runs/${runId}/files`,
+    runs: "/admin/backups/runs",
+  },
   categories: {
     categories: "/categories",
     category: (categoryId: string) => `/categories/${categoryId}`,
@@ -77,6 +86,10 @@ export const API_ENDPOINTS = {
     chatModelVerify: (chatModelId: string) =>
       `/chat-models/${chatModelId}/verify`,
     chatModels: "/chat-models",
+    embeddingIndex: "/chat-models/embedding-index",
+    embeddingReindex: "/chat-models/embedding-index/reindex",
+    embeddingReindexCancel: (runId: string) =>
+      `/chat-models/embedding-index/reindex/${runId}/cancel`,
     verificationJob: (jobId: string) => `/chat-models/verifications/${jobId}`,
     verificationJobs: "/chat-models/verifications",
   },

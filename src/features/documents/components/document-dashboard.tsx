@@ -92,6 +92,9 @@ export function DocumentDashboard() {
         onEdit={(document) => navigate(editPath(document.id))}
         onPageChange={dashboard.setPage}
         onProcess={(document) => navigate(wizardPath(document.id))}
+        onReprocess={(document) =>
+          navigate(wizardPath(document.id, { restart: true }))
+        }
         onRequestDelete={dashboard.requestDelete}
         onViewChunks={(document) => navigate(chunksPath(document.id))}
         onViewDetail={(document) => navigate(detailPath(document.id))}

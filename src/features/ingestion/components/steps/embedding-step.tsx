@@ -1,3 +1,5 @@
+import { RotateCcw } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { ProgressBar } from "@/components/ui/progress-bar"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
@@ -17,8 +19,9 @@ const STATE_LABELS: Record<string, string> = {
 
 export function EmbeddingStep({
   onFinish,
+  onRestart,
   wizard,
-}: StepProps & { onFinish: () => void }) {
+}: StepProps & { onFinish: () => void; onRestart: () => void }) {
   const { percent, state } = wizard.embeddingProgress
   const isTerminal = state === "SUCCESS" || state === "FAILURE"
 
@@ -58,6 +61,16 @@ export function EmbeddingStep({
       ) : null}
 
       <StepActions>
+        {isTerminal ? (
+          <Button
+            className="h-11 rounded-xl text-xs font-black tracking-widest uppercase"
+            onClick={onRestart}
+            variant="outline"
+          >
+            <RotateCcw aria-hidden="true" />
+            Chunk & embed lại
+          </Button>
+        ) : null}
         <Button
           className="h-11 rounded-xl bg-primary text-xs font-black tracking-widest text-primary-foreground uppercase shadow-md shadow-primary/20 hover:bg-primary/90"
           disabled={!isTerminal}

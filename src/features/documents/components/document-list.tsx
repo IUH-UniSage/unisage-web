@@ -5,6 +5,7 @@ import {
   Layers,
   MoreHorizontal,
   Pencil,
+  RotateCcw,
   Search,
   Trash2,
   UploadCloud,
@@ -40,6 +41,7 @@ type DocumentActionsProps = {
   document: Document
   onEdit: (document: Document) => void
   onProcess: (document: Document) => void
+  onReprocess: (document: Document) => void
   onRequestDelete: (document: Document) => void
   onViewChunks: (document: Document) => void
   onViewDetail: (document: Document) => void
@@ -52,12 +54,16 @@ function DocumentActions({
   document,
   onEdit,
   onProcess,
+  onReprocess,
   onRequestDelete,
   onViewChunks,
   onViewDetail,
 }: DocumentActionsProps) {
   const canDownload = Boolean(document.fileUrl)
   const canProcessThisDocument = canProcess && document.status !== "COMPLETED"
+  // An ingested document found to be chunked wrong is chunked and embedded
+  // again from scratch; its old points go once the new ones are in.
+  const canReprocessThisDocument = canProcess && document.status === "COMPLETED"
 
   return (
     <DropdownMenu>
@@ -97,6 +103,12 @@ function DocumentActions({
             Xử lý nạp liệu
           </DropdownMenuItem>
         ) : null}
+        {canReprocessThisDocument ? (
+          <DropdownMenuItem onSelect={() => onReprocess(document)}>
+            <RotateCcw aria-hidden="true" />
+            Chunk & embed lại
+          </DropdownMenuItem>
+        ) : null}
         {canUpdate ? (
           <DropdownMenuItem onSelect={() => onEdit(document)}>
             <Pencil aria-hidden="true" />
@@ -126,6 +138,7 @@ type DocumentListProps = {
   onEdit: (document: Document) => void
   onPageChange: (page: number) => void
   onProcess: (document: Document) => void
+  onReprocess: (document: Document) => void
   onRequestDelete: (document: Document) => void
   onViewChunks: (document: Document) => void
   onViewDetail: (document: Document) => void
@@ -143,7 +156,9 @@ function StatusBadge({
   progressByDocumentId: Record<string, number> | undefined
 }) {
   const percent = progressByDocumentId?.[document.id]
-  const isProcessing = document.status === "PENDING" && percent != null
+  const isProcessing =
+    (document.status === "PENDING" || document.status === "PROCESSING") &&
+    percent != null
 
   return (
     <Badge
@@ -171,6 +186,7 @@ export function DocumentList({
   onEdit,
   onPageChange,
   onProcess,
+  onReprocess,
   onRequestDelete,
   onViewChunks,
   onViewDetail,
@@ -241,6 +257,7 @@ export function DocumentList({
             document={row.original}
             onEdit={onEdit}
             onProcess={onProcess}
+            onReprocess={onReprocess}
             onRequestDelete={onRequestDelete}
             onViewChunks={onViewChunks}
             onViewDetail={onViewDetail}
@@ -258,6 +275,7 @@ export function DocumentList({
       firstRowNumber,
       onEdit,
       onProcess,
+      onReprocess,
       onRequestDelete,
       onViewChunks,
       onViewDetail,
@@ -327,6 +345,7 @@ export function DocumentList({
                   document={document}
                   onEdit={onEdit}
                   onProcess={onProcess}
+                  onReprocess={onReprocess}
                   onRequestDelete={onRequestDelete}
                   onViewChunks={onViewChunks}
                   onViewDetail={onViewDetail}

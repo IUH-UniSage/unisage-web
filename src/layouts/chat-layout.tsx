@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom"
 
+import { ClientOverviewTour } from "@/features/product-tour"
 import { useVisualViewport } from "@/hooks/use-visual-viewport"
 
 export function ChatLayout() {
@@ -10,6 +11,7 @@ export function ChatLayout() {
 
   return (
     <main className="fixed inset-x-0 top-[var(--app-top,0px)] h-[var(--app-height,100svh)] overflow-hidden overscroll-none bg-background">
+      <ClientOverviewTour />
       <Outlet />
     </main>
   )

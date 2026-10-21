@@ -295,6 +295,7 @@
 }
 
 .unisage-tour .driver-popover-progress-text {
+  white-space: nowrap;
   font-size: 0.75rem;
   color: var(--muted-foreground);
 }
@@ -308,11 +309,27 @@
   color: var(--popover-foreground);
 }
 
+/*
+ * Labels never break mid-phrase ("Tiếp: Người dùng", "5/5 · Trang 1/4");
+ * when the row is too narrow, whole items wrap onto the next line instead.
+ */
 .unisage-tour .driver-popover-footer {
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 16px;
 }
 
+.unisage-tour .driver-popover-navigation-btns {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.unisage-tour .driver-popover-navigation-btns button + button {
+  margin-left: 0;
+}
+
 .unisage-tour .driver-popover-footer .driver-popover-footer-btn {
+  white-space: nowrap;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background-color: var(--background);

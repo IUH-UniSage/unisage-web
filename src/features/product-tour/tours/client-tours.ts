@@ -24,8 +24,7 @@ const TOUR_BUTTON_STEP: TourStep = {
   title: "Xem lại hướng dẫn",
 }
 
-// Shown after the first answer arrives (see useChatReplyTour) and at the end
-// of the chat tour when it is replayed over a conversation.
+// At the end of the chat tour; dropped until the conversation has an answer.
 export const CHAT_REPLY_STEPS: readonly TourStep[] = [
   fieldStep(
     TOUR_ANCHORS.chatReplyCitations,
@@ -47,8 +46,6 @@ export const CHAT_REPLY_STEPS: readonly TourStep[] = [
   ),
 ]
 
-export const CHAT_REPLY_TOUR_KEY = "chat-reply"
-
 export type ClientPageTour = PageTour & {
   paths: readonly string[]
 }
@@ -57,7 +54,6 @@ export const CLIENT_PAGE_TOURS: readonly ClientPageTour[] = [
   {
     key: "home",
     paths: [ROUTES.home],
-    readyAnchor: TOUR_ANCHORS.homeAsk,
     steps: [
       {
         description:
@@ -114,8 +110,7 @@ export const CLIENT_PAGE_TOURS: readonly ClientPageTour[] = [
   },
   {
     key: "chat",
-    paths: [ROUTES.chat],
-    readyAnchor: TOUR_ANCHORS.chatComposer,
+    paths: [ROUTES.chat, `${ROUTES.chat}/:conversationId`],
     steps: [
       fieldStep(
         TOUR_ANCHORS.chatComposer,
@@ -189,7 +184,6 @@ export const CLIENT_PAGE_TOURS: readonly ClientPageTour[] = [
   {
     key: "ticket-detail",
     paths: [`${ROUTES.tickets}/:ticketId`],
-    readyAnchor: TOUR_ANCHORS.ticketDetailContent,
     steps: [
       headerStep(
         "Chi tiết yêu cầu",

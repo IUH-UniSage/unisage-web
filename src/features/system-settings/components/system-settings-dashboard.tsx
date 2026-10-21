@@ -14,6 +14,7 @@ import { TabbedListPage } from "@/components/shared/page/tabbed-list-page"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CategoryConfigForm } from "@/features/system-settings/components/category-config-form"
 import { groupIngestConfigs } from "@/features/system-settings/components/ingest-config-groups"
+import { groupMaintenanceConfigs } from "@/features/system-settings/components/maintenance-config-groups"
 import { useSystemConfigsQuery } from "@/features/system-settings/queries/use-queries"
 import {
   SYSTEM_CONFIG_CATEGORY_LABELS,
@@ -119,7 +120,9 @@ export function SystemSettingsDashboard() {
               groups={
                 category === "INGEST"
                   ? groupIngestConfigs(categoryConfigs)
-                  : undefined
+                  : category === "MAINTENANCE"
+                    ? groupMaintenanceConfigs(categoryConfigs)
+                    : undefined
               }
             />
           ),

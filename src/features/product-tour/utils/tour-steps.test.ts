@@ -4,8 +4,8 @@ import { TOUR_ANCHORS, tourAnchorSelector } from "@/constants/tour-anchors"
 import { buildDriveSteps } from "@/features/product-tour/utils/tour-steps"
 import {
   hasSeenTour,
-  markToursSeen,
-  pageTourKey,
+  markTourSeen,
+  overviewTourKey,
 } from "@/features/product-tour/utils/tour-storage"
 
 // jsdom does no layout, so every element reports zero client rects; mark
@@ -106,14 +106,15 @@ describe("buildDriveSteps", () => {
 })
 
 describe("tour storage", () => {
-  it("remembers tours that were shown", () => {
-    expect(hasSeenTour(pageTourKey("admin-users"))).toBe(false)
+  it("remembers the overview per account", () => {
+    const first = overviewTourKey("system-admin", "u-1")
+    expect(hasSeenTour(first)).toBe(false)
 
-    markToursSeen([pageTourKey("admin-users")])
-    markToursSeen([pageTourKey("documents")])
+    markTourSeen(first)
+    markTourSeen(overviewTourKey("client", "u-2"))
 
-    expect(hasSeenTour(pageTourKey("admin-users"))).toBe(true)
-    expect(hasSeenTour(pageTourKey("documents"))).toBe(true)
-    expect(hasSeenTour(pageTourKey("categories"))).toBe(false)
+    expect(hasSeenTour(first)).toBe(true)
+    expect(hasSeenTour(overviewTourKey("client", "u-2"))).toBe(true)
+    expect(hasSeenTour(overviewTourKey("system-admin", "u-2"))).toBe(false)
   })
 })

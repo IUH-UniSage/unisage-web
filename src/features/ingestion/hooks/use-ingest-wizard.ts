@@ -24,7 +24,19 @@ export type WizardStep = "preview" | "chunking" | "review" | "embedding"
 
 const COMPLETED_PROGRESS: EmbeddingProgress = { percent: 100, state: "SUCCESS" }
 
-export function useIngestWizard(document: Document) {
+type IngestWizardOptions = {
+  /**
+   * Chunk and embed again from the preview step, ignoring saved progress -
+   * for a document already ingested that came out wrong (UNISAGE-103). The
+   * saved chunking strategy is still offered as the default.
+   */
+  restart?: boolean
+}
+
+export function useIngestWizard(
+  document: Document,
+  { restart = false }: IngestWizardOptions = {}
+) {
   const jobQuery = useIngestionJobQuery(document.id)
   const previewMutation = usePreviewMutation()
   const chunkMutation = useChunkMutation()
@@ -33,8 +45,9 @@ export function useIngestWizard(document: Document) {
 
   // A document already marked COMPLETED never needs the live channel or a
   // task-status read (an old task_id can read back as PENDING once the
-  // Celery result TTL lapses) - the wizard just shows the done view.
-  const alreadyComplete = document.status === "COMPLETED"
+  // Celery result TTL lapses) - the wizard just shows the done view, unless
+  // it was opened to chunk and embed the document again.
+  const alreadyComplete = document.status === "COMPLETED" && !restart
 
   const [step, setStep] = useState<WizardStep>("preview")
   const [previewText, setPreviewText] = useState<string>()
@@ -139,7 +152,21 @@ export function useIngestWizard(document: Document) {
     setHasHydrated(true)
 
     const job = jobQuery.data
-    if (alreadyComplete) {
+    if (restart) {
+      // "Chunk & embed lại": reuse the document's saved chunk list (the one that
+      // was embedded, manual edits included) and open it for review straight
+      // away - the strategy panel stays available for anyone who does want to
+      // re-chunk. Only a document with no draft falls back to preview (auto-
+      // started below) so it can be chunked for the first time.
+      if (job) {
+        setChunkingStrategy(job.chunking_strategy)
+        setChunkingParams(job.chunking_params)
+        if (job.chunks.length > 0) {
+          setChunks(job.chunks)
+          setStep("review")
+        }
+      }
+    } else if (alreadyComplete) {
       setStep("embedding")
       if (job) setChunks(job.chunks)
     } else if (job) {
@@ -259,6 +286,14 @@ export function useIngestWizard(document: Document) {
         onSuccess: (response) => {
           setEmbeddingTaskId(response.task_id)
           setStep("embedding")
+          // Off COMPLETED/FAILED/OUTDATED while the task runs, so the lists
+          // and DocumentStatusSync treat it as in progress.
+          if (document.status !== "PENDING") {
+            updateDocumentStatus.mutate({
+              documentId: document.id,
+              status: "PROCESSING",
+            })
+          }
         },
       }
     )

@@ -42,6 +42,7 @@ export const PERMISSIONS = {
   chatModelCreate: "CHAT_MODEL_CREATE",
   chatModelUpdate: "CHAT_MODEL_UPDATE",
   chatModelDelete: "CHAT_MODEL_DELETE",
+  chatModelReindex: "CHAT_MODEL_REINDEX",
   conversationAll: "CONVERSATION_ALL",
   conversationRead: "CONVERSATION_READ",
   conversationCreate: "CONVERSATION_CREATE",
@@ -74,6 +75,10 @@ export const PERMISSIONS = {
   // system-health feature).
   systemHealthRead: "SYSTEM_HEALTH_READ",
   dashboardRead: "DASHBOARD_READ",
+  // UNISAGE-102: backup/restore page. Only BACKUP_ALL and BACKUP_READ exist;
+  // BACKUP_ALL wildcard-satisfies BACKUP_CREATE for the action buttons.
+  backupAll: "BACKUP_ALL",
+  backupRead: "BACKUP_READ",
   usageLogRead: "USAGE_LOG_READ",
   budgetAll: "BUDGET_ALL",
   budgetRead: "BUDGET_READ",
@@ -112,6 +117,7 @@ export type ResourceName =
   | "llm_trace_log"
   | "system_config"
   | "system_health"
+  | "backup"
   | "budget"
   | "budget_alert"
   | "model_pricing"

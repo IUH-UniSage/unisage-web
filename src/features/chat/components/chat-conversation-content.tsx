@@ -35,7 +35,6 @@ import {
   readFeedbackItems,
 } from "@/features/chat/utils/calculation-feedback"
 import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
-import { useChatReplyTour } from "@/features/product-tour"
 import {
   ElapsedTime,
   TurnProgressIndicator,
@@ -92,8 +91,6 @@ export function ActiveConversation({
   const latestReplyIndex = messages.findLastIndex(
     (message) => message.role === "ASSISTANT" && message.status === "COMPLETED"
   )
-  // Once the first answer is in, explain what can be done with it.
-  useChatReplyTour(latestReplyIndex >= 0 && !isWaitingForReply && !isStreaming)
   // Follows the latest message (an answer streaming in, the keyboard opening)
   // while the reader is at the end.
   const scrollAreaRef = useRef<HTMLDivElement>(null)

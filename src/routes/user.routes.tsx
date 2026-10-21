@@ -72,7 +72,9 @@ export const userRoutes: RouteObject[] = [
     ],
   },
   {
-    path: ROUTES.chat,
+    // `/chat` and `/chat/<id>` are one route (optional segment), so opening or leaving a
+    // conversation only changes the params: ChatPage and its streaming state stay mounted.
+    path: `${ROUTES.chat}/${ROUTE_SEGMENTS.chatConversation}?`,
     element: <ChatLayout />,
     children: [
       {

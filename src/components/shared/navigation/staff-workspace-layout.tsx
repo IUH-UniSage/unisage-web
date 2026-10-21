@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { ProductTourButton } from "@/features/product-tour"
+import { ProductTourButton, StaffOverviewTour } from "@/features/product-tour"
 
 type StaffWorkspaceLayoutProps = {
   banner?: ReactNode
@@ -36,6 +36,7 @@ export function StaffWorkspaceLayout({
 
   return (
     <div className="min-h-svh bg-background lg:grid lg:grid-cols-[248px_1fr]">
+      <StaffOverviewTour workspace={workspace} />
       <StaffSidebar
         className="fixed inset-y-0 left-0 hidden lg:flex"
         workspace={workspace}

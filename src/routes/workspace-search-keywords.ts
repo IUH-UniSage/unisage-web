@@ -326,6 +326,19 @@ export const WORKSPACE_SEARCH_KEYWORDS: Record<string, WorkspaceSearchEntry> = {
       "service",
     ],
   },
+  "admin-backups": {
+    keywords: [
+      "sao lưu",
+      "khôi phục",
+      "phục hồi",
+      "dữ liệu",
+      "snapshot",
+      "qdrant",
+      "backup",
+      "restore",
+      "recovery",
+    ],
+  },
   "admin-settings": {
     keywords: [
       "cài đặt",

@@ -1,8 +1,10 @@
 export const ROUTE_SEGMENTS = {
   accessLevels: "access-levels",
   auth: "auth",
+  backups: "backups",
   categories: "categories",
   chat: "chat",
+  chatConversation: ":conversationId",
   costManagement: "cost-management",
   departments: "departments",
   documents: "documents",
@@ -25,6 +27,7 @@ export const ROUTE_SEGMENTS = {
 export const ROUTES = {
   admin: "/admin",
   adminAccessLevels: "/admin/access-levels",
+  adminBackups: "/admin/backups",
   adminCategories: "/admin/categories",
   adminCostManagement: "/admin/cost-management",
   adminDepartments: "/admin/departments",
@@ -64,12 +67,31 @@ export function adminTicketDetailPath(ticketId: string): string {
   return `${ROUTES.adminTickets}/${ticketId}`
 }
 
-export function ingesterIngestWizardPath(documentId: string): string {
-  return `${ROUTES.ingesterProcessing}/${documentId}`
+// `restart`: chunk and embed an already-ingested document again from the
+// preview step, instead of opening its saved progress (UNISAGE-103).
+type IngestWizardPathOptions = { restart?: boolean }
+
+function withRestart(path: string, options?: IngestWizardPathOptions) {
+  return options?.restart
+    ? `${path}?${INGEST_RESTART_PARAM}=${Date.now()}`
+    : path
 }
 
-export function adminDocumentIngestWizardPath(documentId: string): string {
-  return `${ROUTES.adminDocuments}/${documentId}/ingest`
+/** Search param that opens the ingest wizard from scratch; its value is a nonce. */
+export const INGEST_RESTART_PARAM = "restart"
+
+export function ingesterIngestWizardPath(
+  documentId: string,
+  options?: IngestWizardPathOptions
+): string {
+  return withRestart(`${ROUTES.ingesterProcessing}/${documentId}`, options)
+}
+
+export function adminDocumentIngestWizardPath(
+  documentId: string,
+  options?: IngestWizardPathOptions
+): string {
+  return withRestart(`${ROUTES.adminDocuments}/${documentId}/ingest`, options)
 }
 
 export function adminUserNewPath(): string {
@@ -126,4 +148,10 @@ export function ingesterDocumentEditPath(documentId: string): string {
 
 export function ingesterDocumentChunksPath(documentId: string): string {
   return `${ROUTES.ingesterDocuments}/${documentId}/chunks`
+}
+
+/** `/chat/<id>`: the open conversation lives in the URL, so a reload or a shared link
+ * lands on the same conversation (like ChatGPT's `/c/<id>`). */
+export function chatConversationPath(conversationId: string): string {
+  return `${ROUTES.chat}/${conversationId}`
 }

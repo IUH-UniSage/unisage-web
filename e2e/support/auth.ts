@@ -50,64 +50,18 @@ const permissionsByRole = {
 
 export type TestRole = keyof typeof sessionByRole
 
-// Every tour that can auto-start: intro:<workspace>, page:<key> for each
-// PAGE_TOURS (staff-tours.ts), ROUTE_TOURS (route-tours.ts) and
-// CLIENT_PAGE_TOURS (client-tours.ts) entry plus page:chat-reply, and dialog:<key> for each DIALOG_TOURS entry
-// (dialog-tours.ts), all under src/features/product-tour/tours/. Marked as seen by
-// default so a first-visit tour overlay doesn't sit on top of the page a
-// spec is trying to drive; product-tour.spec.ts opts back in.
+// authenticateAs() signs every role in as this user.
+const TEST_USER_ID = "a76398bd-c8ac-4fa8-803e-0a91e207347c"
+
+// The only tours that auto-start: the first-login overview, stored per
+// audience and account as overview:<audience>:<userId> (overviewTourKey in
+// src/features/product-tour/utils/tour-storage.ts). Marked as seen by default
+// so the overview overlay doesn't sit on top of the page a spec is trying to
+// drive; the tour specs opt back in.
 export const PRODUCT_TOUR_KEYS = [
-  "intro:system-admin",
-  "intro:ingester",
-  "page:admin-overview",
-  "page:ingester-overview",
-  "page:departments",
-  "page:admin-users",
-  "page:admin-rbac",
-  "page:admin-access-levels",
-  "page:admin-tickets",
-  "page:admin-usage-limits",
-  "page:categories",
-  "page:documents",
-  "page:admin-logs",
-  "page:admin-models",
-  "page:admin-cost-management",
-  "page:admin-health",
-  "page:admin-settings",
-  "page:ingester-processing",
-  "page:user-form",
-  "page:user-detail",
-  "page:role-form",
-  "page:role-detail",
-  "page:document-form",
-  "page:document-chunks",
-  "page:ingest-wizard",
-  "page:document-detail",
-  "page:admin-profile",
-  "page:home",
-  "page:chat",
-  "page:chat-reply",
-  "page:my-tickets",
-  "page:profile",
-  "dialog:access-level-form",
-  "dialog:audit-log-detail",
-  "dialog:budget-form",
-  "dialog:category-form",
-  "dialog:change-password",
-  "dialog:create-ticket",
-  "dialog:chat-model-detail",
-  "dialog:chat-model-form",
-  "dialog:department-detail",
-  "dialog:department-form",
-  "dialog:my-ticket-detail",
-  "dialog:permission-detail",
-  "dialog:permission-form",
-  "dialog:price-form",
-  "dialog:registered-models",
-  "dialog:ticket-detail",
-  "dialog:usage-limit-plan-form",
-  "dialog:usage-log-detail",
-  "dialog:verification-job-detail",
+  `overview:system-admin:${TEST_USER_ID}`,
+  `overview:ingester:${TEST_USER_ID}`,
+  `overview:client:${TEST_USER_ID}`,
 ] as const
 
 // Marks every tour as seen except `unseen`, so only those can auto-start.
@@ -145,7 +99,7 @@ export async function authenticateAs(
       name,
     })),
     role,
-    userId: "a76398bd-c8ac-4fa8-803e-0a91e207347c",
+    userId: TEST_USER_ID,
   }
 
   await page.addInitScript(
