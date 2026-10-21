@@ -29,28 +29,28 @@ export const PAGE_TOURS: Partial<Record<string, TourStep[]>> = {
     {
       anchor: TOUR_ANCHORS.overviewMetrics,
       description:
-        "Các chỉ số chính: người dùng hoạt động, câu trả lời AI hôm nay, tài liệu đã xuất bản và yêu cầu hỗ trợ đang mở.",
+        "Các chỉ số chính theo khoảng thời gian đã chọn: số câu trả lời AI, người đặt câu hỏi, thời gian trả lời và tỷ lệ có dẫn nguồn, kèm mức tăng giảm so với kỳ trước.",
       side: "bottom",
       title: "Chỉ số chính",
     },
     {
       anchor: TOUR_ANCHORS.overviewActivity,
       description:
-        "Số câu hỏi trợ lý AI đã trả lời trong 7 ngày gần nhất, giúp nhận ra xu hướng sử dụng.",
+        "Số câu trả lời của trợ lý AI theo giờ hoặc theo ngày, tách phần bị lỗi, đặt cạnh chi phí AI và ngân sách của cùng khoảng thời gian.",
       side: "top",
-      title: "Hoạt động nền tảng",
+      title: "Hoạt động và chi phí AI",
     },
     {
       anchor: TOUR_ANCHORS.overviewHealth,
       description:
         "Trạng thái thời gian thực của các dịch vụ phụ thuộc. Mở trang Tình trạng dịch vụ để xem chi tiết và lịch sử.",
-      side: "left",
+      side: "top",
       title: "Tình trạng dịch vụ",
     },
     {
       anchor: TOUR_ANCHORS.overviewShortcuts,
       description:
-        "Lối tắt tới các việc quản trị thường gặp: người dùng, nhà cung cấp AI và yêu cầu hỗ trợ.",
+        "Lối tắt tới các việc quản trị thường gặp: kho tri thức, nhà cung cấp AI, người dùng và yêu cầu hỗ trợ.",
       side: "top",
       title: "Lối tắt",
     },
