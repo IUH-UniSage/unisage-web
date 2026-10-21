@@ -39,12 +39,15 @@ import { formatDateTime } from "@/utils/date"
 type RestoreMode = "point" | "time"
 
 type PostgresRestoreDialogProps = {
+  // Preselects this restore point, e.g. when opened from a backup's file list.
+  initialBackupRunId?: string
   onOpenChange: (open: boolean) => void
   onStarted: (run: RestoreRun) => void
   overview: BackupOverview
 }
 
 export function PostgresRestoreDialog({
+  initialBackupRunId,
   onOpenChange,
   onStarted,
   overview,
@@ -55,7 +58,7 @@ export function PostgresRestoreDialog({
 
   const [mode, setMode] = useState<RestoreMode>("point")
   const [backupRunId, setBackupRunId] = useState(
-    overview.restorePoints[0]?.id ?? ""
+    initialBackupRunId ?? overview.restorePoints[0]?.id ?? ""
   )
   const [time, setTime] = useState("")
   const [confirmation, setConfirmation] = useState("")

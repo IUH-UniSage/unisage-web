@@ -13,17 +13,24 @@ import {
   tourAnchor,
   type TourAnchor,
 } from "@/constants/tour-anchors"
-import { BackupHistorySection } from "@/features/backups/components/backup-history-section"
+import {
+  BackupHistorySection,
+  type GetRestoreAction,
+} from "@/features/backups/components/backup-history-section"
 import { BackupStatusCards } from "@/features/backups/components/backup-status-cards"
 import { PostgresRestoreDialog } from "@/features/backups/components/postgres-restore-dialog"
 import { PostgresRestoreProgress } from "@/features/backups/components/postgres-restore-progress"
+import { QdrantRestoreDialog } from "@/features/backups/components/qdrant-restore-dialog"
 import { QdrantSnapshotSection } from "@/features/backups/components/qdrant-snapshot-section"
 import { backupKeys } from "@/features/backups/queries/keys"
 import {
   useBackupOverviewQuery,
   usePostgresRestoreStatusQuery,
 } from "@/features/backups/queries/use-queries"
-import type { PostgresRestoreStatus } from "@/features/backups/schemas/backup-schemas"
+import type {
+  BackupRun,
+  PostgresRestoreStatus,
+} from "@/features/backups/schemas/backup-schemas"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { formatDateTime } from "@/utils/date"
 import { getErrorMessage } from "@/utils/error-handler"
@@ -86,6 +93,9 @@ export function BackupDashboard() {
   const overview = overviewQuery.data
 
   const [isRestoreDialogOpen, setRestoreDialogOpen] = useState(false)
+  // Set when the dialog is opened from a backup's file list.
+  const [restoreBackupRunId, setRestoreBackupRunId] = useState<string>()
+  const [qdrantToRestore, setQdrantToRestore] = useState<BackupRun | null>(null)
   // The restore this browser started, followed until it ends even while
   // the overview cannot load (the database is down for part of it).
   const [trackedRestoreId, setTrackedRestoreId] = useState<string | null>(null)
@@ -141,6 +151,27 @@ export function BackupDashboard() {
   }
 
   const restoreActive = Boolean(status?.active)
+
+  const getRestoreAction: GetRestoreAction | undefined =
+    overview && canCreate && !overview.busy && !restoreActive
+      ? (run) => {
+          if (
+            overview.postgresRestoreAvailable &&
+            overview.restorePoints.some((point) => point.id === run.id)
+          ) {
+            return () => {
+              setRestoreBackupRunId(run.id)
+              setRestoreDialogOpen(true)
+            }
+          }
+          if (
+            overview.qdrantSnapshots.some((snapshot) => snapshot.id === run.id)
+          ) {
+            return () => setQdrantToRestore(run)
+          }
+          return undefined
+        }
+      : undefined
 
   return (
     <div className="space-y-6">
@@ -203,7 +234,10 @@ export function BackupDashboard() {
                     overview.busy ||
                     restoreActive
                   }
-                  onClick={() => setRestoreDialogOpen(true)}
+                  onClick={() => {
+                    setRestoreBackupRunId(undefined)
+                    setRestoreDialogOpen(true)
+                  }}
                   variant="destructive"
                 >
                   <History aria-hidden="true" />
@@ -270,12 +304,20 @@ export function BackupDashboard() {
 
           {isRestoreDialogOpen && (
             <PostgresRestoreDialog
+              initialBackupRunId={restoreBackupRunId}
               onOpenChange={setRestoreDialogOpen}
               onStarted={(run) => {
                 setDismissedRestoreId(null)
                 setTrackedRestoreId(run.id)
               }}
               overview={overview}
+            />
+          )}
+
+          {qdrantToRestore && (
+            <QdrantRestoreDialog
+              onOpenChange={(open) => !open && setQdrantToRestore(null)}
+              snapshot={qdrantToRestore}
             />
           )}
         </>
@@ -286,7 +328,7 @@ export function BackupDashboard() {
         description="Mọi lần sao lưu và khôi phục, kể cả lần thất bại."
         title="Lịch sử"
       >
-        <BackupHistorySection />
+        <BackupHistorySection getRestoreAction={getRestoreAction} />
       </Section>
     </div>
   )

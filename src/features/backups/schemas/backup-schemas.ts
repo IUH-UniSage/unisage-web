@@ -99,6 +99,19 @@ export const backupRunSchema = z.object({
 
 export type BackupRun = z.infer<typeof backupRunSchema>
 
+// One object a backup run stored in MinIO; downloadUrl is a presigned link
+// that saves the file as downloadName.
+export const backupFileSchema = z.object({
+  downloadName: z.string(),
+  downloadUrl: z.string(),
+  key: z.string(),
+  lastModified: z.string().nullish(),
+  name: z.string(),
+  sizeBytes: z.number(),
+})
+
+export type BackupFile = z.infer<typeof backupFileSchema>
+
 export const restoreRunSchema = z.object({
   errorMessage: z.string().nullish(),
   finishedAt: z.string().nullish(),

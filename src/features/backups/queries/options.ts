@@ -62,6 +62,15 @@ export const backupOptions = {
       queryKey: backupKeys.restores(params),
     }),
 
+  // Presigned links expire, so the list is fetched again each time the
+  // dialog opens rather than served from an old cache entry.
+  runFiles: (runId: string) =>
+    queryOptions({
+      ...QUERY_POLICIES.realtime,
+      queryFn: () => backupApi.getRunFiles(runId),
+      queryKey: backupKeys.runFiles(runId),
+    }),
+
   runs: (params: BackupHistoryParams) =>
     queryOptions({
       ...QUERY_POLICIES.realtime,

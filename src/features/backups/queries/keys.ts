@@ -7,6 +7,7 @@ export const backupKeys = {
     [...backupKeys.all, "postgres-restore-status"] as const,
   restores: (params: BackupHistoryParams) =>
     [...backupKeys.all, "restores", params] as const,
+  runFiles: (runId: string) => [...backupKeys.all, "run-files", runId] as const,
   runs: (params: BackupHistoryParams) =>
     [...backupKeys.all, "runs", params] as const,
 }

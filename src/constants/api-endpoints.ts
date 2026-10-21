@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
     postgresRestoreStatus: "/admin/backups/restores/postgres/status",
     qdrantRestore: "/admin/backups/restores/qdrant",
     restores: "/admin/backups/restores",
+    runFiles: (runId: string) => `/admin/backups/runs/${runId}/files`,
     runs: "/admin/backups/runs",
   },
   categories: {

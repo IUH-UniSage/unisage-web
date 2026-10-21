@@ -1,7 +1,9 @@
+import { FolderOpen } from "lucide-react"
 import { useState } from "react"
 
 import { Pagination } from "@/components/shared/list/pagination"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -12,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { BackupFilesDialog } from "@/features/backups/components/backup-files-dialog"
 import {
   useBackupRunsQuery,
   useRestoreRunsQuery,
@@ -21,6 +24,7 @@ import {
   BACKUP_TYPE_LABELS,
   getBackupStatusBadgeClassName,
   RESTORE_TYPE_LABELS,
+  type BackupRun,
   type BackupStatus,
   type RestoreRun,
 } from "@/features/backups/schemas/backup-schemas"
@@ -90,13 +94,25 @@ function HistoryState({
   return null
 }
 
-function BackupRunsTable() {
+function hasFiles(run: BackupRun) {
+  return (
+    run.status === "SUCCEEDED" && !run.purgedAt && Boolean(run.storagePrefix)
+  )
+}
+
+function BackupRunsTable({
+  getRestoreAction,
+}: {
+  getRestoreAction?: GetRestoreAction
+}) {
   const [page, setPage] = useState(1)
+  const [viewing, setViewing] = useState<BackupRun | null>(null)
   const { data, error, isPending } = useBackupRunsQuery({
     limit: PAGE_SIZE,
     page,
   })
   const runs = data?.data ?? []
+  const restoreViewing = viewing ? getRestoreAction?.(viewing) : undefined
 
   if (isPending || error || runs.length === 0) {
     return (
@@ -120,6 +136,7 @@ function BackupRunsTable() {
               <TableHead>Thời lượng</TableHead>
               <TableHead className="text-right">Dung lượng</TableHead>
               <TableHead>Ghi chú</TableHead>
+              <TableHead className="w-0" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -157,6 +174,18 @@ function BackupRunsTable() {
                     `Đã xóa theo chính sách giữ lại (${formatDateTime(run.purgedAt)})`
                   ) : null}
                 </TableCell>
+                <TableCell>
+                  {hasFiles(run) && (
+                    <Button
+                      onClick={() => setViewing(run)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <FolderOpen aria-hidden="true" />
+                      Xem file
+                    </Button>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -169,6 +198,19 @@ function BackupRunsTable() {
           pageSize={PAGE_SIZE}
           totalItems={data.totalItems}
           totalPages={data.totalPages}
+        />
+      )}
+      {viewing && (
+        <BackupFilesDialog
+          onOpenChange={(open) => !open && setViewing(null)}
+          onRestore={
+            restoreViewing &&
+            (() => {
+              setViewing(null)
+              restoreViewing()
+            })
+          }
+          run={viewing}
         />
       )}
     </div>
@@ -262,7 +304,15 @@ function RestoreRunsTable() {
   )
 }
 
-export function BackupHistorySection() {
+// Returns how to restore `run` right now, or undefined when it cannot be
+// (not a restore point, restore unavailable, or another task is running).
+export type GetRestoreAction = (run: BackupRun) => (() => void) | undefined
+
+export function BackupHistorySection({
+  getRestoreAction,
+}: {
+  getRestoreAction?: GetRestoreAction
+}) {
   return (
     <Tabs defaultValue="runs">
       <TabsList>
@@ -270,7 +320,7 @@ export function BackupHistorySection() {
         <TabsTrigger value="restores">Lịch sử khôi phục</TabsTrigger>
       </TabsList>
       <TabsContent className="mt-3" value="runs">
-        <BackupRunsTable />
+        <BackupRunsTable getRestoreAction={getRestoreAction} />
       </TabsContent>
       <TabsContent className="mt-3" value="restores">
         <RestoreRunsTable />

@@ -2,11 +2,13 @@ import { z } from "zod"
 
 import { API_ENDPOINTS } from "@/constants/api-endpoints"
 import {
+  backupFileSchema,
   backupOverviewSchema,
   backupRunPageSchema,
   postgresRestoreStatusSchema,
   restoreRunPageSchema,
   restoreRunSchema,
+  type BackupFile,
   type BackupOverview,
   type BackupRunPage,
   type BackupType,
@@ -59,6 +61,14 @@ export const backupApi = {
     )
 
     return readSuccessData(response.data, restoreRunPageSchema)
+  },
+
+  async getRunFiles(runId: string): Promise<BackupFile[]> {
+    const response = await httpClient.get<ApiResponse<BackupFile[]>>(
+      API_ENDPOINTS.backups.runFiles(runId)
+    )
+
+    return readSuccessData(response.data, z.array(backupFileSchema))
   },
 
   async getRuns(params: BackupHistoryParams): Promise<BackupRunPage> {
