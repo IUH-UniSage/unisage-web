@@ -4,6 +4,7 @@ import {
   BookOpen,
   Bot,
   Building,
+  DatabaseBackup,
   Gauge,
   HeartPulse,
   Hourglass,
@@ -154,6 +155,11 @@ const SystemSettingsPage = lazy(async () => {
   return { default: SystemSettingsPage }
 })
 
+const BackupPage = lazy(async () => {
+  const { BackupPage } = await import("@/pages/system-admin/backup-page")
+  return { default: BackupPage }
+})
+
 const AuditLogPage = lazy(async () => {
   const { AuditLogPage } = await import("@/pages/system-admin/audit-log-page")
   return { default: AuditLogPage }
@@ -297,6 +303,15 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
     label: "Tình trạng dịch vụ",
     requiredPermissions: PERMISSION_POLICIES.adminHealth,
     segment: ROUTE_SEGMENTS.health,
+    workspaces: ["system-admin"],
+  },
+  {
+    element: <BackupPage />,
+    icon: DatabaseBackup,
+    key: "admin-backups",
+    label: "Sao lưu & khôi phục",
+    requiredPermissions: PERMISSION_POLICIES.adminBackups,
+    segment: ROUTE_SEGMENTS.backups,
     workspaces: ["system-admin"],
   },
   {
