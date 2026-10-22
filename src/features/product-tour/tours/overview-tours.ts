@@ -141,13 +141,13 @@ const STAFF_OVERVIEW_STOPS: Record<StaffWorkspace, StaffOverviewStop[]> = {
         fieldStep(
           TOUR_ANCHORS.overviewMetrics,
           "Chỉ số chính",
-          "Người dùng hoạt động, câu trả lời AI hôm nay, tài liệu đã xuất bản và yêu cầu hỗ trợ đang mở."
+          "Câu trả lời AI, người đặt câu hỏi, thời gian trả lời và tỷ lệ có dẫn nguồn trong khoảng thời gian đã chọn, so với kỳ trước."
         ),
         fieldStep(
           TOUR_ANCHORS.overviewHealth,
           "Tình trạng dịch vụ",
           "Trạng thái thời gian thực của các dịch vụ phụ thuộc.",
-          "left"
+          "top"
         ),
       ],
     },
