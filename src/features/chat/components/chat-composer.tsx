@@ -1,9 +1,46 @@
-import { ArrowUp, Maximize2, Minimize2, Plus, Square } from "lucide-react"
-import { useLayoutEffect, useRef, useState } from "react"
+import {
+  ArrowUp,
+  Check,
+  Maximize2,
+  Mic,
+  Minimize2,
+  Plus,
+  Square,
+  X,
+} from "lucide-react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 
 import { Button } from "@/components/ui/button"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { AudioWaveformCanvas } from "@/features/chat/components/audio-waveform-canvas"
+import { useAudioWaveform } from "@/features/chat/hooks/use-audio-waveform"
+import { useSpeechToText } from "@/features/chat/hooks/use-speech-to-text"
 import { cn } from "@/lib/utils"
+
+const LISTENING_DOTS_INTERVAL_MS = 500
+
+/** "", ".", "..", "..." cycling while `active` - the "Đang nghe..." effect. */
+function useListeningDots(active: boolean) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!active) return
+    const id = setInterval(
+      () => setCount((c) => (c + 1) % 4),
+      LISTENING_DOTS_INTERVAL_MS
+    )
+    return () => {
+      clearInterval(id)
+      setCount(0)
+    }
+  }, [active])
+  return ".".repeat(count)
+}
 
 type ChatComposerProps = {
   centered?: boolean
@@ -86,7 +123,24 @@ export function ChatComposer({
   const [isExpanded, setIsExpanded] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const isMultiline = value.includes("\n") || value.length > 70 || isExpanded
+  const handleVoiceFinish = useCallback((text: string) => {
+    setValue(text)
+    textareaRef.current?.focus()
+  }, [])
+  const voice = useSpeechToText({ onFinish: handleVoiceFinish })
+  const waveformBars = useAudioWaveform(voice.stream)
+  const dots = useListeningDots(voice.isListening)
+  const isListening = voice.isListening
+
+  // While dictating, the textarea shows what has been heard so far (read-only).
+  const displayValue = isListening
+    ? voice.transcript.trim()
+      ? `${voice.transcript.trimEnd()}${dots}`
+      : ""
+    : value
+
+  const isMultiline =
+    !isListening && (value.includes("\n") || value.length > 70 || isExpanded)
 
   // Synchronously adjust height on value changes
   useLayoutEffect(() => {
@@ -100,11 +154,11 @@ export function ChatComposer({
 
     textarea.style.height = "auto"
     textarea.style.height = `${Math.min(textarea.scrollHeight, 220)}px`
-  }, [value, isExpanded])
+  }, [displayValue, isExpanded])
 
   const submit = () => {
     const content = value.trim()
-    if (!content || disabled) return
+    if (!content || disabled || isListening) return
 
     onSubmit(content)
     setValue("")
@@ -166,7 +220,9 @@ export function ChatComposer({
         className={cn(
           "relative mx-auto flex max-w-3xl items-end gap-2 rounded-[26px] border border-border/60 bg-muted/60 px-3 py-1.5 shadow-sm transition-[border-color,box-shadow,height,border-radius] dark:border-white/10 dark:bg-muted/60",
           centered && "shadow-md dark:shadow-[0_12px_36px_rgb(0_0_0_/_0.3)]",
-          isExpanded && "rounded-3xl p-3.5 shadow-xl"
+          isExpanded && "rounded-3xl p-3.5 shadow-xl",
+          // Dictating: transcript on top, [cancel | waveform | confirm] row below.
+          isListening && "flex-col items-stretch gap-1 rounded-3xl px-4 py-2.5"
         )}
         onSubmit={(event) => {
           // submit() runs from handleKeyDown (Enter) or the send button's
@@ -198,6 +254,7 @@ export function ChatComposer({
 
         {/* Plus / Attach Button pinned to bottom left */}
         <Button
+          hidden={isListening}
           aria-label="Đính kèm hoặc thêm tùy chọn"
           className="mb-0.5 size-8.5 shrink-0 cursor-pointer rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
           disabled={disabled}
@@ -216,6 +273,8 @@ export function ChatComposer({
           className={cn(
             "min-h-[26px] flex-1 resize-none overflow-y-auto border-0 bg-transparent! py-1.5 text-base leading-6 shadow-none outline-none placeholder:text-muted-foreground/70 md:text-[15px] dark:text-white",
             isMultiline && "pr-8",
+            // Column layout while dictating: flex-1 would collapse its height.
+            isListening && "flex-none",
             isExpanded ? "h-[380px] max-h-[65vh]" : "max-h-[220px]"
           )}
           disabled={disabled}
@@ -223,15 +282,67 @@ export function ChatComposer({
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           placeholder={
-            centered ? "Hỏi bất kỳ điều gì..." : "Đặt câu hỏi tiếp theo..."
+            isListening
+              ? `Đang nghe${dots}`
+              : centered
+                ? "Hỏi bất kỳ điều gì..."
+                : "Đặt câu hỏi tiếp theo..."
           }
+          readOnly={isListening}
           ref={textareaRef}
           rows={1}
-          value={value}
+          value={displayValue}
         />
 
+        {isListening ? (
+          <div className="flex items-center gap-2">
+            <Button
+              aria-label="Hủy nhập bằng giọng nói"
+              className="size-8 shrink-0 cursor-pointer rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={voice.cancel}
+              size="icon"
+              title="Hủy"
+              type="button"
+              variant="ghost"
+            >
+              <X aria-hidden="true" className="size-4.5" />
+            </Button>
+            <AudioWaveformCanvas
+              bars={waveformBars}
+              className="min-w-0 flex-1"
+            />
+            <Button
+              aria-label="Xong, dùng nội dung vừa nói"
+              className="size-8 shrink-0 cursor-pointer rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={voice.stop}
+              size="icon"
+              title="Xong"
+              type="button"
+              variant="ghost"
+            >
+              <Check aria-hidden="true" className="size-4.5" />
+            </Button>
+          </div>
+        ) : null}
+
+        {/* Mic: dictate with the browser's speech recognition */}
+        {!isListening && !isStreaming ? (
+          <Button
+            aria-label="Nhập bằng giọng nói"
+            className="mb-0.5 size-8.5 shrink-0 cursor-pointer rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            disabled={disabled}
+            onClick={() => void voice.start(value)}
+            size="icon"
+            title="Nhập bằng giọng nói"
+            type="button"
+            variant="ghost"
+          >
+            <Mic aria-hidden="true" className="size-4.5" />
+          </Button>
+        ) : null}
+
         {/* Send Button, swapped for Stop while a reply is streaming */}
-        {isStreaming && onStop ? (
+        {isListening ? null : isStreaming && onStop ? (
           <Button
             aria-label="Dừng tạo câu trả lời"
             className="mb-0.5 flex size-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition-all"
