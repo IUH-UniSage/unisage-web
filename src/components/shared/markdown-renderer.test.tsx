@@ -51,3 +51,26 @@ describe("MarkdownRenderer citation markers", () => {
     expect(container.textContent).toBe("đến hết thứ Tư (ngày 02/09/2026)1.")
   })
 })
+
+describe("MarkdownRenderer math", () => {
+  afterEach(() => cleanup())
+
+  it("typesets a $$ block with KaTeX and keeps the text around it", () => {
+    render(
+      <MarkdownRenderer
+        content={
+          "Công thức:\n\n$$\n\\text{XT2} = \\text{ĐTN} + \\text{ĐC}\n$$\n\nTrong đó ĐTN là tổng điểm [1]."
+        }
+      />
+    )
+    const block = screen.getByTestId("math-block")
+    expect(block.querySelector(".katex")).not.toBeNull()
+    expect(block.textContent).toContain("XT2")
+    expect(screen.getByText(/Trong đó ĐTN là tổng điểm/)).toBeInTheDocument()
+  })
+
+  it("renders an unparseable formula as text instead of throwing", () => {
+    render(<MarkdownRenderer content={"$$\\frac{a}{$$"} />)
+    expect(screen.getByTestId("math-block").textContent).toContain("frac")
+  })
+})
