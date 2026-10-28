@@ -1,5 +1,8 @@
+import katex from "katex"
 import { Check, Copy } from "lucide-react"
 import { createContext, type ReactNode, useContext, useState } from "react"
+
+import "katex/dist/katex.min.css"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -29,8 +32,10 @@ export function MarkdownRenderer({
 }: MarkdownRendererProps) {
   if (!content) return null
 
-  // Split by code blocks first
-  const parts = content.split(/(```[\s\S]*?```)/g)
+  // Split by code blocks and display-math blocks first. The agent writes every
+  // formula - a built-in one it computed, or one it quoted from a regulation -
+  // as LaTeX between `$$` fences, rendered by KaTeX below.
+  const parts = content.split(/(```[\s\S]*?```|\$\$[\s\S]*?\$\$)/g)
 
   return (
     <CitationMarkersContext.Provider value={citationMarkers ?? null}>
@@ -59,6 +64,13 @@ export function MarkdownRenderer({
               />
             )
           }
+
+          if (part.startsWith("$$") && part.endsWith("$$") && part.length > 4) {
+            return <MathBlock key={`math-${index}`} tex={part.slice(2, -2)} />
+          }
+
+          // Whitespace between two fenced blocks is not content: no spacer rows.
+          if (!part.trim()) return null
 
           // Regular markdown text (paragraphs, headings, lists)
           return <MarkdownText block={part} key={`text-${index}`} />
@@ -101,6 +113,27 @@ function CitationMarker({ indexes }: { indexes: number[] }) {
         )
       )}
     </>
+  )
+}
+
+// A `$$ … $$` formula, typeset by KaTeX. `throwOnError: false` renders an
+// unparseable expression as red source text instead of breaking the message;
+// `strict: false` accepts the Vietnamese letters the agent puts in `\text{…}`.
+function MathBlock({ tex }: { tex: string }) {
+  const html = katex.renderToString(tex.trim(), {
+    displayMode: true,
+    output: "html",
+    strict: false,
+    throwOnError: false,
+  })
+
+  // KaTeX's own `.katex-display` margin (1em) is dropped: the box carries the spacing.
+  return (
+    <div
+      className="overflow-x-auto rounded-lg border border-border bg-muted/30 px-4 py-2 text-foreground [&_.katex-display]:my-0"
+      dangerouslySetInnerHTML={{ __html: html }}
+      data-testid="math-block"
+    />
   )
 }
 
@@ -232,6 +265,12 @@ function MarkdownText({ block }: { block: string }) {
       }
       elements.push(<MarkdownTable header={header} key={index} rows={rows} />)
       index = cursor
+      continue
+    }
+
+    // A run of blank lines is one spacer, not one per line.
+    if (!line && !lines[index - 1]?.trim()) {
+      index += 1
       continue
     }
 
