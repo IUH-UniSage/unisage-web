@@ -12,20 +12,26 @@ import {
 } from "@/components/ui/dialog"
 
 type ConfirmDeleteDialogProps = {
+  /** Confirm button text; defaults to `Xóa {entityLabel}`. */
+  confirmLabel?: string
   description: string
   entityLabel: string
   isSubmitting: boolean
   onConfirm: () => Promise<void>
   onOpenChange: (open: boolean) => void
+  /** Confirm button text while submitting; defaults to "Đang xóa...". */
+  submittingLabel?: string
   title: string
 }
 
 export function ConfirmDeleteDialog({
+  confirmLabel,
   description,
   entityLabel,
   isSubmitting,
   onConfirm,
   onOpenChange,
+  submittingLabel = "Đang xóa...",
   title,
 }: ConfirmDeleteDialogProps) {
   return (
@@ -47,7 +53,9 @@ export function ConfirmDeleteDialog({
             variant="destructive"
           >
             <Trash2 aria-hidden="true" />
-            {isSubmitting ? "Đang xóa..." : `Xóa ${entityLabel}`}
+            {isSubmitting
+              ? submittingLabel
+              : (confirmLabel ?? `Xóa ${entityLabel}`)}
           </Button>
         </DialogFooter>
       </DialogContent>

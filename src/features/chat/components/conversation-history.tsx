@@ -3,6 +3,7 @@ import {
   Home,
   KeyRound,
   LayoutDashboard,
+  Link2,
   LogIn,
   LogOut,
   MoreHorizontal,
@@ -10,6 +11,7 @@ import {
   PanelLeftOpen,
   Pin,
   Search,
+  Share2,
   SquarePen,
   Trash2,
   UserRound,
@@ -50,6 +52,8 @@ export type ConversationHistoryProps = {
   onNewConversation: () => void
   onOpenSearch: () => void
   onSelectConversation: (id: string) => void
+  /** Signed-in users only: guest conversations can't be shared (spec R1). */
+  onShareConversation?: (conversation: Conversation) => void
 }
 
 type CollapsedHistoryRailProps = {
@@ -212,6 +216,7 @@ export function ConversationHistory({
   onNewConversation,
   onOpenSearch,
   onSelectConversation,
+  onShareConversation,
 }: ConversationHistoryProps) {
   const { logout, session, status } = useAuth()
   const navigate = useNavigate()
@@ -346,6 +351,14 @@ export function ConversationHistory({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-44">
+                        {onShareConversation && !isGuest ? (
+                          <DropdownMenuItem
+                            onSelect={() => onShareConversation(conversation)}
+                          >
+                            <Share2 aria-hidden="true" />
+                            Chia sẻ
+                          </DropdownMenuItem>
+                        ) : null}
                         <DropdownMenuItem
                           onSelect={() => onDeleteConversation(conversation.id)}
                           variant="destructive"
@@ -441,6 +454,10 @@ export function ConversationHistory({
               <DropdownMenuItem onSelect={() => navigate(ROUTES.tickets)}>
                 <HelpCircle aria-hidden="true" />
                 Yêu cầu hỗ trợ
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate(ROUTES.sharedLinks)}>
+                <Link2 aria-hidden="true" />
+                Liên kết đã chia sẻ
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />

@@ -1,3 +1,4 @@
+import { Share2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 
@@ -26,6 +27,9 @@ import {
   latestCitations,
   webCitationUrl,
 } from "@/features/chat/utils/citations"
+import { ShareConversationDialog } from "@/features/conversations/components/share-conversation-dialog"
+import { useAuth } from "@/features/auth/hooks/use-auth"
+import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 import { cn } from "@/lib/utils"
 
 export function ChatPage() {
@@ -34,6 +38,15 @@ export function ChatPage() {
   const [isResizing, setIsResizing] = useState(false)
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
   const [activeCitation, setActiveCitation] = useState<Citation | null>(null)
+  const [sharingConversation, setSharingConversation] =
+    useState<Conversation | null>(null)
+  // Guest conversations can't be shared (UNISAGE-107 R1).
+  const { status: authStatus } = useAuth()
+  const canShare = authStatus === "authenticated"
+  const shareActiveConversation =
+    canShare && workspace.activeConversation
+      ? () => setSharingConversation(workspace.activeConversation)
+      : undefined
   // On desktop the document opens as a column next to the chat (nothing dimmed, the
   // conversation keeps working); the history sidebar folds away to make room. On
   // smaller screens it slides over the page as a sheet.
@@ -113,6 +126,7 @@ export function ChatPage() {
     onNewConversation: workspace.startNewConversation,
     onOpenSearch: () => setIsSearchDialogOpen(true),
     onSelectConversation: workspace.selectConversation,
+    onShareConversation: canShare ? setSharingConversation : undefined,
   }
 
   const startResizing = (mouseDownEvent: React.MouseEvent) => {
@@ -144,6 +158,7 @@ export function ChatPage() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
       <MobileChatHeader
+        onShare={shareActiveConversation}
         renderHistory={(closeSheet) => (
           <ConversationHistory
             {...historyProps}
@@ -205,6 +220,7 @@ export function ChatPage() {
               setActiveCitation(null)
               workspace.setIsSourcesOpen(true)
             }}
+            onShare={shareActiveConversation}
             sourceCount={groupCitationsByDocument(sourceCitations).length}
           />
 
@@ -223,6 +239,14 @@ export function ChatPage() {
                 isSending={workspace.isSendingMessage}
                 isStreaming={workspace.isStreaming}
                 messages={workspace.messages}
+                notice={
+                  workspace.activeConversation?.sourceShareId ? (
+                    <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                      <Share2 aria-hidden="true" className="size-3.5" />
+                      Tiếp tục từ hội thoại được chia sẻ
+                    </p>
+                  ) : null
+                }
                 onOpenCitation={openCitation}
                 onSendMessage={workspace.sendMessage}
                 onStopGenerating={workspace.stopGenerating}
@@ -260,6 +284,13 @@ export function ChatPage() {
       <CitationDrawer
         citation={isDesktop ? null : activeCitation}
         onClose={() => setActiveCitation(null)}
+      />
+
+      <ShareConversationDialog
+        conversation={sharingConversation}
+        onOpenChange={(open) => {
+          if (!open) setSharingConversation(null)
+        }}
       />
 
       {/* Search Dialog Modal (Exact ChatGPT Command Palette) */}

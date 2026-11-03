@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { chatApi } from "@/features/chat/api/chat-api"
 import { chatKeys } from "@/features/chat/queries/keys"
+import { shareKeys } from "@/features/conversations/queries/keys"
 import type { CalculationFeedbackRequest } from "@/features/chat/schemas/calculation-schemas"
 import type {
   CreateConversationRequest,
@@ -33,6 +34,8 @@ export function useDeleteConversationMutation(userId: string) {
   return useMutation({
     meta: {
       invalidatesQuery: chatKeys.conversations(userId),
+      // Deleting a conversation revokes its share links (UNISAGE-107 R11).
+      invalidatesQueries: [shareKeys.all],
       successMessage: "Đã xóa cuộc trò chuyện.",
     },
     mutationFn: (conversationId: string) =>

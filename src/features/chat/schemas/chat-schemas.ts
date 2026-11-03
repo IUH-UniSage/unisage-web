@@ -11,6 +11,8 @@ export const msgStatusSchema = z.enum([
 export const conversationSchema = z.object({
   createdAt: z.string(),
   id: z.uuid(),
+  // Set on a copy made with "Tiếp tục" from a shared link (UNISAGE-107).
+  sourceShareId: z.uuid().nullish(),
   title: z.string(),
   userId: z.uuid().nullable(),
 })

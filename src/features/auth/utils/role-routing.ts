@@ -18,3 +18,21 @@ export function getRoleHome(role: string): string {
       return ROUTES.home
   }
 }
+
+/**
+ * The page `PrivateRoute` was sending the user to (`location.state.from`), if it
+ * is an internal path: starts with "/" but not "//" or "/\\" (protocol-relative
+ * URLs that would leave the app - no open redirect).
+ */
+export function readReturnPath(state: unknown): string | null {
+  if (!state || typeof state !== "object" || !("from" in state)) return null
+  const { from } = state
+  if (typeof from !== "string" || !from.startsWith("/")) return null
+  if (from.startsWith("//") || from.startsWith("/\\")) return null
+  return from
+}
+
+/** Where to land after signing in: back to `from`, else the role's home. */
+export function getPostSignInPath(state: unknown, role: string): string {
+  return readReturnPath(state) ?? getRoleHome(role)
+}
