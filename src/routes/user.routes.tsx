@@ -27,6 +27,17 @@ const ProfilePage = lazy(async () => {
   return { default: ProfilePage }
 })
 
+const SharedConversationPage = lazy(async () => {
+  const { SharedConversationPage } =
+    await import("@/pages/user/shared-conversation-page")
+  return { default: SharedConversationPage }
+})
+
+const SharedLinksPage = lazy(async () => {
+  const { SharedLinksPage } = await import("@/pages/user/shared-links-page")
+  return { default: SharedLinksPage }
+})
+
 const ChatPage = lazy(async () => {
   const { ChatPage } = await import("@/pages/user/chat-page")
   return { default: ChatPage }
@@ -58,6 +69,24 @@ export const userRoutes: RouteObject[] = [
         element: (
           <PrivateRoute>
             <TicketDetailPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        // A shared conversation link (UNISAGE-107): signed-in users only; the
+        // sign-in page comes back here afterwards (PrivateRoute `from`).
+        path: `${ROUTE_SEGMENTS.share}/:token`,
+        element: (
+          <PrivateRoute>
+            <SharedConversationPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: ROUTE_SEGMENTS.sharedLinks,
+        element: (
+          <PrivateRoute>
+            <SharedLinksPage />
           </PrivateRoute>
         ),
       },

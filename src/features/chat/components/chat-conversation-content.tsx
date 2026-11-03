@@ -64,6 +64,8 @@ type ActiveConversationProps = {
   isSending: boolean
   isStreaming: boolean
   messages: Message[]
+  /** A small line above the first message (e.g. a copy of a shared conversation). */
+  notice?: ReactNode
   onOpenCitation: (citation: Citation) => void
   onSendMessage: (content: string) => void
   onStopGenerating: () => void
@@ -77,6 +79,7 @@ export function ActiveConversation({
   isSending,
   isStreaming,
   messages,
+  notice,
   onOpenCitation,
   onSendMessage,
   onStopGenerating,
@@ -88,9 +91,6 @@ export function ActiveConversation({
   const isWaitingForReply =
     isSending ||
     (lastMessage ? PENDING_STATUSES.has(lastMessage.status) : false)
-  const latestReplyIndex = messages.findLastIndex(
-    (message) => message.role === "ASSISTANT" && message.status === "COMPLETED"
-  )
   // Follows the latest message (an answer streaming in, the keyboard opening)
   // while the reader is at the end.
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -108,68 +108,14 @@ export function ActiveConversation({
     >
       <ScrollArea className="min-h-0 flex-1" ref={scrollAreaRef}>
         <div className="mx-auto max-w-3xl space-y-7 px-4 pt-6 pb-[calc(var(--composer-height,8rem)+1rem)] md:px-8 md:pt-10">
-          {messages.map((message, index) =>
-            message.role === "USER" ? (
-              <div
-                className="group flex animate-in flex-col items-end gap-1.5 duration-300 fade-in slide-in-from-bottom-2"
-                key={message.id}
-              >
-                <UserTurn message={message} previous={messages[index - 1]} />
-              </div>
-            ) : (
-              <div
-                className="group w-full animate-in space-y-2 py-1 duration-300 fade-in slide-in-from-bottom-2"
-                key={message.id}
-              >
-                {PENDING_STATUSES.has(message.status) && !message.content ? (
-                  turnProgress?.messageId === message.id ? (
-                    <TurnProgressIndicator progress={turnProgress} />
-                  ) : (
-                    <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground">
-                      <span className="animate-pulse">Đang suy nghĩ...</span>
-                    </div>
-                  )
-                ) : message.status === "ERROR" ? (
-                  <>
-                    {/* What streamed before the failure stays readable. */}
-                    {message.content ? (
-                      <p className="text-sm whitespace-pre-wrap text-muted-foreground">
-                        {message.content}
-                      </p>
-                    ) : null}
-                    <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                      {message.errorMessage ??
-                        "Không thể tạo câu trả lời. Vui lòng thử lại."}
-                    </div>
-                  </>
-                ) : !message.content && !readClarification(message) ? (
-                  <p className="text-sm text-muted-foreground italic">
-                    Đã dừng tạo câu trả lời.
-                  </p>
-                ) : (
-                  <AssistantReply
-                    content={message.content}
-                    isLatest={index === latestReplyIndex}
-                    message={message}
-                    onOpenCitation={onOpenCitation}
-                    questionText={findQuestionBefore(messages, index)}
-                    // Ids are only the server's once the stream is done and
-                    // the messages are refetched.
-                    reportDisabled={
-                      isSending || isStreaming || message.status !== "COMPLETED"
-                    }
-                  />
-                )}
-                {/* The clock keeps running while the answer streams in. */}
-                {turnProgress?.messageId === message.id && message.content ? (
-                  <ElapsedTime
-                    className="block text-xs text-muted-foreground"
-                    startedAt={turnProgress.startedAt}
-                  />
-                ) : null}
-              </div>
-            )
-          )}
+          {notice}
+          <ConversationMessages
+            isSending={isSending}
+            isStreaming={isStreaming}
+            messages={messages}
+            onOpenCitation={onOpenCitation}
+            turnProgress={turnProgress}
+          />
           {isSending && !messages.length ? (
             <p className="text-sm text-muted-foreground">Đang gửi...</p>
           ) : null}
@@ -212,6 +158,128 @@ export function ActiveConversation({
   )
 }
 
+type ConversationMessagesProps = {
+  isSending?: boolean
+  isStreaming?: boolean
+  messages: Message[]
+  onOpenCitation: (citation: Citation) => void
+  /**
+   * A shared snapshot (`/share/:token`): replies keep their citations and copy
+   * button, but no calculation feedback and no report button.
+   */
+  readOnly?: boolean
+  turnProgress?: TurnProgress | null
+}
+
+function ConversationMessages({
+  isSending = false,
+  isStreaming = false,
+  messages,
+  onOpenCitation,
+  readOnly = false,
+  turnProgress = null,
+}: ConversationMessagesProps) {
+  const latestReplyIndex = messages.findLastIndex(
+    (message) => message.role === "ASSISTANT" && message.status === "COMPLETED"
+  )
+
+  return (
+    <>
+      {messages.map((message, index) =>
+        message.role === "USER" ? (
+          <div
+            className="group flex animate-in flex-col items-end gap-1.5 duration-300 fade-in slide-in-from-bottom-2"
+            key={message.id}
+          >
+            <UserTurn message={message} previous={messages[index - 1]} />
+          </div>
+        ) : (
+          <div
+            className="group w-full animate-in space-y-2 py-1 duration-300 fade-in slide-in-from-bottom-2"
+            key={message.id}
+          >
+            {PENDING_STATUSES.has(message.status) && !message.content ? (
+              turnProgress?.messageId === message.id ? (
+                <TurnProgressIndicator progress={turnProgress} />
+              ) : (
+                <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground">
+                  <span className="animate-pulse">Đang suy nghĩ...</span>
+                </div>
+              )
+            ) : message.status === "ERROR" ? (
+              <>
+                {/* What streamed before the failure stays readable. */}
+                {message.content ? (
+                  <p className="text-sm whitespace-pre-wrap text-muted-foreground">
+                    {message.content}
+                  </p>
+                ) : null}
+                <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                  {message.errorMessage ??
+                    "Không thể tạo câu trả lời. Vui lòng thử lại."}
+                </div>
+              </>
+            ) : !message.content && !readClarification(message) ? (
+              <p className="text-sm text-muted-foreground italic">
+                Đã dừng tạo câu trả lời.
+              </p>
+            ) : (
+              <AssistantReply
+                content={message.content}
+                isLatest={index === latestReplyIndex}
+                message={message}
+                onOpenCitation={onOpenCitation}
+                questionText={findQuestionBefore(messages, index)}
+                // Ids are only the server's once the stream is done and
+                // the messages are refetched.
+                readOnly={readOnly}
+                reportDisabled={
+                  isSending || isStreaming || message.status !== "COMPLETED"
+                }
+              />
+            )}
+            {/* The clock keeps running while the answer streams in. */}
+            {turnProgress?.messageId === message.id && message.content ? (
+              <ElapsedTime
+                className="block text-xs text-muted-foreground"
+                startedAt={turnProgress.startedAt}
+              />
+            ) : null}
+          </div>
+        )
+      )}
+    </>
+  )
+}
+
+type ReadOnlyConversationProps = {
+  /** Shown above the first message (the snapshot banner). */
+  header?: ReactNode
+  messages: Message[]
+  onOpenCitation: (citation: Citation) => void
+}
+
+/**
+ * A conversation without composer, clarification panel, feedback or report
+ * buttons: the snapshot of a shared link (UNISAGE-107).
+ */
+export function ReadOnlyConversation({
+  header,
+  messages,
+  onOpenCitation,
+}: ReadOnlyConversationProps) {
+  return (
+    <div className="mx-auto w-full max-w-3xl space-y-7 px-4 pt-6 pb-10 md:px-8 md:pt-10">
+      {header}
+      <ConversationMessages
+        messages={messages}
+        onOpenCitation={onOpenCitation}
+        readOnly
+      />
+    </div>
+  )
+}
+
 // A submit turn of the question panel renders as the bordered answer card;
 // any other USER message stays a plain bubble.
 function UserTurn({
@@ -249,6 +317,7 @@ type AssistantReplyProps = {
   message: Message
   onOpenCitation: (citation: Citation) => void
   questionText: string | null
+  readOnly: boolean
   reportDisabled: boolean
 }
 
@@ -258,11 +327,12 @@ function AssistantReply({
   message,
   onOpenCitation,
   questionText,
+  readOnly,
   reportDisabled,
 }: AssistantReplyProps) {
   const { form: legacyForm, text } = stripLegacyAskUserForm(content)
   const clarification = readClarification(message)
-  const feedbackItems = readFeedbackItems(message)
+  const feedbackItems = readOnly ? [] : readFeedbackItems(message)
   const feedback = readCalculationFeedback(message)
   const citations = message.citations ?? []
   const numbers = markerNumbers(groupCitationsByDocument(citations))
@@ -320,11 +390,13 @@ function AssistantReply({
         className="flex items-center gap-1"
       >
         <CopyMessageButton content={text} />
-        <ReportMessageButton
-          disabled={reportDisabled}
-          message={message}
-          questionText={questionText}
-        />
+        {readOnly ? null : (
+          <ReportMessageButton
+            disabled={reportDisabled}
+            message={message}
+            questionText={questionText}
+          />
+        )}
         {message.responseTimeMs != null ? (
           // Pushed to the row's right edge, under the end of the answer.
           <span

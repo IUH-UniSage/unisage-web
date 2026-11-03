@@ -76,6 +76,11 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2165: "Chọn đúng một trong hai: một bản sao lưu, hoặc một thời điểm.",
   2166: "Chưa chạy được loại sao lưu này (Differential cần một bản Full, Transaction log cần cấu hình WAL archive).",
 
+  // Chia sẻ hội thoại (UNISAGE-107)
+  2801: "Liên kết không tồn tại hoặc đã bị thu hồi.",
+  2802: "Đoạn chat chưa có câu trả lời nào để chia sẻ.",
+  2803: "Không chia sẻ được đoạn chat của khách. Đăng nhập rồi thử lại nhé.",
+
   // System
   9999: "Có lỗi xảy ra, bạn thử lại sau nhé.",
 

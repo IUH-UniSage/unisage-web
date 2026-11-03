@@ -1,4 +1,4 @@
-import { PanelLeftOpen, Sparkles } from "lucide-react"
+import { PanelLeftOpen, Share2, Sparkles } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { Link } from "react-router-dom"
 
@@ -22,9 +22,14 @@ type MobileChatHeaderProps = {
   // The history gets the function that closes the sheet: its own close button,
   // picking a conversation and starting a new one all close it (it covers the chat).
   renderHistory: (closeSheet: () => void) => ReactNode
+  /** Shares the open conversation; absent when there is nothing to share. */
+  onShare?: () => void
 }
 
-export function MobileChatHeader({ renderHistory }: MobileChatHeaderProps) {
+export function MobileChatHeader({
+  onShare,
+  renderHistory,
+}: MobileChatHeaderProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
   return (
@@ -66,6 +71,7 @@ export function MobileChatHeader({ renderHistory }: MobileChatHeaderProps) {
       </Link>
 
       <div className="ml-auto flex items-center gap-1">
+        {onShare ? <ShareButton compact onClick={onShare} /> : null}
         <ClientTourButton pathname={ROUTES.chat} />
         <ThemeToggle />
       </div>
@@ -78,6 +84,8 @@ type DesktopChatHeaderProps = {
   sourceCount: number
   isSourcesOpen: boolean
   onOpenSources: () => void
+  /** Shares the open conversation; absent for guests (spec R1). */
+  onShare?: () => void
 }
 
 export function DesktopChatHeader({
@@ -85,6 +93,7 @@ export function DesktopChatHeader({
   sourceCount,
   isSourcesOpen,
   onOpenSources,
+  onShare,
 }: DesktopChatHeaderProps) {
   return (
     <header className="hidden h-14 shrink-0 items-center justify-end px-4 xl:flex">
@@ -107,9 +116,43 @@ export function DesktopChatHeader({
           </Button>
         ) : null}
 
+        {onShare && activeConversation ? (
+          <ShareButton onClick={onShare} />
+        ) : null}
+
         <ClientTourButton pathname={ROUTES.chat} />
         <ThemeToggle />
       </div>
     </header>
+  )
+}
+
+function ShareButton({
+  compact = false,
+  onClick,
+}: {
+  compact?: boolean
+  onClick: () => void
+}) {
+  return compact ? (
+    <Button
+      aria-label="Chia sẻ đoạn chat"
+      onClick={onClick}
+      size="icon"
+      variant="ghost"
+    >
+      <Share2 aria-hidden="true" className="size-5" />
+    </Button>
+  ) : (
+    <Button
+      aria-label="Chia sẻ đoạn chat"
+      className="h-8 gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+      onClick={onClick}
+      size="sm"
+      variant="ghost"
+    >
+      <Share2 aria-hidden="true" className="size-3.5" />
+      <span>Chia sẻ</span>
+    </Button>
   )
 }

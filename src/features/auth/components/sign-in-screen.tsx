@@ -2,20 +2,21 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthPageShell } from "@/features/auth/components/auth-page-shell"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import { getRoleHome } from "@/features/auth/utils/role-routing"
+import { getPostSignInPath } from "@/features/auth/utils/role-routing"
 import type { LoginRequest } from "@/features/auth/schemas/auth-schemas"
 import { loginRequestSchema } from "@/features/auth/schemas/auth-schemas"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 
 export function SignInPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const {
@@ -34,7 +35,10 @@ export function SignInPage() {
   const onSubmit = async (values: LoginRequest) => {
     try {
       const session = await login(values)
-      await navigate(getRoleHome(session.role), { replace: true })
+      // Back to the private page that sent us here (e.g. a shared link), if any.
+      await navigate(getPostSignInPath(location.state, session.role), {
+        replace: true,
+      })
     } catch (error) {
       if (!applyFieldErrors(error, setError)) {
         setError("root", { message: getErrorMessage(error) })

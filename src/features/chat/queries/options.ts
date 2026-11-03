@@ -13,6 +13,9 @@ export const chatOptions = {
       enabled: Boolean(documentId),
       queryFn: () => chatApi.getCitationDocument(documentId),
       queryKey: chatKeys.citationDocument(documentId),
+      // CitationDrawer shows the failure itself ("Bạn không có quyền xem tài
+      // liệu này." for 2312) - no raw backend toast on top (UNISAGE-107 R6).
+      meta: { suppressGlobalError: true },
     }),
   // Guests (userId === "") have no user to scope by - their history is resolved
   // server-side from the guest_session_id httpOnly cookie instead (see

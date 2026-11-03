@@ -56,7 +56,9 @@ function buildAuthResponse(overrides: Partial<AuthResponse> = {}) {
   }
 }
 
-function renderSignIn() {
+function renderSignIn(
+  initialEntry: string | { pathname: string; state: unknown } = "/login"
+) {
   const queryClient = new QueryClient({
     defaultOptions: {
       mutations: { retry: false },
@@ -68,12 +70,13 @@ function renderSignIn() {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <MemoryRouter initialEntries={["/login"]}>
+          <MemoryRouter initialEntries={[initialEntry]}>
             <Routes>
               <Route element={<GuestRoute />}>
                 <Route element={<SignInPage />} path="/login" />
               </Route>
               <Route element={<h1>Trang người dùng</h1>} path="/" />
+              <Route element={<h1>Trang chia sẻ</h1>} path="/share/:token" />
             </Routes>
           </MemoryRouter>
         </AuthProvider>
@@ -222,4 +225,29 @@ describe("sign-in integration", () => {
       "Refreshed display name"
     )
   })
+
+  it.each([
+    ["an internal path", "/share/abc", "Trang chia sẻ"],
+    ["a protocol-relative URL", "//evil.com/share/abc", "Trang người dùng"],
+  ])(
+    "after signing in, follows `from` only for %s",
+    async (_case, from, heading) => {
+      server.use(
+        http.post("*/auth/login", () =>
+          HttpResponse.json({
+            code: 1000,
+            data: buildAuthResponse(),
+            message: "Successful",
+          })
+        )
+      )
+
+      renderSignIn({ pathname: "/login", state: { from } })
+      await submitCredentials()
+
+      expect(
+        await screen.findByRole("heading", { name: heading })
+      ).toBeInTheDocument()
+    }
+  )
 })

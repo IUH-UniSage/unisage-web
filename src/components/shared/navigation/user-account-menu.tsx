@@ -3,6 +3,7 @@ import {
   Home,
   KeyRound,
   LayoutDashboard,
+  Link2,
   LogOut,
   UserRound,
 } from "lucide-react"
@@ -87,6 +88,10 @@ export function UserAccountMenu() {
           <DropdownMenuItem onSelect={() => navigate(ROUTES.tickets)}>
             <HelpCircle aria-hidden="true" className="mr-2 size-4" />
             Yêu cầu hỗ trợ
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => navigate(ROUTES.sharedLinks)}>
+            <Link2 aria-hidden="true" className="mr-2 size-4" />
+            Liên kết đã chia sẻ
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

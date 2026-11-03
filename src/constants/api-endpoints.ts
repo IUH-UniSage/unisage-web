@@ -129,6 +129,13 @@ export const API_ENDPOINTS = {
     job: (documentId: string) => `/ingestion/jobs/${documentId}`,
     preview: "/ingestion/preview",
   },
+  shares: {
+    share: (shareId: string) => `/shares/${shareId}`,
+    shareContinue: (token: string) =>
+      `/shares/view/${encodeURIComponent(token)}/continue`,
+    shareView: (token: string) => `/shares/view/${encodeURIComponent(token)}`,
+    shares: "/shares",
+  },
   systemConfigs: {
     systemConfig: (configKey: string) => `/system-configs/${configKey}`,
     systemConfigs: "/system-configs",

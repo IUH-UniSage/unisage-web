@@ -19,6 +19,8 @@ export const ROUTE_SEGMENTS = {
   quality: "quality",
   rbac: "rbac",
   settings: "settings",
+  share: "share",
+  sharedLinks: "shared-links",
   tickets: "tickets",
   usageLimits: "usage-limits",
   users: "users",
@@ -53,6 +55,8 @@ export const ROUTES = {
   login: "/login",
   notifications: "/notifications",
   profile: "/profile",
+  share: "/share",
+  sharedLinks: "/shared-links",
   signIn: "/login",
   tickets: "/tickets",
 } as const
@@ -154,4 +158,9 @@ export function ingesterDocumentChunksPath(documentId: string): string {
  * lands on the same conversation (like ChatGPT's `/c/<id>`). */
 export function chatConversationPath(conversationId: string): string {
   return `${ROUTES.chat}/${conversationId}`
+}
+
+/** `/share/<token>`: the read-only snapshot of a shared conversation (UNISAGE-107). */
+export function sharedConversationPath(token: string): string {
+  return `${ROUTES.share}/${token}`
 }

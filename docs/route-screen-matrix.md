@@ -13,6 +13,8 @@ The first implementation pass uses these Google Stitch anchors from project
 | `/tickets`       | End user          | `b7c93ff66cd8470c859b81c688b1ead4` | Route placeholder |
 | `/notifications` | End user          | `fa833c722f6f4cfdae33394d43174f2e` | Route placeholder |
 | `/profile`       | End user          | `46a2dd3b8b0441bdac0e8dcdf04c4776` | Route placeholder |
+| `/share/:token`  | End user          | `n/a`                              | API integrated    |
+| `/shared-links`  | End user          | `n/a`                              | API integrated    |
 | `/ingester`      | Document Ingester | `7e6045d15b9b4949b3c1a3d03c516ffa` | Base screen       |
 | `/admin`         | System Admin      | `1ee7952c64334297a099ab6bbeff3624` | Base screen       |
 
@@ -21,3 +23,10 @@ be replaced one workflow at a time without changing either shell.
 
 `/auth/login` is retained as a legacy alias and redirects to `/login`.
 `/auth/register` redirects to `/register`.
+
+`/share/:token` and `/shared-links` (UNISAGE-107, conversation sharing) are
+signed-in only (`PrivateRoute`); a signed-out visitor is sent to `/login` and
+returned to the link afterwards (`location.state.from`, internal paths only).
+`/share/:token` renders the shared snapshot read-only with "Tiếp tục cuộc trò
+chuyện" (or "Mở hội thoại gốc" for the owner); `/shared-links` lists and
+revokes the user's links and is reached from the account menus.
