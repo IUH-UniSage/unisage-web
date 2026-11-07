@@ -44,6 +44,25 @@ User, ingester, chat, and admin routes require a valid Backend session. The
 frontend uses the Backend's `HttpOnly` access and refresh cookies and keeps only
 non-secret selected-profile metadata in local storage.
 
+## Scheduled database backups
+
+Backup administration is available to a `SUPER_ADMIN` at `/admin/backups`.
+The page shows the latest Full, Differential, Transaction Log (WAL), and Qdrant
+snapshot runs; it also supports an immediate backup and the restore workflow.
+
+Configure the automatic schedule under **System settings > Maintenance**:
+
+1. Enable **Automatic backups** (`maintenance.backup.enabled`).
+2. Select the Full and Differential frequency and start time.
+3. Set the Transaction Log interval and backup retention.
+4. Return to `/admin/backups` to check run status, files, and errors.
+
+The backend must run with its Docker `app` profile, or provide PostgreSQL 17
+`pg_basebackup`, the WAL archive directory, and the shared restore directory.
+See the backend README for the complete infrastructure setup. The frontend can
+display and edit the schedule without these dependencies, but backup runs will
+fail or be unavailable until the backend infrastructure is configured.
+
 Architecture decisions and the Stitch implementation map live in
 `docs/architecture.md` and `docs/route-screen-matrix.md`.
 
