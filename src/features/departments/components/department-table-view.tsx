@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { Building, FolderTree, Plus } from "lucide-react"
-import { useMemo } from "react"
+import { Building, ChevronRight, FolderTree, Plus } from "lucide-react"
+import { useCallback, useMemo, useState } from "react"
 
 import { DataTable } from "@/components/shared/list/data-table"
 import { EntityActionsMenu } from "@/components/shared/list/entity-actions-menu"
@@ -10,6 +10,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Department } from "@/features/departments/schemas/department-schemas"
 import {
   getDepthLevelStyle,
+  visibleDepartmentRows,
   type FlattenedDepartmentNode,
 } from "@/features/departments/utils/tree"
 import { cn } from "@/lib/utils"
@@ -67,6 +68,8 @@ type DepartmentTableViewProps = {
   canCreate: boolean
   canDelete: boolean
   canUpdate: boolean
+  /** While a filter is applied every branch is open so all matches show. */
+  expandAll?: boolean
   items: FlattenedDepartmentNode[]
   onAddChild: (parentId: string) => void
   onDetail: (department: Department) => void
@@ -78,12 +81,37 @@ export function DepartmentTableView({
   canCreate,
   canDelete,
   canUpdate,
+  expandAll = false,
   items,
   onAddChild,
   onDetail,
   onEdit,
   onStatusRequest,
 }: DepartmentTableViewProps) {
+  // Collapsed by default: only top-level units show until a row is expanded.
+  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  )
+
+  const isExpanded = useCallback(
+    (id: string) => expandAll || expandedIds.has(id),
+    [expandAll, expandedIds]
+  )
+
+  const toggleExpanded = useCallback((id: string) => {
+    setExpandedIds((current) => {
+      const next = new Set(current)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }, [])
+
+  const visibleItems = visibleDepartmentRows(items, isExpanded)
+
   const columns = useMemo<ColumnDef<FlattenedDepartmentNode, unknown>[]>(
     () => [
       {
@@ -101,16 +129,37 @@ export function DepartmentTableView({
           const isRoot = depth === 0
           const palette = getDepthLevelStyle(row.original.depth)
 
+          const hasChildren = (row.original.children?.length ?? 0) > 0
+          const expanded = isExpanded(row.original.id)
+
           return (
             <div
               className="flex items-center gap-2"
               style={{ paddingLeft: `${depth * 20}px` }}
             >
-              {depth > 0 ? (
-                <span className="text-xs text-muted-foreground/60 select-none">
-                  └─
-                </span>
-              ) : null}
+              {hasChildren ? (
+                <button
+                  aria-expanded={expanded}
+                  aria-label={`${expanded ? "Thu gọn" : "Mở rộng"} ${row.original.name}`}
+                  className="grid size-6 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40"
+                  disabled={expandAll}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    toggleExpanded(row.original.id)
+                  }}
+                  type="button"
+                >
+                  <ChevronRight
+                    aria-hidden="true"
+                    className={cn(
+                      "size-4 transition-transform",
+                      expanded && "rotate-90"
+                    )}
+                  />
+                </button>
+              ) : (
+                <span aria-hidden="true" className="size-6 shrink-0" />
+              )}
 
               <span
                 className={cn(
@@ -233,14 +282,21 @@ export function DepartmentTableView({
       canCreate,
       canDelete,
       canUpdate,
+      expandAll,
+      isExpanded,
       onAddChild,
       onDetail,
       onEdit,
       onStatusRequest,
+      toggleExpanded,
     ]
   )
 
   return (
-    <DataTable columns={columns} data={items} getRowId={(dept) => dept.id} />
+    <DataTable
+      columns={columns}
+      data={visibleItems}
+      getRowId={(dept) => dept.id}
+    />
   )
 }

@@ -190,6 +190,7 @@ export function DepartmentList({
             canCreate={canCreate}
             canDelete={canDelete}
             canUpdate={canUpdate}
+            expandAll={isFiltered}
             items={flattenedList}
             onAddChild={onAddChild}
             onDetail={onDetail}

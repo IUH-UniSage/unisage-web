@@ -39,7 +39,7 @@ function matchesType(depth: number, filter: TypeFilter) {
 }
 
 const PARAM_DEFAULTS = {
-  mode: "tree",
+  mode: "table",
   search: "",
   status: "all",
   type: "all",
@@ -90,9 +90,8 @@ export function useDepartmentDashboard() {
   const appliedSearch = getParam("search")
   const appliedStatus = getParam("status") as StatusFilter
   const appliedType = getParam("type") as TypeFilter
-  const viewMode = (
-    getParam("mode") === "table" ? "table" : "tree"
-  ) as DepartmentViewMode
+  const viewMode: DepartmentViewMode =
+    getParam("mode") === "tree" ? "tree" : "table"
 
   const [pendingSearch, setPendingSearch] = useState(appliedSearch)
   const [pendingStatus, setPendingStatus] =
