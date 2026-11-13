@@ -228,7 +228,7 @@ export function UserDialog({
             ) : (
               <>
                 <Save className="mr-2 size-4" />
-                {isEdit ? "Lưu thay đổi" : "Tạo người dùng"}
+                {isEdit ? "Chỉnh sửa" : "Tạo người dùng"}
               </>
             )}
           </Button>
