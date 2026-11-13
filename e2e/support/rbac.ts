@@ -97,7 +97,7 @@ export async function mockRbac(page: Page) {
       .map(({ accessLevel, id, name }) => ({ accessLevel, id, name })),
   })
 
-  await page.route("**/api/v1/rbac/permissions**", async (route) => {
+  await page.route("**/api/v1/master/rbac/permissions**", async (route) => {
     await route.fulfill({
       contentType: "application/json",
       json: {
@@ -115,7 +115,7 @@ export async function mockRbac(page: Page) {
     })
   })
 
-  await page.route("**/api/v1/rbac/roles**", async (route) => {
+  await page.route("**/api/v1/master/rbac/roles**", async (route) => {
     const method = route.request().method()
     const url = new URL(route.request().url())
     const roleId = url.pathname.match(/\/roles\/([^/]+)/)?.[1]
