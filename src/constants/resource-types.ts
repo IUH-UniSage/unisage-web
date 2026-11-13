@@ -11,13 +11,15 @@ export const RESOURCE_TYPE_LABELS = {
   ACCESS_LEVEL: "Cấp độ truy cập",
   CHAT_MODEL: "Mô hình chat",
   LLM_TRACE_LOG: "Nhật ký LLM",
-  INGEST: "Nạp liệu",
   CONVERSATION: "Hội thoại",
   MESSAGE: "Tin nhắn",
   TICKET: "Yêu cầu hỗ trợ",
   USAGE_LIMIT_PLAN: "Gói hạn mức",
+  USAGE_LOG: "Nhật ký chi phí AI",
+  BUDGET: "Ngân sách AI",
   AUDIT_LOG: "Nhật ký hệ thống",
   SYSTEM: "Hệ thống",
+  SYSTEM_CONFIG: "Cấu hình hệ thống",
   OTHER: "Khác",
 } as const
 
@@ -37,17 +39,20 @@ const RESOURCE_TYPE_BADGE_COLOR = {
   // AI / Chatbot
   CHAT_MODEL: "violet",
   LLM_TRACE_LOG: "muted",
-  INGEST: "teal",
   // Conversation
   CONVERSATION: "success",
   MESSAGE: "magenta",
   // Support
   TICKET: "teal",
   USAGE_LIMIT_PLAN: "sky",
+  // Cost Tracking
+  USAGE_LOG: "warning",
+  BUDGET: "success",
   // Logs
   AUDIT_LOG: "warning",
   // System
   SYSTEM: "sky",
+  SYSTEM_CONFIG: "violet",
   OTHER: "muted",
 } as const satisfies Record<
   ResourceTypeKey,
