@@ -29,6 +29,8 @@ import {
 import {
   buildDepartmentIndex,
   toggleDepartmentCascade,
+  withCompletedAncestors,
+  withoutTickedAncestors,
 } from "@/features/users/utils/department-selection"
 import { cn } from "@/lib/utils"
 
@@ -485,7 +487,7 @@ function DepartmentMultiSelectAdd({
   }
 
   const handleConfirm = () => {
-    onApply(Array.from(pendingIds))
+    onApply(withoutTickedAncestors(pendingIds, departmentIndex))
     setQuery("")
     setOpen(false)
   }
@@ -497,7 +499,11 @@ function DepartmentMultiSelectAdd({
         // Re-seed from the current selection every time it opens, so
         // departments added in a previous round still show up ticked
         // instead of disappearing from the list.
-        setPendingIds(next ? new Set(selectedIds) : new Set())
+        setPendingIds(
+          next
+            ? withCompletedAncestors(selectedIds, departmentIndex)
+            : new Set()
+        )
         if (!next) setQuery("")
       }}
       open={open}

@@ -5,6 +5,8 @@ import {
   buildDepartmentIndex,
   findBranchesWithoutLeaf,
   toggleDepartmentCascade,
+  withCompletedAncestors,
+  withoutTickedAncestors,
 } from "@/features/users/utils/department-selection"
 
 const node = (
@@ -60,5 +62,22 @@ describe("findBranchesWithoutLeaf", () => {
 
   it("treats a unit whose only children are inactive as a leaf", () => {
     expect(findBranchesWithoutLeaf(["phong"], index)).toEqual([])
+  })
+})
+
+describe("picker hand-off", () => {
+  it("drops ticked parents so the list derives their level", () => {
+    expect(
+      withoutTickedAncestors(["khoa", "bm1", "bm2", "nhom"], index).sort()
+    ).toEqual(["bm1", "nhom"])
+  })
+
+  it("re-ticks parents whose children are all ticked", () => {
+    expect(sorted(withCompletedAncestors(["bm1", "nhom"], index))).toEqual([
+      "bm1",
+      "bm2",
+      "khoa",
+      "nhom",
+    ])
   })
 })

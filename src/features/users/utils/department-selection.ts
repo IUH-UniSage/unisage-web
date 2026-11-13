@@ -108,3 +108,47 @@ export function findBranchesWithoutLeaf(
     .map((id) => index.nameById.get(id) ?? id)
     .sort((a, b) => a.localeCompare(b, "vi"))
 }
+
+/**
+ * What the picker hands to the access list: drop every unit that has a ticked unit below it.
+ * Those parents are re-added by the list as "Tự động (cha)" rows whose level comes from their
+ * children, instead of becoming manual rows with no level.
+ */
+export function withoutTickedAncestors(
+  departmentIds: Iterable<string>,
+  index: DepartmentIndex
+): string[] {
+  const ids = new Set(departmentIds)
+  const ancestorsOfTicked = new Set<string>()
+  for (const id of ids) {
+    let parentId = index.parentById.get(id) ?? null
+    while (parentId) {
+      ancestorsOfTicked.add(parentId)
+      parentId = index.parentById.get(parentId) ?? null
+    }
+  }
+  return [...ids].filter((id) => !ancestorsOfTicked.has(id))
+}
+
+/** The reverse when the picker reopens: tick every parent whose children are all ticked. */
+export function withCompletedAncestors(
+  departmentIds: Iterable<string>,
+  index: DepartmentIndex
+): Set<string> {
+  const ids = new Set(departmentIds)
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const [parentId, childIds] of index.childrenById) {
+      if (
+        !ids.has(parentId) &&
+        childIds.length > 0 &&
+        childIds.every((childId) => ids.has(childId))
+      ) {
+        ids.add(parentId)
+        changed = true
+      }
+    }
+  }
+  return ids
+}
