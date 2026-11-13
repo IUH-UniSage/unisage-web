@@ -114,7 +114,7 @@ describe("sign-in integration", () => {
           {
             code: 1006,
             data: null,
-            message: "Mã sinh viên/giảng viên hoặc mật khẩu không chính xác.",
+            message: "Mã số hoặc mật khẩu không chính xác.",
           },
           { status: 401 }
         )
@@ -125,7 +125,7 @@ describe("sign-in integration", () => {
     await submitCredentials()
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Mã sinh viên/giảng viên hoặc mật khẩu không chính xác."
+      "Mã số hoặc mật khẩu không chính xác."
     )
     expect(
       screen.getByRole("heading", { name: "Đăng nhập UniSage" })
