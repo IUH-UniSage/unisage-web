@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -101,6 +102,8 @@ export function DocumentDialog({
       // current when the form was opened, bypassing version history.
       sourceUrl: "",
       title: document?.title ?? "",
+      // Asked fresh on every edit, never prefilled with the previous reason.
+      changeReason: "",
     },
     resolver: zodResolver(formSchema),
   })
@@ -221,6 +224,27 @@ export function DocumentDialog({
                 </p>
               ) : null}
             </div>
+            {isEdit ? (
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="document-change-reason">
+                  Lý do chỉnh sửa{" "}
+                  <span className="translate-y-0.5 text-destructive">*</span>
+                </Label>
+                <Textarea
+                  aria-invalid={Boolean(errors.changeReason)}
+                  id="document-change-reason"
+                  maxLength={500}
+                  placeholder="Ví dụ: Cập nhật quy chế theo quyết định mới..."
+                  rows={2}
+                  {...register("changeReason")}
+                />
+                {errors.changeReason ? (
+                  <p className="text-xs text-destructive">
+                    {errors.changeReason.message}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 

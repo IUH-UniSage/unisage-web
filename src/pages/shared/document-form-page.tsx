@@ -61,7 +61,8 @@ export function DocumentFormPage() {
   const save = async (input: DocumentFormValues) => {
     if (isEdit && documentId) {
       const updated = await updateDocument.mutateAsync({ documentId, input })
-      navigate(detailPath(updated.id))
+      // A replaced file drops the old index (status OUTDATED), so go straight to ingesting it.
+      navigate(input.file ? wizardPath(updated.id) : detailPath(updated.id))
     } else {
       const created = await createDocument.mutateAsync(input)
       setUploadedDocument(created)
