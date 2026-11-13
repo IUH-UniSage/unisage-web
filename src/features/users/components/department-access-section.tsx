@@ -26,6 +26,10 @@ import {
   getDepthLevelStyle,
   type FlattenedDepartmentNode,
 } from "@/features/departments/utils/tree"
+import {
+  buildDepartmentIndex,
+  toggleDepartmentCascade,
+} from "@/features/users/utils/department-selection"
 import { cn } from "@/lib/utils"
 
 export type DepartmentAccessValue = {
@@ -398,6 +402,7 @@ function DepartmentMultiSelectAdd({
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
 
   const options = useMemo(() => flattenDepartmentTreeWithDepth(tree), [tree])
+  const departmentIndex = useMemo(() => buildDepartmentIndex(tree), [tree])
 
   const filteredOptions = useMemo(() => {
     const normalizedQuery = normalize(query.trim())
@@ -407,13 +412,11 @@ function DepartmentMultiSelectAdd({
     )
   }, [options, query])
 
+  // Parent ticks its subtree; a complete set of children ticks the parent.
   const togglePending = (id: string) => {
-    setPendingIds((current) => {
-      const next = new Set(current)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+    setPendingIds((current) =>
+      toggleDepartmentCascade(current, id, departmentIndex)
+    )
   }
 
   const handleConfirm = () => {
