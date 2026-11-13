@@ -230,6 +230,18 @@ export function DepartmentAccessSection({
     commit(next)
   }
 
+  // One level for every department the admin picked; auto-added parents follow from it.
+  const [bulkLevel, setBulkLevel] = useState<string>("")
+  const applyLevelToAll = () => {
+    if (bulkLevel === "") return
+    const level = Number(bulkLevel)
+    commit(
+      new Map(
+        Array.from(manualLevelByDepartmentId.keys()).map((id) => [id, level])
+      )
+    )
+  }
+
   const handleAccessLevelChange = (
     departmentId: string,
     accessLevel: number
@@ -241,6 +253,43 @@ export function DepartmentAccessSection({
 
   return (
     <div className="space-y-3">
+      {manualLevelByDepartmentId.size > 1 ? (
+        <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-2.5 sm:flex-row sm:items-center">
+          <p className="flex-1 text-xs text-muted-foreground">
+            Áp dụng một cấp độ cho tất cả phòng ban đã chọn
+          </p>
+          <div className="flex items-center gap-2">
+            <Select onValueChange={setBulkLevel} value={bulkLevel}>
+              <SelectTrigger
+                aria-label="Cấp độ áp dụng cho tất cả"
+                className="h-9 w-32"
+              >
+                <SelectValue placeholder="Chọn cấp độ..." />
+              </SelectTrigger>
+              <SelectContent>
+                {accessLevels.map((accessLevel) => (
+                  <SelectItem
+                    key={accessLevel.id}
+                    value={String(accessLevel.level)}
+                  >
+                    Cấp {accessLevel.level}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              disabled={bulkLevel === ""}
+              onClick={applyLevelToAll}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              Áp dụng cho tất cả
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       {orderedRows.length === 0 ? (
         <p className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
           Chưa gán phòng ban nào cho người dùng này.
