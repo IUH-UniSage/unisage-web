@@ -1,5 +1,6 @@
 import { LayoutGrid, Table as TableIcon } from "lucide-react"
 
+import { BulkActionsBar } from "@/components/shared/list/bulk-actions-bar"
 import { ListToolbar } from "@/components/shared/list/list-toolbar"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import {
@@ -24,6 +25,7 @@ import type { FlattenedDepartmentNode } from "@/features/departments/utils/tree"
 import { UNIT_TYPE_LABELS } from "@/features/departments/utils/tree"
 import { cn } from "@/lib/utils"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import type { SelectionStatusCounts } from "@/utils/selection"
 
 type DepartmentListProps = {
   canCreate: boolean
@@ -31,20 +33,28 @@ type DepartmentListProps = {
   canUpdate: boolean
   departmentTree: DepartmentNode[]
   flattenedList: FlattenedDepartmentNode[]
+  isBulkUpdating: boolean
   isFiltered: boolean
   matchedIds: Set<string> | null
   onAddChild: (parentId: string) => void
   onApplyFilters: () => void
+  onBulkDeactivate: () => void
+  onBulkRecover: () => void
+  onClearSelection: () => void
   onDetail: (department: Department) => void
   onEdit: (department: Department) => void
   onResetFilters: () => void
   onSearchChange: (value: string) => void
   onStatusChange: (value: StatusFilter) => void
   onStatusRequest: (department: Department) => void
+  onToggleAllSelection: (departmentIds: string[]) => void
+  onToggleSelection: (departmentId: string) => void
   onTypeChange: (value: TypeFilter) => void
   onViewModeChange: (mode: DepartmentViewMode) => void
   relevantIds: Set<string> | null
   search: string
+  selectedIds: ReadonlySet<string>
+  selectedStatusCounts: SelectionStatusCounts
   status: StatusFilter
   type: TypeFilter
   viewMode: DepartmentViewMode
@@ -56,20 +66,28 @@ export function DepartmentList({
   canUpdate,
   departmentTree,
   flattenedList,
+  isBulkUpdating,
   isFiltered,
   matchedIds,
   onAddChild,
   onApplyFilters,
+  onBulkDeactivate,
+  onBulkRecover,
+  onClearSelection,
   onDetail,
   onEdit,
   onResetFilters,
   onSearchChange,
   onStatusChange,
   onStatusRequest,
+  onToggleAllSelection,
+  onToggleSelection,
   onTypeChange,
   onViewModeChange,
   relevantIds,
   search,
+  selectedIds,
+  selectedStatusCounts,
   status,
   type,
   viewMode,
@@ -168,6 +186,17 @@ export function DepartmentList({
         </div>
       </ListToolbar>
 
+      {viewMode === "table" && (canDelete || canUpdate) ? (
+        <BulkActionsBar
+          isSubmitting={isBulkUpdating}
+          onClear={onClearSelection}
+          onDeactivate={onBulkDeactivate}
+          onRecover={onBulkRecover}
+          selectedCount={selectedIds.size}
+          statusCounts={selectedStatusCounts}
+        />
+      ) : null}
+
       {/* Content Area */}
       {hasItems ? (
         viewMode === "tree" ? (
@@ -190,11 +219,15 @@ export function DepartmentList({
             canCreate={canCreate}
             canDelete={canDelete}
             canUpdate={canUpdate}
+            expandAll={isFiltered}
             items={flattenedList}
             onAddChild={onAddChild}
             onDetail={onDetail}
             onEdit={onEdit}
             onStatusRequest={onStatusRequest}
+            onToggleAllSelection={onToggleAllSelection}
+            onToggleSelection={onToggleSelection}
+            selectedIds={selectedIds}
           />
         )
       ) : (

@@ -186,3 +186,24 @@ export function flattenDepartmentTreeWithDepth(
 
   return result
 }
+
+/**
+ * Rows whose every ancestor is expanded. `items` is depth-first, so a parent always comes before
+ * its children; a row whose parent isn't in `items` (filtered out) counts as top level.
+ */
+export function visibleDepartmentRows(
+  items: FlattenedDepartmentNode[],
+  isExpanded: (id: string) => boolean
+) {
+  const shown = new Set<string>()
+  const ids = new Set(items.map((item) => item.id))
+  return items.filter((item) => {
+    const parentId = item.parentId
+    const visible =
+      !parentId ||
+      !ids.has(parentId) ||
+      (shown.has(parentId) && isExpanded(parentId))
+    if (visible) shown.add(item.id)
+    return visible
+  })
+}

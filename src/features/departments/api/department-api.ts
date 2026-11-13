@@ -66,10 +66,37 @@ export const departmentApi = {
     readApiResponse(response.data, z.null())
   },
 
-  async recoverDepartment(departmentId: string): Promise<void> {
-    // Backend uses PATCH /{id}/recover
+  async deleteDepartmentsBulk(departmentIds: string[]): Promise<void> {
+    const response = await httpClient.delete<ApiResponse<null>>(
+      API_ENDPOINTS.departments.departmentsBulkDelete,
+      { data: departmentIds }
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
+  async recoverDepartmentsBulk(
+    departmentIds: string[],
+    includeChildren = false
+  ): Promise<void> {
+    const response = await httpClient.post<ApiResponse<null>>(
+      API_ENDPOINTS.departments.departmentsBulkRecover,
+      departmentIds,
+      { params: { includeChildren } }
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
+  async recoverDepartment(
+    departmentId: string,
+    includeChildren = false
+  ): Promise<void> {
+    // Backend uses PATCH /{id}/recover; includeChildren also recovers the whole subtree.
     const response = await httpClient.patch<ApiResponse<null>>(
-      API_ENDPOINTS.departments.departmentRecover(departmentId)
+      API_ENDPOINTS.departments.departmentRecover(departmentId),
+      null,
+      { params: { includeChildren } }
     )
 
     readApiResponse(response.data, z.null())

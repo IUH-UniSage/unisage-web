@@ -66,6 +66,8 @@ export const API_ENDPOINTS = {
     departmentRecover: (departmentId: string) =>
       `/departments/${departmentId}/recover`,
     departments: "/departments",
+    departmentsBulkDelete: "/departments/bulk",
+    departmentsBulkRecover: "/departments/bulk/recover",
     departmentsRoots: "/departments/roots",
   },
   accessLevels: {
