@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { ROUTES } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { CloseTicketButton } from "@/features/support-tickets/components/close-ticket-button"
 import { TicketDetailContent } from "@/features/support-tickets/components/ticket-detail-content"
 import {
   TicketContextChunks,
@@ -32,7 +33,9 @@ import { getErrorMessage } from "@/utils/error-handler"
 // ids and the status form on the right.
 export function AdminTicketDetail() {
   const { ticketId } = useParams<{ ticketId: string }>()
+  const navigate = useNavigate()
   const { canUpdate } = useResourcePermissions("ticket")
+  const backToList = () => navigate(ROUTES.adminTickets)
   const { data: ticket, error, isPending } = useTicketQuery(ticketId ?? "")
 
   if (isPending) {
@@ -67,7 +70,7 @@ export function AdminTicketDetail() {
     <div className="space-y-6">
       <div
         {...tourAnchor(TOUR_ANCHORS.pageHeader)}
-        className="flex items-start gap-3"
+        className="flex flex-wrap items-start gap-3"
       >
         <Button
           asChild
@@ -80,7 +83,7 @@ export function AdminTicketDetail() {
             <ArrowLeft className="size-5" />
           </Link>
         </Button>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
             Quản trị · Hỗ trợ
           </p>
@@ -100,6 +103,9 @@ export function AdminTicketDetail() {
             {formatAuditDate(ticket.createdAt)}
           </p>
         </div>
+        {canUpdate && ticket.status !== "CLOSED" ? (
+          <CloseTicketButton onClosed={backToList} ticket={ticket} />
+        ) : null}
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -138,6 +144,7 @@ export function AdminTicketDetail() {
               <CardContent>
                 <UpdateTicketForm
                   key={`${ticket.id}-${ticket.updatedAt ?? ""}`}
+                  onSaved={backToList}
                   ticket={ticket}
                 />
               </CardContent>
