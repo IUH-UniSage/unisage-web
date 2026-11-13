@@ -26,6 +26,12 @@ import {
   getDepthLevelStyle,
   type FlattenedDepartmentNode,
 } from "@/features/departments/utils/tree"
+import {
+  buildDepartmentIndex,
+  toggleDepartmentCascade,
+  withCompletedAncestors,
+  withoutTickedAncestors,
+} from "@/features/users/utils/department-selection"
 import { cn } from "@/lib/utils"
 
 export type DepartmentAccessValue = {
@@ -47,17 +53,25 @@ type ConflictChild = {
   departmentName: string
 }
 
-type NodeInfo = { depth: number; name: string; parentId: string | null }
+// `position` is the depth-first order of the tree, so sorting by it keeps each unit right under
+// its parent (sorting by depth alone listed every faculty first, then every subject group).
+type NodeInfo = {
+  depth: number
+  name: string
+  parentId: string | null
+  position: number
+}
 
 function buildNodeIndex(tree: DepartmentNode[]): Map<string, NodeInfo> {
   const index = new Map<string, NodeInfo>()
-  for (const node of flattenDepartmentTreeWithDepth(tree)) {
+  flattenDepartmentTreeWithDepth(tree).forEach((node, position) => {
     index.set(node.id, {
       depth: node.depth,
       name: node.name,
       parentId: node.parentId ?? null,
+      position,
     })
-  }
+  })
   return index
 }
 
@@ -189,8 +203,8 @@ export function DepartmentAccessSection({
     () =>
       Array.from(rows.values()).sort(
         (a, b) =>
-          (nodeIndex.get(a.departmentId)?.depth ?? 0) -
-          (nodeIndex.get(b.departmentId)?.depth ?? 0)
+          (nodeIndex.get(a.departmentId)?.position ?? 0) -
+          (nodeIndex.get(b.departmentId)?.position ?? 0)
       ),
     [rows, nodeIndex]
   )
@@ -226,6 +240,18 @@ export function DepartmentAccessSection({
     commit(next)
   }
 
+  // One level for every department the admin picked; auto-added parents follow from it.
+  const [bulkLevel, setBulkLevel] = useState<string>("")
+  const applyLevelToAll = () => {
+    if (bulkLevel === "") return
+    const level = Number(bulkLevel)
+    commit(
+      new Map(
+        Array.from(manualLevelByDepartmentId.keys()).map((id) => [id, level])
+      )
+    )
+  }
+
   const handleAccessLevelChange = (
     departmentId: string,
     accessLevel: number
@@ -237,6 +263,43 @@ export function DepartmentAccessSection({
 
   return (
     <div className="space-y-3">
+      {manualLevelByDepartmentId.size > 1 ? (
+        <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-2.5 sm:flex-row sm:items-center">
+          <p className="flex-1 text-xs text-muted-foreground">
+            Áp dụng một cấp độ cho tất cả phòng ban đã chọn
+          </p>
+          <div className="flex items-center gap-2">
+            <Select onValueChange={setBulkLevel} value={bulkLevel}>
+              <SelectTrigger
+                aria-label="Cấp độ áp dụng cho tất cả"
+                className="h-9 w-32"
+              >
+                <SelectValue placeholder="Chọn cấp độ..." />
+              </SelectTrigger>
+              <SelectContent>
+                {accessLevels.map((accessLevel) => (
+                  <SelectItem
+                    key={accessLevel.id}
+                    value={String(accessLevel.level)}
+                  >
+                    Cấp {accessLevel.level}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              disabled={bulkLevel === ""}
+              onClick={applyLevelToAll}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              Áp dụng cho tất cả
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       {orderedRows.length === 0 ? (
         <p className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
           Chưa gán phòng ban nào cho người dùng này.
@@ -362,20 +425,28 @@ function DepartmentAccessRow({
 
       {conflictChildren?.length ? (
         <div
-          className="space-y-1 rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-xs text-destructive"
+          className="space-y-1.5 rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-xs text-destructive"
           role="alert"
         >
           <p className="font-medium">
-            Các phòng ban con của phòng ban này đang có cấp độ khác nhau. Vui
-            lòng chọn cấp độ phù hợp thủ công:
+            Chưa xác định được cấp độ cho {name}: các đơn vị trực thuộc đang
+            được gán cấp độ khác nhau.
           </p>
           <ul className="list-disc space-y-0.5 pl-4">
             {conflictChildren.map((child) => (
               <li key={child.departmentId}>
-                {child.departmentName}: {child.accessLevel ?? "chưa xác định"}
+                <span className="font-medium">{child.departmentName}</span>
+                {" — "}
+                {child.accessLevel != null
+                  ? `Cấp ${child.accessLevel}`
+                  : "chưa chọn cấp độ"}
               </li>
             ))}
           </ul>
+          <p>
+            Chọn cấp độ cho {name} ở ô bên trên, hoặc đưa các đơn vị trực thuộc
+            về cùng một cấp.
+          </p>
         </div>
       ) : null}
     </div>
@@ -398,6 +469,7 @@ function DepartmentMultiSelectAdd({
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
 
   const options = useMemo(() => flattenDepartmentTreeWithDepth(tree), [tree])
+  const departmentIndex = useMemo(() => buildDepartmentIndex(tree), [tree])
 
   const filteredOptions = useMemo(() => {
     const normalizedQuery = normalize(query.trim())
@@ -407,17 +479,15 @@ function DepartmentMultiSelectAdd({
     )
   }, [options, query])
 
+  // Parent ticks its subtree; a complete set of children ticks the parent.
   const togglePending = (id: string) => {
-    setPendingIds((current) => {
-      const next = new Set(current)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+    setPendingIds((current) =>
+      toggleDepartmentCascade(current, id, departmentIndex)
+    )
   }
 
   const handleConfirm = () => {
-    onApply(Array.from(pendingIds))
+    onApply(withoutTickedAncestors(pendingIds, departmentIndex))
     setQuery("")
     setOpen(false)
   }
@@ -429,7 +499,11 @@ function DepartmentMultiSelectAdd({
         // Re-seed from the current selection every time it opens, so
         // departments added in a previous round still show up ticked
         // instead of disappearing from the list.
-        setPendingIds(next ? new Set(selectedIds) : new Set())
+        setPendingIds(
+          next
+            ? withCompletedAncestors(selectedIds, departmentIndex)
+            : new Set()
+        )
         if (!next) setQuery("")
       }}
       open={open}
