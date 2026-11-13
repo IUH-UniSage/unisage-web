@@ -251,17 +251,27 @@ export function useDepartmentDashboard() {
     closeDialog()
   }
 
-  const confirmStatusChange = async () => {
+  const confirmStatusChange = async (includeChildren = false) => {
     if (!statusDepartment) return
 
     if (statusDepartment.isActive) {
       await deleteDepartment.mutateAsync(statusDepartment.id)
     } else {
-      await recoverDepartment.mutateAsync(statusDepartment.id)
+      await recoverDepartment.mutateAsync({
+        departmentId: statusDepartment.id,
+        includeChildren,
+      })
     }
 
     setStatusDepartment(undefined)
   }
+
+  // Recovering a unit with child units asks whether the children come back too.
+  const statusNeedsChildChoice = Boolean(
+    statusDepartment &&
+    !(statusDepartment.isActive ?? true) &&
+    statusDepartment.children?.length
+  )
 
   const toggleSelection = (departmentId: string) => {
     setSelectedIds((current) => {
@@ -297,13 +307,27 @@ export function useDepartmentDashboard() {
       )
       .map((department) => department.id)
 
-  const confirmBulkAction = async () => {
+  const bulkRecoverNeedsChildChoice =
+    pendingBulkAction === "recover" &&
+    allDepartments.some(
+      (department) =>
+        selectedIds.has(department.id) &&
+        !(department.isActive ?? true) &&
+        Boolean(department.children?.length)
+    )
+
+  const confirmBulkAction = async (includeChildren = false) => {
     if (pendingBulkAction === "deactivate") {
       const ids = selectedIdsWhere(true)
       if (ids.length) await deleteDepartmentsBulk.mutateAsync(ids)
     } else if (pendingBulkAction === "recover") {
       const ids = selectedIdsWhere(false)
-      if (ids.length) await recoverDepartmentsBulk.mutateAsync(ids)
+      if (ids.length) {
+        await recoverDepartmentsBulk.mutateAsync({
+          departmentIds: ids,
+          includeChildren,
+        })
+      }
     }
     clearSelection()
     setPendingBulkAction(null)
@@ -346,6 +370,7 @@ export function useDepartmentDashboard() {
     appliedStatus,
     appliedType,
     applyFilters,
+    bulkRecoverNeedsChildChoice,
     canCreate,
     canDelete,
     canUpdate,
@@ -390,6 +415,7 @@ export function useDepartmentDashboard() {
     setViewMode,
     stats,
     statusDepartment,
+    statusNeedsChildChoice,
     statusFilter: pendingStatus,
     toggleAllSelection,
     toggleSelection,

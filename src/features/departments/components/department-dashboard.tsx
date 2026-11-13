@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { DepartmentDetailDialog } from "@/features/departments/components/department-detail-dialog"
 import { DepartmentDialog } from "@/features/departments/components/department-dialog"
 import { DepartmentList } from "@/features/departments/components/department-list"
+import { DepartmentRecoverDialog } from "@/features/departments/components/department-recover-dialog"
 import { DepartmentStatusDialog } from "@/features/departments/components/department-status-dialog"
 import { useDepartmentDashboard } from "@/features/departments/hooks/use-department-dashboard"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
@@ -112,25 +113,43 @@ export function DepartmentDashboard() {
       ) : null}
 
       {/* Status Toggle Confirm Dialog */}
-      {dashboard.statusDepartment ? (
+      {dashboard.statusDepartment && dashboard.statusNeedsChildChoice ? (
+        <DepartmentRecoverDialog
+          isSubmitting={dashboard.isUpdatingStatus}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeStatusDialog()
+          }}
+          onRecover={dashboard.confirmStatusChange}
+          subject={dashboard.statusDepartment.name}
+        />
+      ) : dashboard.statusDepartment ? (
         <DepartmentStatusDialog
           department={dashboard.statusDepartment}
           isSubmitting={dashboard.isUpdatingStatus}
-          onConfirm={dashboard.confirmStatusChange}
+          onConfirm={() => dashboard.confirmStatusChange()}
           onOpenChange={(open) => {
             if (!open) dashboard.closeStatusDialog()
           }}
         />
       ) : null}
 
-      {dashboard.pendingBulkAction ? (
+      {dashboard.pendingBulkAction && dashboard.bulkRecoverNeedsChildChoice ? (
+        <DepartmentRecoverDialog
+          isSubmitting={dashboard.isBulkUpdating}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeBulkActionDialog()
+          }}
+          onRecover={dashboard.confirmBulkAction}
+          subject={`${dashboard.pendingBulkCount} phòng ban đã chọn`}
+        />
+      ) : dashboard.pendingBulkAction ? (
         <BulkStatusDialog
           action={dashboard.pendingBulkAction}
           assignedToNoun="người dùng và tài liệu"
           count={dashboard.pendingBulkCount}
           entityNoun="phòng ban"
           isSubmitting={dashboard.isBulkUpdating}
-          onConfirm={dashboard.confirmBulkAction}
+          onConfirm={() => dashboard.confirmBulkAction()}
           onOpenChange={(open) => {
             if (!open) dashboard.closeBulkActionDialog()
           }}

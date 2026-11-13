@@ -42,14 +42,20 @@ export function useDeleteDepartmentMutation() {
   })
 }
 
+type RecoverVariables = { departmentId: string; includeChildren: boolean }
+type BulkRecoverVariables = {
+  departmentIds: string[]
+  includeChildren: boolean
+}
+
 export function useRecoverDepartmentMutation() {
   return useMutation({
     meta: {
       invalidatesQuery: departmentKeys.list(),
       successMessage: "Đã khôi phục phòng ban.",
     },
-    mutationFn: (departmentId: string) =>
-      departmentApi.recoverDepartment(departmentId),
+    mutationFn: ({ departmentId, includeChildren }: RecoverVariables) =>
+      departmentApi.recoverDepartment(departmentId, includeChildren),
   })
 }
 
@@ -70,7 +76,7 @@ export function useRecoverDepartmentsBulkMutation() {
       invalidatesQuery: departmentKeys.list(),
       successMessage: "Đã khôi phục các phòng ban đã chọn.",
     },
-    mutationFn: (departmentIds: string[]) =>
-      departmentApi.recoverDepartmentsBulk(departmentIds),
+    mutationFn: ({ departmentIds, includeChildren }: BulkRecoverVariables) =>
+      departmentApi.recoverDepartmentsBulk(departmentIds, includeChildren),
   })
 }
