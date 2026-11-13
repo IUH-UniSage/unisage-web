@@ -423,20 +423,28 @@ function DepartmentAccessRow({
 
       {conflictChildren?.length ? (
         <div
-          className="space-y-1 rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-xs text-destructive"
+          className="space-y-1.5 rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-xs text-destructive"
           role="alert"
         >
           <p className="font-medium">
-            Các phòng ban con của phòng ban này đang có cấp độ khác nhau. Vui
-            lòng chọn cấp độ phù hợp thủ công:
+            Chưa xác định được cấp độ cho {name}: các đơn vị trực thuộc đang
+            được gán cấp độ khác nhau.
           </p>
           <ul className="list-disc space-y-0.5 pl-4">
             {conflictChildren.map((child) => (
               <li key={child.departmentId}>
-                {child.departmentName}: {child.accessLevel ?? "chưa xác định"}
+                <span className="font-medium">{child.departmentName}</span>
+                {" — "}
+                {child.accessLevel != null
+                  ? `Cấp ${child.accessLevel}`
+                  : "chưa chọn cấp độ"}
               </li>
             ))}
           </ul>
+          <p>
+            Chọn cấp độ cho {name} ở ô bên trên, hoặc đưa các đơn vị trực thuộc
+            về cùng một cấp.
+          </p>
         </div>
       ) : null}
     </div>
