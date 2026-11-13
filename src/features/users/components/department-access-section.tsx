@@ -51,17 +51,25 @@ type ConflictChild = {
   departmentName: string
 }
 
-type NodeInfo = { depth: number; name: string; parentId: string | null }
+// `position` is the depth-first order of the tree, so sorting by it keeps each unit right under
+// its parent (sorting by depth alone listed every faculty first, then every subject group).
+type NodeInfo = {
+  depth: number
+  name: string
+  parentId: string | null
+  position: number
+}
 
 function buildNodeIndex(tree: DepartmentNode[]): Map<string, NodeInfo> {
   const index = new Map<string, NodeInfo>()
-  for (const node of flattenDepartmentTreeWithDepth(tree)) {
+  flattenDepartmentTreeWithDepth(tree).forEach((node, position) => {
     index.set(node.id, {
       depth: node.depth,
       name: node.name,
       parentId: node.parentId ?? null,
+      position,
     })
-  }
+  })
   return index
 }
 
@@ -193,8 +201,8 @@ export function DepartmentAccessSection({
     () =>
       Array.from(rows.values()).sort(
         (a, b) =>
-          (nodeIndex.get(a.departmentId)?.depth ?? 0) -
-          (nodeIndex.get(b.departmentId)?.depth ?? 0)
+          (nodeIndex.get(a.departmentId)?.position ?? 0) -
+          (nodeIndex.get(b.departmentId)?.position ?? 0)
       ),
     [rows, nodeIndex]
   )
