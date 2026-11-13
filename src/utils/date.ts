@@ -26,6 +26,23 @@ export function parseApiDate(input: DateInput): Date | null {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
+// Asia/Ho_Chi_Minh has no DST, so its offset is constant.
+const APP_TIME_ZONE_OFFSET = "+07:00"
+
+/**
+ * Turns a `YYYY-MM-DD` day picked in the UI (a Vietnam-time day, like every date the UI shows)
+ * into the UTC, offset-less date-time the backend filters on (`LocalDateTime` stored in UTC):
+ * `"start"` is 00:00:00 of that day, `"end"` is 23:59:59. Sending the bare wall-clock time would
+ * shift the range by 7 hours.
+ */
+export function appDayBoundaryToUtc(day: string, boundary: "end" | "start") {
+  const time = boundary === "start" ? "00:00:00" : "23:59:59"
+  const date = new Date(`${day}T${time}${APP_TIME_ZONE_OFFSET}`)
+  return Number.isNaN(date.getTime())
+    ? undefined
+    : date.toISOString().slice(0, 19)
+}
+
 export function formatDate(
   input: DateInput,
   options: Intl.DateTimeFormatOptions = {
