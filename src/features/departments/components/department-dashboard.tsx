@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react"
 
+import { BulkStatusDialog } from "@/components/shared/dialog/bulk-status-dialog"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DepartmentDetailDialog } from "@/features/departments/components/department-detail-dialog"
@@ -52,20 +53,28 @@ export function DepartmentDashboard() {
         canUpdate={dashboard.canUpdate}
         departmentTree={dashboard.departmentTree}
         flattenedList={dashboard.flattenedList}
+        isBulkUpdating={dashboard.isBulkUpdating}
         isFiltered={dashboard.isFiltered}
         matchedIds={dashboard.matchedIds}
         onAddChild={dashboard.openCreate}
         onApplyFilters={dashboard.applyFilters}
+        onBulkDeactivate={dashboard.requestBulkDeactivate}
+        onBulkRecover={dashboard.requestBulkRecover}
+        onClearSelection={dashboard.clearSelection}
         onDetail={dashboard.openDetail}
         onEdit={dashboard.openEdit}
         onResetFilters={dashboard.resetFilters}
         onSearchChange={dashboard.setSearch}
         onStatusChange={dashboard.setStatusFilter}
         onStatusRequest={dashboard.requestStatusChange}
+        onToggleAllSelection={dashboard.toggleAllSelection}
+        onToggleSelection={dashboard.toggleSelection}
         onTypeChange={dashboard.setTypeFilter}
         onViewModeChange={dashboard.setViewMode}
         relevantIds={dashboard.relevantIds}
         search={dashboard.search}
+        selectedIds={dashboard.selectedIds}
+        selectedStatusCounts={dashboard.selectedStatusCounts}
         status={dashboard.statusFilter}
         type={dashboard.typeFilter}
         viewMode={dashboard.viewMode}
@@ -110,6 +119,20 @@ export function DepartmentDashboard() {
           onConfirm={dashboard.confirmStatusChange}
           onOpenChange={(open) => {
             if (!open) dashboard.closeStatusDialog()
+          }}
+        />
+      ) : null}
+
+      {dashboard.pendingBulkAction ? (
+        <BulkStatusDialog
+          action={dashboard.pendingBulkAction}
+          assignedToNoun="người dùng và tài liệu"
+          count={dashboard.pendingBulkCount}
+          entityNoun="phòng ban"
+          isSubmitting={dashboard.isBulkUpdating}
+          onConfirm={dashboard.confirmBulkAction}
+          onOpenChange={(open) => {
+            if (!open) dashboard.closeBulkActionDialog()
           }}
         />
       ) : null}

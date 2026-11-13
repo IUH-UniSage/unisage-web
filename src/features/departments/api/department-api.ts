@@ -66,6 +66,24 @@ export const departmentApi = {
     readApiResponse(response.data, z.null())
   },
 
+  async deleteDepartmentsBulk(departmentIds: string[]): Promise<void> {
+    const response = await httpClient.delete<ApiResponse<null>>(
+      API_ENDPOINTS.departments.departmentsBulkDelete,
+      { data: departmentIds }
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
+  async recoverDepartmentsBulk(departmentIds: string[]): Promise<void> {
+    const response = await httpClient.post<ApiResponse<null>>(
+      API_ENDPOINTS.departments.departmentsBulkRecover,
+      departmentIds
+    )
+
+    readApiResponse(response.data, z.null())
+  },
+
   async recoverDepartment(departmentId: string): Promise<void> {
     // Backend uses PATCH /{id}/recover
     const response = await httpClient.patch<ApiResponse<null>>(

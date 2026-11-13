@@ -6,6 +6,7 @@ import { DataTable } from "@/components/shared/list/data-table"
 import { EntityActionsMenu } from "@/components/shared/list/entity-actions-menu"
 import { EntityStatusBadge } from "@/components/shared/list/entity-status-badge"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Department } from "@/features/departments/schemas/department-schemas"
 import {
@@ -75,6 +76,9 @@ type DepartmentTableViewProps = {
   onDetail: (department: Department) => void
   onEdit: (department: Department) => void
   onStatusRequest: (department: Department) => void
+  onToggleAllSelection: (departmentIds: string[]) => void
+  onToggleSelection: (departmentId: string) => void
+  selectedIds: ReadonlySet<string>
 }
 
 export function DepartmentTableView({
@@ -87,6 +91,9 @@ export function DepartmentTableView({
   onDetail,
   onEdit,
   onStatusRequest,
+  onToggleAllSelection,
+  onToggleSelection,
+  selectedIds,
 }: DepartmentTableViewProps) {
   // Collapsed by default: only top-level units show until a row is expanded.
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
@@ -111,9 +118,31 @@ export function DepartmentTableView({
   }, [])
 
   const visibleItems = visibleDepartmentRows(items, isExpanded)
+  const visibleIds = visibleItems.map((item) => item.id)
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id))
 
   const columns = useMemo<ColumnDef<FlattenedDepartmentNode, unknown>[]>(
     () => [
+      {
+        cell: ({ row }) => (
+          <Checkbox
+            aria-label={`Chọn ${row.original.name}`}
+            checked={selectedIds.has(row.original.id)}
+            onCheckedChange={() => onToggleSelection(row.original.id)}
+            onClick={(event) => event.stopPropagation()}
+          />
+        ),
+        header: () => (
+          <Checkbox
+            aria-label="Chọn tất cả phòng ban đang hiển thị"
+            checked={allVisibleSelected}
+            onCheckedChange={() => onToggleAllSelection(visibleIds)}
+          />
+        ),
+        id: "select",
+        meta: { className: "w-10", headerClassName: "w-10" },
+      },
       {
         cell: ({ row }) => row.index + 1,
         header: "STT",
@@ -279,6 +308,7 @@ export function DepartmentTableView({
       },
     ],
     [
+      allVisibleSelected,
       canCreate,
       canDelete,
       canUpdate,
@@ -288,7 +318,11 @@ export function DepartmentTableView({
       onDetail,
       onEdit,
       onStatusRequest,
+      onToggleAllSelection,
+      onToggleSelection,
+      selectedIds,
       toggleExpanded,
+      visibleIds,
     ]
   )
 

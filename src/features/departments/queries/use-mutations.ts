@@ -52,3 +52,25 @@ export function useRecoverDepartmentMutation() {
       departmentApi.recoverDepartment(departmentId),
   })
 }
+
+export function useDeleteDepartmentsBulkMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: departmentKeys.list(),
+      successMessage: "Đã vô hiệu hóa các phòng ban đã chọn.",
+    },
+    mutationFn: (departmentIds: string[]) =>
+      departmentApi.deleteDepartmentsBulk(departmentIds),
+  })
+}
+
+export function useRecoverDepartmentsBulkMutation() {
+  return useMutation({
+    meta: {
+      invalidatesQuery: departmentKeys.list(),
+      successMessage: "Đã khôi phục các phòng ban đã chọn.",
+    },
+    mutationFn: (departmentIds: string[]) =>
+      departmentApi.recoverDepartmentsBulk(departmentIds),
+  })
+}
