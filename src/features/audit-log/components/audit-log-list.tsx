@@ -45,7 +45,7 @@ import {
 } from "@/constants/resource-types"
 import { DialogTourButton } from "@/features/product-tour"
 import { getErrorMessage } from "@/utils/error-handler"
-import { formatDateTime } from "@/utils/date"
+import { appDayBoundaryToUtc, formatDateTime } from "@/utils/date"
 import { Input } from "@/components/ui/input"
 
 const PAGE_SIZE = 20
@@ -305,14 +305,18 @@ export function AuditLogList() {
   const { data, error, isPending } = useAuditLogsQuery({
     action: applied.action,
     actorCode: applied.actorCode.trim() || undefined,
-    // The date inputs give YYYY-MM-DD; the backend binds fromDate/toDate as
-    // @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime and 400s on a bare
-    // date, so widen to the start/end of day before sending.
-    fromDate: applied.fromDate ? `${applied.fromDate}T00:00:00` : undefined,
+    // The date inputs give a Vietnam-time YYYY-MM-DD; the backend binds fromDate/toDate as
+    // @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime in UTC and 400s on a bare date, so
+    // widen to the start/end of that day and convert to UTC before sending.
+    fromDate: applied.fromDate
+      ? appDayBoundaryToUtc(applied.fromDate, "start")
+      : undefined,
     limit: PAGE_SIZE,
     page,
     resourceType: applied.resourceType,
-    toDate: applied.toDate ? `${applied.toDate}T23:59:59` : undefined,
+    toDate: applied.toDate
+      ? appDayBoundaryToUtc(applied.toDate, "end")
+      : undefined,
   })
 
   const logs = useMemo(() => data?.data ?? [], [data])

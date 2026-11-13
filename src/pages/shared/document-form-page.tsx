@@ -58,8 +58,6 @@ export function DocumentFormPage() {
     )
   }
 
-  const cancelPath = isEdit && documentId ? detailPath(documentId) : listPath
-
   const save = async (input: DocumentFormValues) => {
     if (isEdit && documentId) {
       const updated = await updateDocument.mutateAsync({ documentId, input })
@@ -76,7 +74,8 @@ export function DocumentFormPage() {
         document={documentQuery.data}
         isSaving={createDocument.isPending || updateDocument.isPending}
         onOpenChange={(open) => {
-          if (!open) navigate(cancelPath)
+          // Cancel returns to the list, also from edit (not to the detail page).
+          if (!open) navigate(listPath)
         }}
         onSubmit={save}
       />

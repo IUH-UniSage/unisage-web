@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { formatDate, formatDateTime, parseApiDate } from "./date"
+import {
+  appDayBoundaryToUtc,
+  formatDate,
+  formatDateTime,
+  parseApiDate,
+} from "./date"
 import { formatAuditDate } from "./date-format"
 
 describe("parseApiDate", () => {
@@ -41,5 +46,18 @@ describe("formatting in Vietnam time", () => {
 
   it("keeps a date-only value on its own day", () => {
     expect(formatDate("2026-10-05")).toBe("05/10/2026")
+  })
+})
+
+describe("appDayBoundaryToUtc", () => {
+  it("maps a Vietnam day to its UTC start and end", () => {
+    expect(appDayBoundaryToUtc("2026-11-12", "start")).toBe(
+      "2026-11-11T17:00:00"
+    )
+    expect(appDayBoundaryToUtc("2026-11-12", "end")).toBe("2026-11-12T16:59:59")
+  })
+
+  it("returns undefined for an invalid day", () => {
+    expect(appDayBoundaryToUtc("not-a-day", "start")).toBeUndefined()
   })
 })

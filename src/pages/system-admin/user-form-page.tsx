@@ -41,9 +41,6 @@ export function UserFormPage() {
     )
   }
 
-  const cancelPath =
-    isEdit && userId ? adminUserDetailPath(userId) : ROUTES.adminUsers
-
   const save = async (input: CreateUserRequest | UpdateUserRequest) => {
     if (isEdit && userId) {
       const updated = await updateUser.mutateAsync({
@@ -61,7 +58,8 @@ export function UserFormPage() {
     <UserDialog
       isSaving={createUser.isPending || updateUser.isPending}
       onOpenChange={(open) => {
-        if (!open) navigate(cancelPath)
+        // Cancel returns to the list, also from edit (not to the detail page).
+        if (!open) navigate(ROUTES.adminUsers)
       }}
       onSubmit={save}
       roles={rolesQuery.data?.data ?? []}

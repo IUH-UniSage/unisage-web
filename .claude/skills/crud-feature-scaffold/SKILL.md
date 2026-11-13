@@ -60,10 +60,20 @@ push without the user's explicit go-ahead each time.
   optional `children` slot for extra feature-specific items. Use this rather than hand-rolling a
   `DropdownMenu` per feature.
 - `src/components/shared/list/list-toolbar.tsx` — `ListToolbar` for the search+filters+reset row
-  above the table. Pass the filter `<Select>`s as `children`.
+  above the table. Pass the filter `<Select>`s as `children`. Filters are "apply on click": the
+  inputs hold pending state and only `onApplyFilters` (the "Lọc" button) writes them to the URL.
+  Pressing **Enter in the search box also calls `onApplyFilters`** — that is built into the
+  toolbar (it skips Enter while a Vietnamese IME is composing), so don't add your own `onKeyDown`
+  and don't switch the list to live-as-you-type search.
 - `src/components/shared/list/bulk-actions-bar.tsx` — `BulkActionsBar` for the "N selected" bar
   above the table (animates open/closed via a `grid-rows` transition, not a plain conditional
-  render). Takes `selectedCount`, `isSubmitting`, `onDeactivate`, `onRecover`, `onClear`. Its
+  render). Takes `selectedCount`, `statusCounts`, `isSubmitting`, `onDeactivate`, `onRecover`,
+  `onClear`. `statusCounts` is the `{ active, inactive }` split of the selected rows from
+  `countSelectedByStatus(items, selectedIds, isActive)` (`src/utils/selection.ts`), computed in
+  the dashboard hook with `useMemo` over the **full** list (selection survives paging). The bar
+  shows "Vô hiệu hóa" only when `active > 0` and "Khôi phục" only when `inactive > 0` — all-active
+  → deactivate only, all-inactive → recover only, mixed → both. Never render both buttons
+  unconditionally again. Its
   `onDeactivate`/`onRecover` callbacks must only **open a confirm dialog** (see
   `BulkStatusDialog` below) — never call the bulk mutation directly from the bar itself, so a
   misclick can't silently deactivate/recover a batch of rows.
@@ -107,8 +117,9 @@ entityNoun, assignedToNoun, isActive, isSubmitting, onConfirm, onOpenChange })` 
 entityNoun, assignedToNoun, isSubmitting, onConfirm, onOpenChange })` — the bulk equivalent of
   `EntityStatusDialog`, shown when the user clicks "Vô hiệu hóa"/"Khôi phục" in `BulkActionsBar`.
   `action` is `"deactivate" | "recover"`; `count` must be the number of selected rows actually
-  eligible for that action (only active rows for deactivate, only inactive for recover — see
-  `pendingRoleBulkCount` in `use-rbac-dashboard.ts`), not just `selectedIds.size`.
+  eligible for that action — read it from the same `statusCounts` the bar uses (`active` for
+  deactivate, `inactive` for recover; see `pendingRoleBulkCount` in `use-rbac-dashboard.ts`), not
+  `selectedIds.size`, and don't re-filter the list a second time for it.
 - `src/utils/error-handler.ts` — every create/edit dialog's submit handler must wire this in, not
   swallow the error with a bare comment:
   ```ts
@@ -173,6 +184,17 @@ request with the Zod schema, call `httpClient` via `API_ENDPOINTS.<namespace>.*`
 group to `src/constants/api-endpoints.ts` if missing, per `rbac-permissions.md`'s convention),
 unwrap with `readSuccessData`/`readApiResponse`. Copy `rbac-api.ts`'s method shape
 exactly — same async/await style, same `ApiResponse<T>` typing.
+
+**Paging params**: the backend's pageable is configured with `size-parameter=limit` and
+`one-indexed-parameters=true` (`application.properties`). Send `{ page: 1, limit: N }` — never
+`size` (silently ignored → the default 10 rows, which once capped the whole users list at 10 and
+made search miss everyone else) and never `page: 0`. A typed param named `size` on the client is
+fine as long as it goes on the wire as `limit`. Before filtering client-side, check the
+controller: if the list endpoint already accepts `q`/`status`/... (tickets, chat-models,
+audit-logs, usage-logs do), filter server-side instead of fetching 500 rows.
+
+**Enums**: every `z.enum` that mirrors a backend enum must list exactly the backend's values
+(check `entity/enums/*.java`). One unknown value from the API makes zod reject the whole page.
 
 ### `src/features/<feature>/queries/keys.ts`
 
@@ -245,6 +267,11 @@ component staying directly in `components/` (see `role/`, `permission/`, and
 
 Thin wrapper rendering the dashboard/list component — no logic, matching `rbac-page.tsx`.
 
+Create/edit form pages (`<feature>-form-page.tsx`, routed as `/<segment>/new` and
+`/<segment>/:id/edit`): **Cancel (the "Hủy" button and the back arrow, i.e. `onOpenChange(false)`)
+always navigates to the list**, from create _and_ edit — never back to the detail page. Saving an
+edit may still land on the detail page. See `user-form-page.tsx` / `role-form-page.tsx`.
+
 ### Route wiring
 
 In the relevant `src/routes/*.routes.tsx`: add a `lazy(() => import(...))` entry, replace the
@@ -265,6 +292,14 @@ Run the full matrix from `checklist.md` before calling the scaffold done:
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm build
 pnpm test
 ```
+
+Add or extend an e2e spec for the shared list behaviour (search Enter applies the filter, bulk
+bar buttons follow the selection, Cancel on edit returns to the list) — `e2e/admin-list-shared.spec.ts`
+is the template; mock the API under `**/api/v1/master/<path>**` (the gateway prefix, see
+`e2e/support/rbac.ts`), not `**/api/v1/<path>**`, or the mock never matches. If another dev server
+already owns :5173 (e.g. from a second checkout/worktree), Playwright silently reuses it and tests
+the wrong code — stop it or run your worktree's server on another port with a throwaway config
+and copy `.env`/`.env.local` into the worktree first.
 
 Then start the dev server and screenshot the new list page at both 375px and 1280px per
 `ui-rules.md` — a scaffolded feature that has never been rendered is not verified, it's typed. If a

@@ -29,6 +29,7 @@ import type {
 } from "@/features/rbac/schemas/rbac-schemas"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
 import { PERMISSIONS } from "@/utils/permissions"
+import { countSelectedByStatus } from "@/utils/selection"
 
 export type RbacTab = "roles" | "permissions"
 export type StatusFilter = "active" | "all" | "inactive"
@@ -297,13 +298,17 @@ export function useRbacDashboard() {
     clearRoleSelection()
   }
 
+  const selectedRoleStatusCounts = useMemo(
+    () =>
+      countSelectedByStatus(roles, selectedRoleIds, (role) => role.isActive),
+    [roles, selectedRoleIds]
+  )
+
   const pendingRoleBulkCount =
     pendingRoleBulkAction === "deactivate"
-      ? roles.filter((role) => selectedRoleIds.has(role.id) && role.isActive)
-          .length
+      ? selectedRoleStatusCounts.active
       : pendingRoleBulkAction === "recover"
-        ? roles.filter((role) => selectedRoleIds.has(role.id) && !role.isActive)
-            .length
+        ? selectedRoleStatusCounts.inactive
         : 0
 
   const confirmRoleBulkAction = async () => {
@@ -409,17 +414,21 @@ export function useRbacDashboard() {
     clearPermissionSelection()
   }
 
+  const selectedPermissionStatusCounts = useMemo(
+    () =>
+      countSelectedByStatus(
+        permissions,
+        selectedPermissionIds,
+        (permission) => permission.isActive
+      ),
+    [permissions, selectedPermissionIds]
+  )
+
   const pendingPermissionBulkCount =
     pendingPermissionBulkAction === "deactivate"
-      ? permissions.filter(
-          (permission) =>
-            selectedPermissionIds.has(permission.id) && permission.isActive
-        ).length
+      ? selectedPermissionStatusCounts.active
       : pendingPermissionBulkAction === "recover"
-        ? permissions.filter(
-            (permission) =>
-              selectedPermissionIds.has(permission.id) && !permission.isActive
-          ).length
+        ? selectedPermissionStatusCounts.inactive
         : 0
 
   const confirmPermissionBulkAction = async () => {
@@ -529,7 +538,9 @@ export function useRbacDashboard() {
     roleTotalPages,
     savePermission,
     selectedPermissionIds,
+    selectedPermissionStatusCounts,
     selectedRoleIds,
+    selectedRoleStatusCounts,
     setActiveTab: (value: RbacTab) => setParams({ tab: value }),
     setPermissionPage: (page: number) =>
       setParams({ permissionPage: String(page) }),
