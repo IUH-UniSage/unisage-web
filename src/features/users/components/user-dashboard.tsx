@@ -72,6 +72,7 @@ export function UserDashboard() {
           onToggleSelection={dashboard.toggleSelection}
           search={dashboard.search}
           selectedIds={dashboard.selectedIds}
+          selectedStatusCounts={dashboard.selectedStatusCounts}
           status={dashboard.statusFilter}
           totalItems={dashboard.filteredCount}
           totalPages={dashboard.totalPages}

@@ -36,6 +36,7 @@ import {
 } from "@/features/users/hooks/use-user-dashboard"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { formatAuditDate } from "@/utils/date-format"
+import type { SelectionStatusCounts } from "@/utils/selection"
 
 function userDisplayName(user: AppUser) {
   return [user.firstName, user.lastName].filter(Boolean).join(" ") || "—"
@@ -121,6 +122,7 @@ type UserListProps = {
   onToggleSelection: (userId: string) => void
   search: string
   selectedIds: Set<string>
+  selectedStatusCounts: SelectionStatusCounts
   status: StatusFilter
   totalItems: number
   totalPages: number
@@ -148,6 +150,7 @@ export function UserList({
   onToggleSelection,
   search,
   selectedIds,
+  selectedStatusCounts,
   status,
   totalItems,
   totalPages,
@@ -350,6 +353,7 @@ export function UserList({
         onDeactivate={onBulkDeactivate}
         onRecover={onBulkRecover}
         selectedCount={selectedIds.size}
+        statusCounts={selectedStatusCounts}
       />
 
       {users.length ? (

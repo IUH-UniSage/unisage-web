@@ -37,6 +37,7 @@ import {
 } from "@/features/rbac/utils/rbac-formatters"
 import type { AccessPermission } from "@/features/rbac/schemas/rbac-schemas"
 import { formatAuditDate } from "@/utils/date-format"
+import type { SelectionStatusCounts } from "@/utils/selection"
 
 type PermissionActionsProps = {
   canDeletePermissions: boolean
@@ -117,6 +118,7 @@ type PermissionListProps = {
   permissions: AccessPermission[]
   search: string
   selectedIds: Set<string>
+  selectedStatusCounts: SelectionStatusCounts
   status: StatusFilter
   totalItems: number
   totalPages: number
@@ -144,6 +146,7 @@ export function PermissionList({
   permissions,
   search,
   selectedIds,
+  selectedStatusCounts,
   status,
   totalItems,
   totalPages,
@@ -289,6 +292,7 @@ export function PermissionList({
         onDeactivate={onBulkDeactivate}
         onRecover={onBulkRecover}
         selectedCount={selectedIds.size}
+        statusCounts={selectedStatusCounts}
       />
 
       {permissions.length ? (

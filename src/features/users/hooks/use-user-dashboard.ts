@@ -10,6 +10,7 @@ import {
 import { useUsersQuery } from "@/features/users/queries/use-queries"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
+import { countSelectedByStatus } from "@/utils/selection"
 
 export type StatusFilter = "ACTIVE" | "all" | "INACTIVE"
 
@@ -200,15 +201,21 @@ export function useUserDashboard() {
     clearSelection()
   }
 
+  const selectedStatusCounts = useMemo(
+    () =>
+      countSelectedByStatus(
+        users,
+        selectedIds,
+        (user) => user.status === "ACTIVE"
+      ),
+    [selectedIds, users]
+  )
+
   const pendingBulkCount =
     pendingBulkAction === "deactivate"
-      ? users.filter(
-          (user) => selectedIds.has(user.id) && user.status === "ACTIVE"
-        ).length
+      ? selectedStatusCounts.active
       : pendingBulkAction === "recover"
-        ? users.filter(
-            (user) => selectedIds.has(user.id) && user.status !== "ACTIVE"
-          ).length
+        ? selectedStatusCounts.inactive
         : 0
 
   const confirmBulkAction = async () => {
@@ -246,6 +253,7 @@ export function useUserDashboard() {
     resetFilters,
     search: pendingSearch,
     selectedIds,
+    selectedStatusCounts,
     setPage,
     setSearch: setPendingSearch,
     setStatusFilter: setPendingStatus,

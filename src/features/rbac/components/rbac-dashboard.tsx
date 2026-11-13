@@ -93,6 +93,7 @@ export function RbacDashboard() {
                 roles={dashboard.pagedRoles}
                 search={dashboard.roleSearch}
                 selectedIds={dashboard.selectedRoleIds}
+                selectedStatusCounts={dashboard.selectedRoleStatusCounts}
                 status={dashboard.roleStatus}
                 totalItems={dashboard.filteredRoleCount}
                 totalPages={dashboard.roleTotalPages}
@@ -130,6 +131,7 @@ export function RbacDashboard() {
                 permissions={dashboard.pagedPermissions}
                 search={dashboard.permissionSearch}
                 selectedIds={dashboard.selectedPermissionIds}
+                selectedStatusCounts={dashboard.selectedPermissionStatusCounts}
                 status={dashboard.permissionStatus}
                 totalItems={dashboard.filteredPermissionCount}
                 totalPages={dashboard.permissionTotalPages}
