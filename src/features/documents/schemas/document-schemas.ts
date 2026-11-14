@@ -81,6 +81,13 @@ const documentFormBaseSchema = z.object({
     .trim()
     .min(1, "Tiêu đề không được để trống.")
     .max(255, "Tiêu đề không được vượt quá 255 ký tự."),
+  // Edit only (required there, see createDocumentEditFormSchema); stored on the document and on
+  // the archived version when the file is replaced.
+  changeReason: z
+    .string()
+    .trim()
+    .max(500, "Lý do chỉnh sửa không được vượt quá 500 ký tự.")
+    .nullish(),
 })
 
 function checkFileExtension(
@@ -141,6 +148,13 @@ export function createDocumentEditFormSchema(
   allowedExtensions: readonly string[] = DEFAULT_ALLOWED_DOCUMENT_FILE_EXTENSIONS
 ) {
   return documentFormBaseSchema.superRefine((values, ctx) => {
+    if (!values.changeReason?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Vui lòng nhập lý do chỉnh sửa.",
+        path: ["changeReason"],
+      })
+    }
     checkFileExtension(values, ctx, allowedExtensions)
     checkPublicAccessLevel(values, ctx)
   })

@@ -30,6 +30,7 @@ function toFormData(input: DocumentFormValues): FormData {
   }
   formData.append("isPublic", String(input.isPublic))
   if (input.file) formData.append("file", input.file)
+  if (input.changeReason) formData.append("changeReason", input.changeReason)
 
   return formData
 }

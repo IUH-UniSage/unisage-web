@@ -4,6 +4,7 @@ import { z } from "zod"
 // (replaced) file versions are returned by GET /documents/{id}/versions; the
 // document's current live file stays on `documentSchema.fileUrl`.
 export const documentVersionSchema = z.object({
+  changeReason: z.string().nullish(),
   createdAt: z.string().nullish(),
   fileName: z.string().nullish(),
   fileType: z.string().nullish(),

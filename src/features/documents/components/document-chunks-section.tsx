@@ -1,5 +1,5 @@
 import { Layers } from "lucide-react"
-import { useState } from "react"
+import { useLayoutEffect, useRef, useState, type RefObject } from "react"
 
 import { Pagination } from "@/components/shared/list/pagination"
 import { MarkdownRenderer } from "@/components/shared/markdown-renderer"
@@ -198,8 +198,36 @@ export function DocumentChunksSection({
   )
 }
 
+/**
+ * True while `ref`'s content is cut off by its clamp (line-clamp / max-height). Re-measured when
+ * the element resizes, so a narrower screen can still reveal the toggle.
+ */
+function useIsClamped<T extends HTMLElement>(
+  ref: RefObject<T | null>,
+  active: boolean
+) {
+  const [isClamped, setIsClamped] = useState(false)
+
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element || !active) return
+    const measure = () =>
+      setIsClamped(element.scrollHeight > element.clientHeight + 1)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [active, ref])
+
+  return isClamped
+}
+
 function ChunkRow({ chunk }: { chunk: Chunk }) {
   const [expanded, setExpanded] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
+  // Only measured while collapsed; once expanded the toggle stays so it can collapse again.
+  const isClamped = useIsClamped(contentRef, !expanded)
+  const canToggle = expanded || isClamped
   const [showMetadata, setShowMetadata] = useState(false)
   const isTable = chunk.region_type === "table"
   const metadataEntries = buildMetadataEntries(chunk)
@@ -221,13 +249,15 @@ function ChunkRow({ chunk }: { chunk: Chunk }) {
               {showMetadata ? "Ẩn metadata" : "Metadata"}
             </button>
           ) : null}
-          <button
-            className="cursor-pointer text-xs font-medium text-primary hover:underline"
-            onClick={() => setExpanded((current) => !current)}
-            type="button"
-          >
-            {expanded ? "Thu gọn" : "Xem thêm"}
-          </button>
+          {canToggle ? (
+            <button
+              className="cursor-pointer text-xs font-medium text-primary hover:underline"
+              onClick={() => setExpanded((current) => !current)}
+              type="button"
+            >
+              {expanded ? "Thu gọn" : "Xem thêm"}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -253,6 +283,7 @@ function ChunkRow({ chunk }: { chunk: Chunk }) {
             "overflow-auto text-sm leading-relaxed",
             !expanded && "max-h-48 overflow-hidden"
           )}
+          ref={contentRef}
         >
           <MarkdownRenderer
             className="text-sm leading-relaxed"
@@ -260,14 +291,15 @@ function ChunkRow({ chunk }: { chunk: Chunk }) {
           />
         </div>
       ) : (
-        <p
+        <div
           className={cn(
             "text-sm leading-relaxed whitespace-pre-wrap text-foreground",
             !expanded && "line-clamp-3"
           )}
+          ref={contentRef}
         >
           {chunk.content}
-        </p>
+        </div>
       )}
     </div>
   )

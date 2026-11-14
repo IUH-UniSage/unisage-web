@@ -76,7 +76,8 @@ function DocumentActions({
           <MoreHorizontal aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      {/* The base content is as wide as its trigger; this one is an icon button, so text wrapped. */}
+      <DropdownMenuContent align="end" className="w-auto min-w-52">
         <DropdownMenuItem onSelect={() => onViewDetail(document)}>
           <Eye aria-hidden="true" />
           Xem chi tiết

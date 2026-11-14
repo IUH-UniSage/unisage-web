@@ -38,6 +38,14 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
   )
   const isDirty = chunk != null && draft !== chunk.content
 
+  // Clicking outside the editor (another chunk, the next step, anywhere) blurs the textarea first,
+  // so committing on blur means an edit is never lost by forgetting the save button.
+  const commitDraft = () => {
+    if (chunk && draft !== chunk.content) {
+      wizard.updateChunkContent(chunk.chunk_index, draft)
+    }
+  }
+
   if (!chunk) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-border bg-card p-8 text-center text-muted-foreground shadow-sm">
@@ -145,6 +153,8 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
       ) : (
         <Textarea
           className="h-80 max-h-[400px] flex-1 resize-none overflow-y-auto rounded-2xl border border-border bg-muted/50 p-4 font-mono text-xs leading-relaxed text-foreground focus:bg-card focus:ring-2 focus:ring-primary focus:outline-none md:h-[360px]"
+          aria-label={`Nội dung đoạn #${position + 1}`}
+          onBlur={commitDraft}
           onChange={(event) => setDraft(event.target.value)}
           value={draft}
         />
@@ -152,12 +162,14 @@ export function ChunkEditorPanel({ chunk, wizard }: ChunkEditorPanelProps) {
 
       <div className="flex items-center justify-between border-t border-border pt-2">
         <span className="text-[10px] font-medium text-muted-foreground">
-          {isDirty ? "Có thay đổi chưa lưu" : "Nội dung gốc"}
+          {isDirty
+            ? "Có thay đổi chưa lưu · tự lưu khi bấm ra ngoài"
+            : "Nội dung gốc"}
         </span>
         <Button
           className="h-10 rounded-xl bg-primary text-xs font-black tracking-widest text-primary-foreground uppercase shadow-md shadow-primary/20 hover:bg-primary/90 disabled:opacity-40"
           disabled={!isDirty}
-          onClick={() => wizard.updateChunkContent(chunk.chunk_index, draft)}
+          onClick={commitDraft}
           type="button"
         >
           Lưu thay đổi

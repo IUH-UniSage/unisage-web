@@ -80,6 +80,11 @@ function VersionRow({ version }: { version: DocumentVersion }) {
             {version.uploadedByName || "Hệ thống"} ·{" "}
             {formatDateTime(version.createdAt)}
           </p>
+          {version.changeReason ? (
+            <p className="mt-0.5 text-xs text-foreground/80">
+              Lý do: {version.changeReason}
+            </p>
+          ) : null}
         </div>
       </div>
 
