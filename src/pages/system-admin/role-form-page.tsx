@@ -38,9 +38,6 @@ export function RoleFormPage() {
     )
   }
 
-  const cancelPath =
-    isEdit && roleId ? adminRoleDetailPath(roleId) : ROUTES.adminRbac
-
   const save = async (input: CreateRoleRequest) => {
     if (isEdit && roleId) {
       const updated = await updateRole.mutateAsync({ input, roleId })
@@ -55,7 +52,8 @@ export function RoleFormPage() {
     <RoleDialog
       isSaving={createRole.isPending || updateRole.isPending}
       onOpenChange={(open) => {
-        if (!open) navigate(cancelPath)
+        // Cancel returns to the list, also from edit (not to the detail page).
+        if (!open) navigate(ROUTES.adminRbac)
       }}
       onSubmit={save}
       permissions={permissionsQuery.data?.data ?? []}

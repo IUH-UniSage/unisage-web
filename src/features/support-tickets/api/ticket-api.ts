@@ -18,7 +18,8 @@ import { readSuccessData } from "@/utils/api-response"
 import type { ApiResponse } from "@/utils/api-response"
 
 export type MyTicketsParams = {
-  // 1-based, like the rest of the UI; the backend page index is 0-based.
+  // 1-based, same as the backend (one-indexed pageable). `size` is sent as `limit`: the backend
+  // only reads `limit` and silently falls back to 10 rows for anything else.
   page: number
   size: number
   status?: TicketStatus
@@ -55,7 +56,7 @@ export const ticketApi = {
   }: MyTicketsParams): Promise<TicketPage> {
     const response = await httpClient.get<ApiResponse<TicketPage>>(
       API_ENDPOINTS.tickets.myTickets,
-      { params: { page, size, status } }
+      { params: { limit: size, page, status } }
     )
 
     return readSuccessData(response.data, ticketPageSchema)
@@ -78,7 +79,7 @@ export const ticketApi = {
   }: AdminTicketsParams): Promise<TicketPage> {
     const response = await httpClient.get<ApiResponse<TicketPage>>(
       API_ENDPOINTS.tickets.tickets,
-      { params: { page, q: q || undefined, size, status, type } }
+      { params: { limit: size, page, q: q || undefined, status, type } }
     )
 
     return readSuccessData(response.data, ticketPageSchema)

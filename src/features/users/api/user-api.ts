@@ -19,7 +19,8 @@ export const userApi = {
   async getUsers(): Promise<AppUserPage> {
     const response = await httpClient.get<ApiResponse<AppUserPage>>(
       API_ENDPOINTS.users.users,
-      { params: { page: 0, size: 500 } }
+      // The backend pages by `limit` (one-indexed `page`); `size` is ignored and caps the list at 10.
+      { params: { limit: 500, page: 1 } }
     )
 
     return readSuccessData(response.data, appUserPageSchema)

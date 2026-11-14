@@ -1,12 +1,8 @@
 import { z } from "zod"
 
-// Enums matching backend UserStatus
-export const userStatusSchema = z.enum([
-  "ACTIVE",
-  "INACTIVE",
-  "SUSPENDED",
-  "PENDING",
-])
+// Matches backend UserStatus (entity/enums/UserStatus.java). An unknown value here makes zod
+// reject the whole users page, so keep the two in sync.
+export const userStatusSchema = z.enum(["ACTIVE", "INACTIVE", "BANNED"])
 export type UserStatus = z.infer<typeof userStatusSchema>
 
 export const departmentAccessResponseSchema = z.object({

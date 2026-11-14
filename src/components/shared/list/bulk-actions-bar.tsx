@@ -2,6 +2,7 @@ import { Power, RotateCcw, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import type { SelectionStatusCounts } from "@/utils/selection"
 
 type BulkActionsBarProps = {
   isSubmitting: boolean
@@ -9,6 +10,11 @@ type BulkActionsBarProps = {
   onDeactivate: () => void
   onRecover: () => void
   selectedCount: number
+  /**
+   * Active / inactive split of the selected rows (see `countSelectedByStatus`). "Vô hiệu hóa"
+   * shows only when some selected row is active, "Khôi phục" only when some is inactive.
+   */
+  statusCounts: SelectionStatusCounts
 }
 
 export function BulkActionsBar({
@@ -17,6 +23,7 @@ export function BulkActionsBar({
   onDeactivate,
   onRecover,
   selectedCount,
+  statusCounts,
 }: BulkActionsBarProps) {
   const isOpen = selectedCount > 0
 
@@ -39,26 +46,30 @@ export function BulkActionsBar({
             Đã chọn {selectedCount} mục
           </p>
           <div className="flex items-center gap-2">
-            <Button
-              className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              disabled={isSubmitting}
-              onClick={onDeactivate}
-              size="sm"
-              variant="outline"
-            >
-              <Power aria-hidden="true" />
-              Vô hiệu hóa
-            </Button>
-            <Button
-              className="border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-              disabled={isSubmitting}
-              onClick={onRecover}
-              size="sm"
-              variant="outline"
-            >
-              <RotateCcw aria-hidden="true" />
-              Khôi phục
-            </Button>
+            {statusCounts.active > 0 ? (
+              <Button
+                className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                disabled={isSubmitting}
+                onClick={onDeactivate}
+                size="sm"
+                variant="outline"
+              >
+                <Power aria-hidden="true" />
+                Vô hiệu hóa
+              </Button>
+            ) : null}
+            {statusCounts.inactive > 0 ? (
+              <Button
+                className="border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                disabled={isSubmitting}
+                onClick={onRecover}
+                size="sm"
+                variant="outline"
+              >
+                <RotateCcw aria-hidden="true" />
+                Khôi phục
+              </Button>
+            ) : null}
             <Button
               aria-label="Bỏ chọn"
               disabled={isSubmitting}

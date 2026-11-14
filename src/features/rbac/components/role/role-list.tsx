@@ -34,6 +34,7 @@ import { RBAC_PAGE_SIZE } from "@/features/rbac/hooks/use-rbac-dashboard"
 import type { StatusFilter } from "@/features/rbac/hooks/use-rbac-dashboard"
 import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
 import { formatAuditDate } from "@/utils/date-format"
+import type { SelectionStatusCounts } from "@/utils/selection"
 
 type RoleListProps = {
   canDeleteRoles: boolean
@@ -60,6 +61,7 @@ type RoleListProps = {
   roles: AccessRole[]
   search: string
   selectedIds: Set<string>
+  selectedStatusCounts: SelectionStatusCounts
   status: StatusFilter
   totalItems: number
   totalPages: number
@@ -186,6 +188,7 @@ export function RoleList({
   roles,
   search,
   selectedIds,
+  selectedStatusCounts,
   status,
   totalItems,
   totalPages,
@@ -349,6 +352,7 @@ export function RoleList({
         onDeactivate={onBulkDeactivate}
         onRecover={onBulkRecover}
         selectedCount={selectedIds.size}
+        statusCounts={selectedStatusCounts}
       />
 
       {roles.length ? (

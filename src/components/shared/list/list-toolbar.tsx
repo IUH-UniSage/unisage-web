@@ -42,7 +42,15 @@ export function ListToolbar({
         <Input
           aria-label={searchAriaLabel}
           className="pl-9"
+          enterKeyHint="search"
           onChange={(event) => onSearchChange(event.target.value)}
+          onKeyDown={(event) => {
+            // Skip Enter while a Vietnamese IME (Telex/VNI) is still composing.
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              event.preventDefault()
+              onApplyFilters()
+            }
+          }}
           placeholder={searchPlaceholder}
           value={search}
         />
