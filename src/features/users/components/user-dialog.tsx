@@ -19,6 +19,10 @@ import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
 import { useAccessLevelsQuery } from "@/features/access-level/queries/use-queries"
 import { DepartmentAccessSection } from "@/features/users/components/department-access-section"
 import {
+  buildDepartmentIndex,
+  findBranchesWithoutLeaf,
+} from "@/features/users/utils/department-selection"
+import {
   type AppUser,
   type CreateUserRequest,
   type UpdateUserRequest,
@@ -100,6 +104,26 @@ export function UserDialog({
     const departmentIds = formDepartmentAccesses.map(
       (access) => access.departmentId
     )
+    // Same rule as the backend: at least one leaf unit, and no parent unit without one of its
+    // leaves (e.g. "Khoa CNTT" needs a "Bộ môn" of that faculty too).
+    const branchesWithoutLeaf = findBranchesWithoutLeaf(
+      departmentIds,
+      buildDepartmentIndex(departmentTree)
+    )
+    if (branchesWithoutLeaf === null) {
+      setError("departmentAccesses", {
+        message:
+          "Người dùng phải thuộc ít nhất một phòng ban cấp cuối (ví dụ một bộ môn trong khoa).",
+      })
+      return
+    }
+    if (branchesWithoutLeaf.length > 0) {
+      setError("departmentAccesses", {
+        message: `Chọn thêm ít nhất một đơn vị trực thuộc cho: ${branchesWithoutLeaf.join(", ")}.`,
+      })
+      return
+    }
+
     if (new Set(departmentIds).size !== departmentIds.length) {
       setError("root", {
         message:
@@ -228,7 +252,7 @@ export function UserDialog({
             ) : (
               <>
                 <Save className="mr-2 size-4" />
-                {isEdit ? "Lưu thay đổi" : "Tạo người dùng"}
+                {isEdit ? "Chỉnh sửa" : "Tạo người dùng"}
               </>
             )}
           </Button>
@@ -434,6 +458,11 @@ export function UserDialog({
                   tree={departmentTree}
                   value={departmentAccesses}
                 />
+                {errors.departmentAccesses?.message ? (
+                  <p className="text-xs text-destructive" role="alert">
+                    {errors.departmentAccesses.message}
+                  </p>
+                ) : null}
               </div>
             </div>
           </CardContent>
