@@ -35,7 +35,13 @@ const updateFormSchema = z.object({
 
 type UpdateFormValues = z.infer<typeof updateFormSchema>
 
-export function UpdateTicketForm({ ticket }: { ticket: TicketDetail }) {
+type UpdateTicketFormProps = {
+  /** Called after a successful save (the admin detail page returns to the list). */
+  onSaved?: () => void
+  ticket: TicketDetail
+}
+
+export function UpdateTicketForm({ onSaved, ticket }: UpdateTicketFormProps) {
   const isClosed = ticket.status === "CLOSED"
   const {
     control,
@@ -63,6 +69,7 @@ export function UpdateTicketForm({ ticket }: { ticket: TicketDetail }) {
 
     try {
       await updateTicket.mutateAsync({ input: values, ticketId: ticket.id })
+      onSaved?.()
     } catch (error) {
       if (!applyFieldErrors(error, setError)) {
         setError("root", { message: getErrorMessage(error) })

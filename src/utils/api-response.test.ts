@@ -68,7 +68,7 @@ describe("API response helpers", () => {
     expect(thrownError).toMatchObject({
       code: 1006,
       errors: { code: "Mã tài khoản không tồn tại." },
-      message: "Mã số hoặc mật khẩu không đúng.",
+      message: "Mã số hoặc mật khẩu không chính xác.",
     })
   })
 

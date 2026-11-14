@@ -7,7 +7,7 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   1003: "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại.",
   1004: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.",
   1005: "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại.",
-  1006: "Mã số hoặc mật khẩu không đúng.",
+  1006: "Mã số hoặc mật khẩu không chính xác.",
 
   // User & tài khoản (2xxx)
   2002: "Tài khoản này đã bị khoá.",

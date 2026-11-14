@@ -13,25 +13,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ROUTES } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { TicketDetailContent } from "@/features/support-tickets/components/ticket-detail-content"
-import { UpdateTicketForm } from "@/features/support-tickets/components/update-ticket-form"
-import {
-  useMyTicketQuery,
-  useTicketQuery,
-} from "@/features/support-tickets/queries/use-queries"
-import { useResourcePermissions } from "@/hooks/use-resource-permissions"
+import { useMyTicketQuery } from "@/features/support-tickets/queries/use-queries"
 import { getErrorMessage } from "@/utils/error-handler"
 
+// The requester's own view under /tickets, for everyone including admins: read-only, and "Quay
+// lại" always returns to /tickets. Staff update tickets from /admin/tickets/:id.
 export function TicketDetailView() {
   const { ticketId } = useParams<{ ticketId: string }>()
-  const { canRead, canUpdate } = useResourcePermissions("ticket")
-
-  const myTicketQuery = useMyTicketQuery(ticketId ?? "")
-  const adminTicketQuery = useTicketQuery(ticketId ?? "")
-
-  const activeQuery = canRead ? adminTicketQuery : myTicketQuery
-  const { data: ticket, error, isPending } = activeQuery
-
-  const backPath = canRead ? ROUTES.adminTickets : ROUTES.tickets
+  const { data: ticket, error, isPending } = useMyTicketQuery(ticketId ?? "")
+  const backPath = ROUTES.tickets
 
   return (
     <div className="mx-auto mt-6 mb-8 w-full max-w-[1000px] space-y-6 px-4">
@@ -44,9 +34,7 @@ export function TicketDetailView() {
             <LifeBuoy aria-hidden="true" className="size-6 sm:size-7" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-white/80">
-              {canRead ? "Quản trị · Hỗ trợ" : "Hỗ trợ sinh viên"}
-            </p>
+            <p className="text-xs text-white/80">Hỗ trợ sinh viên</p>
             <h1 className="text-xl font-bold text-white sm:truncate sm:text-2xl">
               Chi tiết yêu cầu hỗ trợ
             </h1>
@@ -78,9 +66,7 @@ export function TicketDetailView() {
             {ticket?.title ?? "Nội dung yêu cầu"}
           </CardTitle>
           <CardDescription>
-            {canRead
-              ? "Xem thông tin yêu cầu và cập nhật tình trạng xử lý cho người dùng."
-              : "Theo dõi tình trạng xử lý yêu cầu hỗ trợ của bạn."}
+            Theo dõi tình trạng xử lý yêu cầu hỗ trợ của bạn.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -103,23 +89,9 @@ export function TicketDetailView() {
               </Button>
             </div>
           ) : ticket ? (
-            <>
-              <div {...tourAnchor(TOUR_ANCHORS.ticketDetailContent)}>
-                <TicketDetailContent showRequester={canRead} ticket={ticket} />
-              </div>
-
-              {canUpdate ? (
-                <div className="border-t pt-6">
-                  <h3 className="mb-4 text-sm font-semibold text-foreground">
-                    Cập nhật tiến độ & phản hồi
-                  </h3>
-                  <UpdateTicketForm
-                    key={`${ticket.id}-${ticket.updatedAt ?? ""}`}
-                    ticket={ticket}
-                  />
-                </div>
-              ) : null}
-            </>
+            <div {...tourAnchor(TOUR_ANCHORS.ticketDetailContent)}>
+              <TicketDetailContent ticket={ticket} />
+            </div>
           ) : null}
         </CardContent>
       </Card>

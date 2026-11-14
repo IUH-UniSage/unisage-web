@@ -73,12 +73,31 @@ const ticket = {
   ],
 }
 
-async function mockTickets(page: Page) {
+async function mockTickets(page: Page, patches: unknown[] = []) {
   await page.route("**/api/v1/master/tickets**", async (route) => {
-    const { pathname } = new URL(route.request().url())
-    const data = pathname.endsWith(`/tickets/${TICKET_ID}`)
+    const request = route.request()
+    const { pathname } = new URL(request.url())
+    if (request.method() === "PATCH") {
+      const body: unknown = request.postDataJSON()
+      patches.push(body)
+      await route.fulfill({
+        contentType: "application/json",
+        json: {
+          code: 1000,
+          data: {
+            ...ticket,
+            ...(body as object),
+            updatedAt: "2026-10-08T09:00:00",
+          },
+          message: "Successful",
+        },
+        status: 200,
+      })
+      return
+    }
+    const data = pathname.endsWith(`/${TICKET_ID}`)
       ? ticket
-      : { data: [ticket], limit: 10, page: 0, totalItems: 1, totalPages: 1 }
+      : { data: [ticket], limit: 10, page: 1, totalItems: 1, totalPages: 1 }
     await route.fulfill({
       contentType: "application/json",
       json: { code: 1000, data, message: "Successful" },
@@ -123,4 +142,51 @@ test("shows the chunks, web pages and trace id behind the answer", async ({
     page.getByRole("link", { name: "Quy trình chuyển ngành" })
   ).toHaveAttribute("href", "https://pdt.iuh.edu.vn/quy-trinh-chuyen-nganh")
   await expect(page.getByText(TRACE_ID).first()).toBeVisible()
+})
+
+test("closing a ticket asks first, sends CLOSED and returns to the list", async ({
+  page,
+}) => {
+  const patches: unknown[] = []
+  await authenticateAs(page, "SUPER_ADMIN")
+  await mockTickets(page, patches)
+  await page.goto(`/admin/tickets/${TICKET_ID}`)
+
+  await page.getByRole("button", { name: "Đóng yêu cầu" }).click()
+  const dialog = page.getByRole("dialog")
+  await expect(dialog.getByText("Đóng yêu cầu hỗ trợ?")).toBeVisible()
+  await dialog.getByRole("button", { name: "Đóng yêu cầu" }).click()
+
+  await expect(page).toHaveURL(/\/admin\/tickets$/)
+  expect(patches).toEqual([{ resolution: "", status: "CLOSED" }])
+})
+
+test("saving an update returns to the admin ticket list", async ({ page }) => {
+  const patches: unknown[] = []
+  await authenticateAs(page, "SUPER_ADMIN")
+  await mockTickets(page, patches)
+  await page.goto(`/admin/tickets/${TICKET_ID}`)
+
+  await page.getByLabel("Phản hồi cho người dùng").fill("Đã bổ sung hướng dẫn.")
+  await page.getByRole("button", { name: "Lưu thay đổi" }).click()
+
+  await expect(page).toHaveURL(/\/admin\/tickets$/)
+  expect(patches).toHaveLength(1)
+})
+
+test("an admin opening /tickets/:id only views it and goes back to /tickets", async ({
+  page,
+}) => {
+  await authenticateAs(page, "SUPER_ADMIN")
+  await mockTickets(page)
+  await page.goto(`/tickets/${TICKET_ID}`)
+
+  await expect(page.getByText(ticket.description)).toBeVisible()
+  await expect(page.getByRole("button", { name: "Lưu thay đổi" })).toHaveCount(
+    0
+  )
+  await expect(page.getByLabel("Trạng thái xử lý")).toHaveCount(0)
+  await expect(
+    page.getByRole("link", { name: "Quay lại danh sách" })
+  ).toHaveAttribute("href", "/tickets")
 })
