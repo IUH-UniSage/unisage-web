@@ -4,7 +4,9 @@ import { useSearchParams } from "react-router-dom"
 import {
   useCreateDepartmentMutation,
   useDeleteDepartmentMutation,
+  useDeleteDepartmentsBulkMutation,
   useRecoverDepartmentMutation,
+  useRecoverDepartmentsBulkMutation,
   useUpdateDepartmentMutation,
 } from "@/features/departments/queries/use-mutations"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
@@ -21,6 +23,7 @@ import {
   type DepartmentUnitType,
 } from "@/features/departments/utils/tree"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
+import { countSelectedByStatus } from "@/utils/selection"
 
 export type StatusFilter = "active" | "all" | "inactive"
 export type TypeFilter = "all" | DepartmentUnitType
@@ -39,7 +42,7 @@ function matchesType(depth: number, filter: TypeFilter) {
 }
 
 const PARAM_DEFAULTS = {
-  mode: "tree",
+  mode: "table",
   search: "",
   status: "all",
   type: "all",
@@ -60,6 +63,8 @@ export function useDepartmentDashboard() {
   const updateDepartment = useUpdateDepartmentMutation()
   const deleteDepartment = useDeleteDepartmentMutation()
   const recoverDepartment = useRecoverDepartmentMutation()
+  const deleteDepartmentsBulk = useDeleteDepartmentsBulkMutation()
+  const recoverDepartmentsBulk = useRecoverDepartmentsBulkMutation()
   const { canCreate, canDelete, canUpdate } =
     useResourcePermissions("department")
 
@@ -90,9 +95,8 @@ export function useDepartmentDashboard() {
   const appliedSearch = getParam("search")
   const appliedStatus = getParam("status") as StatusFilter
   const appliedType = getParam("type") as TypeFilter
-  const viewMode = (
-    getParam("mode") === "table" ? "table" : "tree"
-  ) as DepartmentViewMode
+  const viewMode: DepartmentViewMode =
+    getParam("mode") === "tree" ? "tree" : "table"
 
   const [pendingSearch, setPendingSearch] = useState(appliedSearch)
   const [pendingStatus, setPendingStatus] =
@@ -109,6 +113,10 @@ export function useDepartmentDashboard() {
   const [viewingDepartment, setViewingDepartment] = useState<Department>()
   const [presetParentId, setPresetParentId] = useState<string>()
   const [statusDepartment, setStatusDepartment] = useState<Department>()
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
+  const [pendingBulkAction, setPendingBulkAction] = useState<
+    "deactivate" | "recover" | null
+  >(null)
 
   const departmentTree = useMemo(
     () => departmentsQuery.data ?? [],
@@ -118,6 +126,22 @@ export function useDepartmentDashboard() {
   const stats = useMemo(
     () => getDepartmentStats(departmentTree),
     [departmentTree]
+  )
+
+  // Selection spans the whole tree (collapsed or filtered-out rows stay selected).
+  const allDepartments = useMemo(
+    () => flattenDepartmentTreeWithDepth(departmentTree),
+    [departmentTree]
+  )
+
+  const selectedStatusCounts = useMemo(
+    () =>
+      countSelectedByStatus(
+        allDepartments,
+        selectedIds,
+        (department) => department.isActive ?? true
+      ),
+    [allDepartments, selectedIds]
   )
 
   const deferredSearch = useDeferredValue(appliedSearch)
@@ -227,17 +251,94 @@ export function useDepartmentDashboard() {
     closeDialog()
   }
 
-  const confirmStatusChange = async () => {
+  const confirmStatusChange = async (includeChildren = false) => {
     if (!statusDepartment) return
 
     if (statusDepartment.isActive) {
       await deleteDepartment.mutateAsync(statusDepartment.id)
     } else {
-      await recoverDepartment.mutateAsync(statusDepartment.id)
+      await recoverDepartment.mutateAsync({
+        departmentId: statusDepartment.id,
+        includeChildren,
+      })
     }
 
     setStatusDepartment(undefined)
   }
+
+  // Recovering a unit with child units asks whether the children come back too.
+  const statusNeedsChildChoice = Boolean(
+    statusDepartment &&
+    !(statusDepartment.isActive ?? true) &&
+    statusDepartment.children?.length
+  )
+
+  const toggleSelection = (departmentId: string) => {
+    setSelectedIds((current) => {
+      const next = new Set(current)
+      if (next.has(departmentId)) {
+        next.delete(departmentId)
+      } else {
+        next.add(departmentId)
+      }
+      return next
+    })
+  }
+
+  const toggleAllSelection = (departmentIds: string[]) => {
+    setSelectedIds((current) => {
+      if (departmentIds.every((id) => current.has(id))) {
+        const next = new Set(current)
+        departmentIds.forEach((id) => next.delete(id))
+        return next
+      }
+      return new Set([...current, ...departmentIds])
+    })
+  }
+
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const selectedIdsWhere = (isActive: boolean) =>
+    allDepartments
+      .filter(
+        (department) =>
+          selectedIds.has(department.id) &&
+          (department.isActive ?? true) === isActive
+      )
+      .map((department) => department.id)
+
+  const bulkRecoverNeedsChildChoice =
+    pendingBulkAction === "recover" &&
+    allDepartments.some(
+      (department) =>
+        selectedIds.has(department.id) &&
+        !(department.isActive ?? true) &&
+        Boolean(department.children?.length)
+    )
+
+  const confirmBulkAction = async (includeChildren = false) => {
+    if (pendingBulkAction === "deactivate") {
+      const ids = selectedIdsWhere(true)
+      if (ids.length) await deleteDepartmentsBulk.mutateAsync(ids)
+    } else if (pendingBulkAction === "recover") {
+      const ids = selectedIdsWhere(false)
+      if (ids.length) {
+        await recoverDepartmentsBulk.mutateAsync({
+          departmentIds: ids,
+          includeChildren,
+        })
+      }
+    }
+    clearSelection()
+    setPendingBulkAction(null)
+  }
+
+  const pendingBulkCount =
+    pendingBulkAction === "deactivate"
+      ? selectedStatusCounts.active
+      : pendingBulkAction === "recover"
+        ? selectedStatusCounts.inactive
+        : 0
 
   const applyFilters = () => {
     setParams({
@@ -259,6 +360,8 @@ export function useDepartmentDashboard() {
   }
 
   const setViewMode = (mode: DepartmentViewMode) => {
+    // Rows are only selectable in the table; don't carry a hidden selection into the diagram.
+    if (mode !== viewMode) clearSelection()
     setParams({ mode })
   }
 
@@ -267,12 +370,16 @@ export function useDepartmentDashboard() {
     appliedStatus,
     appliedType,
     applyFilters,
+    bulkRecoverNeedsChildChoice,
     canCreate,
     canDelete,
     canUpdate,
+    clearSelection,
+    closeBulkActionDialog: () => setPendingBulkAction(null),
     closeDetail,
     closeDialog,
     closeStatusDialog: () => setStatusDepartment(undefined),
+    confirmBulkAction,
     confirmStatusChange,
     departmentTree,
     editingDepartment,
@@ -281,6 +388,8 @@ export function useDepartmentDashboard() {
     flattenedList,
     isDialogOpen,
     isFiltered,
+    isBulkUpdating:
+      deleteDepartmentsBulk.isPending || recoverDepartmentsBulk.isPending,
     isPending: departmentsQuery.isPending,
     isSaving: createDepartment.isPending || updateDepartment.isPending,
     isUpdatingStatus: deleteDepartment.isPending || recoverDepartment.isPending,
@@ -288,19 +397,28 @@ export function useDepartmentDashboard() {
     openCreate,
     openDetail,
     openEdit,
+    pendingBulkAction,
+    pendingBulkCount,
     presetParentId,
+    requestBulkDeactivate: () => setPendingBulkAction("deactivate"),
+    requestBulkRecover: () => setPendingBulkAction("recover"),
     relevantIds,
     requestStatusChange,
     resetFilters,
     save,
     search: pendingSearch,
+    selectedIds,
+    selectedStatusCounts,
     setSearch: setPendingSearch,
     setStatusFilter: setPendingStatus,
     setTypeFilter: setPendingType,
     setViewMode,
     stats,
     statusDepartment,
+    statusNeedsChildChoice,
     statusFilter: pendingStatus,
+    toggleAllSelection,
+    toggleSelection,
     typeFilter: pendingType,
     viewingDepartment,
     viewMode,
