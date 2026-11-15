@@ -213,18 +213,20 @@ function MarkdownTable({
   return (
     <div className="my-2 overflow-x-auto rounded-lg border border-border">
       <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="bg-muted/50">
-            {header.map((cell, index) => (
-              <th
-                className="border-b border-border px-3 py-2 text-left font-semibold text-foreground"
-                key={index}
-              >
-                {renderInline(cell)}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        {header.length > 0 ? (
+          <thead>
+            <tr className="bg-muted/50">
+              {header.map((cell, index) => (
+                <th
+                  className="border-b border-border px-3 py-2 text-left font-semibold text-foreground"
+                  key={index}
+                >
+                  {renderInline(cell)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        ) : null}
         <tbody>
           {rows.map((row, rowIndex) => (
             <tr className="border-b border-border last:border-0" key={rowIndex}>
@@ -264,6 +266,21 @@ function MarkdownText({ block }: { block: string }) {
         cursor += 1
       }
       elements.push(<MarkdownTable header={header} key={index} rows={rows} />)
+      index = cursor
+      continue
+    }
+
+    // Pipe rows with no "|---|" separator: the chunker writes a table this way
+    // when the source (e.g. a Word table) does not mark its first row as a
+    // header. Two or more such rows in a row are still a table, just headerless.
+    if (isTableRow(line) && isTableRow(lines[index + 1]?.trim() ?? "")) {
+      const rows: string[][] = []
+      let cursor = index
+      while (cursor < lines.length && isTableRow(lines[cursor].trim())) {
+        rows.push(splitTableRow(lines[cursor].trim()))
+        cursor += 1
+      }
+      elements.push(<MarkdownTable header={[]} key={index} rows={rows} />)
       index = cursor
       continue
     }

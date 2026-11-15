@@ -74,3 +74,22 @@ describe("MarkdownRenderer math", () => {
     expect(screen.getByTestId("math-block").textContent).toContain("frac")
   })
 })
+
+describe("MarkdownRenderer tables", () => {
+  afterEach(cleanup)
+
+  it("renders pipe rows without a separator row as a headerless table", () => {
+    const { container } = render(
+      <MarkdownRenderer
+        content={
+          "| Thời gian | Tự đánh giá<br>(thang điểm 10) |\n| Tuần 1<br>(01/07/2026) | 10 |"
+        }
+      />
+    )
+
+    expect(container.querySelector("table")).not.toBeNull()
+    expect(container.querySelector("thead")).toBeNull()
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(2)
+    expect(screen.getByText("10")).toBeTruthy()
+  })
+})
