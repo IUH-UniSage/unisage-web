@@ -1,4 +1,5 @@
 import type { DepartmentNode } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 
 export type DepartmentIndex = {
   /** Every child shown in the picker, active or not. */
@@ -18,7 +19,7 @@ export function buildDepartmentIndex(tree: DepartmentNode[]): DepartmentIndex {
   }
 
   const visit = (node: DepartmentNode, parentId: string | null) => {
-    index.nameById.set(node.id, node.name)
+    index.nameById.set(node.id, departmentLabel(node))
     index.parentById.set(node.id, parentId)
     const children = node.children ?? []
     index.childrenById.set(

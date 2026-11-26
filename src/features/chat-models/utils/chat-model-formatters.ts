@@ -33,9 +33,9 @@ export function getPurposeLabel(purpose: ChatModelPurpose): string {
 
 // Mirrors com.unisage.backend.entity.enums.ChatModelStatus (plan.md "State machine").
 const STATUS_LABELS = {
-  ACTIVE: "Đang hoạt động",
+  ACTIVE: "Đang sử dụng",
   DISABLED: "Đã tự động khoá",
-  INACTIVE: "Không hoạt động",
+  INACTIVE: "Chưa kích hoạt",
   PENDING: "Chờ xác minh",
 } as const satisfies Record<ChatModelStatus, string>
 

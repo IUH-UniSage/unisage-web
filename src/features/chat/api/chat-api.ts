@@ -95,6 +95,17 @@ export const chatApi = {
     return readSuccessData(response.data, calculationFeedbackResponseSchema)
   },
 
+  /** "Xóa tất cả": soft-deletes every conversation of the caller; returns how many. */
+  async softDeleteAllConversations(): Promise<number> {
+    const response = await httpClient.delete<ApiResponse<number>>(
+      API_ENDPOINTS.conversations.conversationsDeleteBatch
+    )
+
+    return (
+      readApiResponse(response.data, z.number().int().nonnegative()).data ?? 0
+    )
+  },
+
   async softDeleteConversation(conversationId: string): Promise<void> {
     const response = await httpClient.delete<ApiResponse<null>>(
       API_ENDPOINTS.conversations.conversation(conversationId)

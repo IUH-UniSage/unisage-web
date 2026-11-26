@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Eye, EyeOff, Loader2, Lock, Mail, Save } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useController, useForm } from "react-hook-form"
 
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Select,
   SelectContent,
@@ -32,9 +33,12 @@ import {
 import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
 import { cn } from "@/lib/utils"
+import { FormPageActions } from "@/components/shared/page/page-actions"
 
 type UserDialogProps = {
   isSaving: boolean
+  /** The roles list is still loading: the form waits for it like for the departments. */
+  isLoadingRoles?: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (input: CreateUserRequest | UpdateUserRequest) => Promise<void>
   open?: boolean
@@ -42,7 +46,36 @@ type UserDialogProps = {
   user?: AppUser
 }
 
+/**
+ * Waits for the role, department and access-level lists before mounting the form: the role
+ * select and the department rows read their labels from them, and the department section seeds
+ * its rows once at mount - rendered earlier they showed an empty role and raw department ids.
+ */
 export function UserDialog({
+  isLoadingRoles = false,
+  ...props
+}: UserDialogProps) {
+  const departmentsQuery = useDepartmentsQuery()
+  const accessLevelsQuery = useAccessLevelsQuery()
+
+  if (
+    isLoadingRoles ||
+    departmentsQuery.isPending ||
+    accessLevelsQuery.isPending
+  ) {
+    return (
+      <div aria-label="Đang tải biểu mẫu người dùng" className="space-y-6">
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-48 rounded-xl" />
+      </div>
+    )
+  }
+
+  return <UserForm {...props} />
+}
+
+function UserForm({
   isSaving,
   onOpenChange,
   onSubmit,
@@ -161,7 +194,6 @@ export function UserDialog({
       if (isEdit) {
         const updatePayload: UpdateUserRequest = {
           accessLevelId: values.accessLevelId,
-          code: values.code,
           departmentAccesses,
           email: values.email,
           firstName: values.firstName,
@@ -233,29 +265,14 @@ export function UserDialog({
 
         <div
           {...tourAnchor(TOUR_ANCHORS.pageActions)}
-          className="flex items-center gap-3 self-end sm:self-center"
+          className="self-end sm:self-center"
         >
-          <Button
-            disabled={isBusy}
-            onClick={handleCancel}
-            type="button"
-            variant="outline"
-          >
-            Hủy
-          </Button>
-          <Button disabled={isBusy} form="user-form" type="submit">
-            {isBusy ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                {isEdit ? "Chỉnh sửa" : "Tạo người dùng"}
-              </>
-            )}
-          </Button>
+          <FormPageActions
+            formId="user-form"
+            isBusy={isBusy}
+            onCancel={handleCancel}
+            submitLabel={isEdit ? "Lưu thay đổi" : "Tạo người dùng"}
+          />
         </div>
       </div>
 
@@ -282,7 +299,7 @@ export function UserDialog({
                   aria-invalid={Boolean(errors.lastName)}
                   autoFocus
                   id="user-lastname"
-                  placeholder="Nguyễn"
+                  placeholder="VD: Nguyễn"
                   {...register("lastName")}
                 />
                 {errors.lastName ? (
@@ -300,7 +317,7 @@ export function UserDialog({
                 <Input
                   aria-invalid={Boolean(errors.firstName)}
                   id="user-firstname"
-                  placeholder="Văn A"
+                  placeholder="VD: Văn An"
                   {...register("firstName")}
                 />
                 {errors.firstName ? (
@@ -327,7 +344,7 @@ export function UserDialog({
                     aria-invalid={Boolean(errors.email)}
                     className="pl-9"
                     id="user-email"
-                    placeholder="example@iuh.edu.vn"
+                    placeholder="VD: ten.ho@iuh.edu.vn"
                     type="email"
                     {...register("email")}
                   />
@@ -343,7 +360,7 @@ export function UserDialog({
                 <Label htmlFor="user-phone">Số điện thoại</Label>
                 <Input
                   id="user-phone"
-                  placeholder="0901234567"
+                  placeholder="VD: 0901 234 567"
                   type="tel"
                   {...register("phone")}
                 />
@@ -359,9 +376,16 @@ export function UserDialog({
                 <Label htmlFor="user-code">Mã GV/SV (Mã định danh)</Label>
                 <Input
                   id="user-code"
-                  placeholder="Ví dụ: 20012345, GV001..."
+                  placeholder="VD: 20012345, GV001"
+                  readOnly={isEdit}
                   {...register("code")}
+                  className={cn(isEdit && "cursor-not-allowed bg-muted")}
                 />
+                {isEdit ? (
+                  <p className="text-xs text-muted-foreground">
+                    Mã định danh không thể thay đổi sau khi tạo.
+                  </p>
+                ) : null}
               </div>
 
               {!isEdit ? (
@@ -476,6 +500,14 @@ export function UserDialog({
             {errors.root.message}
           </p>
         ) : null}
+
+        <div className="border-t pt-4">
+          <FormPageActions
+            isBusy={isBusy}
+            onCancel={handleCancel}
+            submitLabel={isEdit ? "Lưu thay đổi" : "Tạo người dùng"}
+          />
+        </div>
       </form>
     </div>
   )

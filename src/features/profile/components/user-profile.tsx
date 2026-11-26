@@ -32,6 +32,7 @@ import {
 import { UsageLimitCard } from "@/features/usage-limits/components/usage-limit-card"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { formatAuditDate } from "@/utils/date-format"
+import { roleDisplayName } from "@/utils/display-labels"
 
 // Client-facing profile: banner header + basic-info card.
 export function UserProfile({ me }: { me: AppUser }) {
@@ -133,7 +134,9 @@ export function UserProfile({ me }: { me: AppUser }) {
             <ProfileInfoItem
               icon={Shield}
               label="Vai trò"
-              value={me.roleName || "Chưa gán vai trò"}
+              value={
+                me.roleName ? roleDisplayName(me.roleName) : "Chưa gán vai trò"
+              }
             />
             <ProfileInfoItem
               icon={ShieldAlert}

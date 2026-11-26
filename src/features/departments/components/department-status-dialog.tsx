@@ -1,5 +1,6 @@
 import { EntityStatusDialog } from "@/components/shared/dialog/entity-status-dialog"
 import type { Department } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 
 type DepartmentStatusDialogProps = {
   department: Department
@@ -17,7 +18,7 @@ export function DepartmentStatusDialog({
   return (
     <EntityStatusDialog
       assignedToNoun="người dùng"
-      entityLabel={department.name}
+      entityLabel={departmentLabel(department)}
       entityNoun="phòng ban"
       isActive={department.isActive ?? true}
       isSubmitting={isSubmitting}

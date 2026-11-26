@@ -278,14 +278,22 @@ export function BackupDashboard() {
             ) : (
               <Notice tone="warning">
                 <p>
-                  Chưa khôi phục được từ ứng dụng: container cơ sở dữ liệu chưa
-                  chạy bằng cấu hình docker-compose mới, hoặc backend chưa được
-                  cấu hình thư mục khôi phục (BACKUP_RESTORE_DIR).
+                  Máy chủ chưa được cấu hình để khôi phục cơ sở dữ liệu ngay
+                  trên ứng dụng. Vui lòng liên hệ bộ phận kỹ thuật để bật tính
+                  năng này.
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Chạy lại <code>docker compose up -d unisage-db</code> với
-                  docker-compose.yml mới nhất. Xem ADR-0010 để biết thêm.
-                </p>
+                {/* Ops detail stays one click away instead of in an admin's face. */}
+                <details className="text-xs text-muted-foreground">
+                  <summary className="cursor-pointer select-none">
+                    Chi tiết kỹ thuật
+                  </summary>
+                  <p className="mt-1">
+                    Container cơ sở dữ liệu chưa chạy bằng cấu hình
+                    docker-compose mới, hoặc backend thiếu BACKUP_RESTORE_DIR.
+                    Chạy lại <code>docker compose up -d unisage-db</code> với
+                    docker-compose.yml mới nhất (xem ADR-0010).
+                  </p>
+                </details>
               </Notice>
             )}
           </Section>

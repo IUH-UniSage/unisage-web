@@ -137,6 +137,24 @@ function parseDetailsObject(
   return parsed as Record<string, unknown>
 }
 
+// Entities the backend files under resourceType OTHER, by their `_entity`
+// marker. Unknown names are split from CamelCase so they at least read as words.
+const ENTITY_LABELS: Record<string, string> = {
+  ConversationShare: "Liên kết chia sẻ hội thoại",
+  GuestSession: "Phiên khách",
+  RequestUsageLine: "Dòng chi phí AI",
+  RolePermission: "Quyền của vai trò",
+}
+
+/** "Dòng chi phí AI" for a row whose details only carry `_entity`. */
+export function getAuditEntityLabel(
+  details: string | null | undefined
+): string | null {
+  const entity = parseDetailsObject(details)?._entity
+  if (typeof entity !== "string" || !entity) return null
+  return ENTITY_LABELS[entity] ?? entity.replace(/([a-z])([A-Z])/g, "$1 $2")
+}
+
 /**
  * Name of the object a CREATE/DELETE row is about (e.g. a document title).
  * Creating/deleting acts on the whole object, so the list shows just this

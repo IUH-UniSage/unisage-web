@@ -126,9 +126,11 @@ export function useTourRunner() {
         overlayOpacity: 0.55,
         popoverClass: "unisage-tour",
         prevBtnText: "Quay lại",
+        // One labelled counter per level ("Trang 1/4 · Bước 2/5") instead of two
+        // bare fractions side by side, which read as conflicting step counts.
         progressText: progressSuffix
-          ? `{{current}}/{{total}} · ${progressSuffix}`
-          : "{{current}}/{{total}}",
+          ? `${progressSuffix} · Bước {{current}}/{{total}}`
+          : "Bước {{current}}/{{total}}",
         showProgress: driveSteps.length > 1 || Boolean(progressSuffix),
         smoothScroll: !reducedMotion,
         stagePadding: 6,

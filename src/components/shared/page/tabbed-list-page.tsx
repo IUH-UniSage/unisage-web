@@ -53,7 +53,8 @@ export function TabbedListPage({
       <Tabs onValueChange={onTabChange} value={value}>
         <TabsList
           {...tourAnchor(TOUR_ANCHORS.pageTabs)}
-          className="w-full justify-start gap-1.5 bg-transparent p-0 md:w-auto"
+          // Scrolls sideways on narrow screens instead of widening the page.
+          className="w-full max-w-full [scrollbar-width:none] justify-start gap-1.5 overflow-x-auto bg-transparent p-0 md:w-auto"
         >
           {tabs.map((tab) => (
             <TabsTrigger

@@ -79,7 +79,7 @@ test("manages roles and browses permissions without horizontal overflow", async 
       ? page.getByRole("table")
       : page.locator("article")
   await expect(
-    roleResults.getByText("SUPER_ADMIN", { exact: true })
+    roleResults.getByText("Quản trị hệ thống", { exact: true })
   ).toBeVisible()
 
   const viewportWidth = await page.evaluate(
@@ -107,7 +107,7 @@ test("manages roles and browses permissions without horizontal overflow", async 
   await page.getByLabel("Tìm tên vai trò").fill("viewer")
   await expect(roleResults.getByText("VIEWER", { exact: true })).toBeVisible()
   await expect(
-    roleResults.getByText("SUPER_ADMIN", { exact: true })
+    roleResults.getByText("Quản trị hệ thống", { exact: true })
   ).toHaveCount(0)
 
   await page.getByRole("tab", { name: "Cấu hình quyền hạn" }).click()

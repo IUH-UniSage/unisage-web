@@ -130,8 +130,14 @@ export function SignInPage() {
       </form>
 
       <div className="mt-5 border-t pt-5 text-center text-xs leading-5 text-muted-foreground">
-        Tài khoản UniSage do nhà trường cấp và quản lý. Không chia sẻ thông tin
-        đăng nhập với người khác.
+        <p>
+          <span className="font-semibold text-foreground">Quên mật khẩu?</span>{" "}
+          Liên hệ quản trị viên của khoa hoặc phòng ban để được cấp lại.
+        </p>
+        <p className="mt-1">
+          Tài khoản UniSage do nhà trường cấp và quản lý. Không chia sẻ thông
+          tin đăng nhập với người khác.
+        </p>
       </div>
     </AuthPageShell>
   )

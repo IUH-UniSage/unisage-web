@@ -86,6 +86,16 @@ export function DocumentChunksPage() {
       </div>
 
       <DocumentChunkManager documentId={documentId} />
+
+      <div className="flex justify-end">
+        <Button
+          onClick={() => navigate(detailPath(documentId))}
+          type="button"
+          variant="outline"
+        >
+          Quay lại chi tiết tài liệu
+        </Button>
+      </div>
     </div>
   )
 }

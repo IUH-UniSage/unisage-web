@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/card"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
+import { useDepartmentLabels } from "@/features/departments/hooks/use-department-labels"
 import {
   flattenDepartmentTreeWithDepth,
   getDepthLevelStyle,
@@ -34,6 +35,8 @@ import { AdminUserUsageCard } from "@/features/usage-limits/components/admin-use
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { cn } from "@/lib/utils"
 import { formatAuditDate } from "@/utils/date-format"
+import { DetailPageActions } from "@/components/shared/page/page-actions"
+import { roleDisplayName } from "@/utils/display-labels"
 
 function userDisplayName(user: AppUser) {
   return [user.firstName, user.lastName].filter(Boolean).join(" ") || "—"
@@ -55,6 +58,7 @@ export function UserDetailDialog({
 }: UserDetailDialogProps) {
   const [viewMode, setViewMode] = useState<"list" | "tree">("tree")
   const departmentTreeData = useDepartmentsQuery().data
+  const labelOfDepartment = useDepartmentLabels()
   const nodeIndex = useMemo(() => {
     const departmentTree = departmentTreeData ?? []
     return new Map(
@@ -101,7 +105,7 @@ export function UserDetailDialog({
             </h1>
             <EntityStatusBadge isActive={isActive} />
             {user.roleName ? (
-              <Badge variant="outline">{user.roleName}</Badge>
+              <Badge variant="outline">{roleDisplayName(user.roleName)}</Badge>
             ) : null}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -113,15 +117,14 @@ export function UserDetailDialog({
           {...tourAnchor(TOUR_ANCHORS.pageActions)}
           className="flex items-center gap-3 self-end sm:self-center"
         >
-          <Button onClick={handleBack} type="button" variant="outline">
-            Quay lại
-          </Button>
-          {canUpdate ? (
-            <Button onClick={handleEdit} type="button">
-              <Pencil className="mr-2 size-4" />
-              Chỉnh sửa người dùng
-            </Button>
-          ) : null}
+          <DetailPageActions onBack={handleBack}>
+            {canUpdate ? (
+              <Button onClick={handleEdit} type="button">
+                <Pencil className="mr-2 size-4" />
+                Chỉnh sửa người dùng
+              </Button>
+            ) : null}
+          </DetailPageActions>
         </div>
       </div>
 
@@ -313,7 +316,10 @@ export function UserDetailDialog({
                       <Building className="size-3.5" aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                      {access.departmentName}
+                      {labelOfDepartment(
+                        access.departmentId,
+                        access.departmentName
+                      )}
                     </span>
                     {access.accessLevel !== null &&
                     access.accessLevel !== undefined ? (
@@ -339,7 +345,10 @@ export function UserDetailDialog({
                   <div className="flex min-w-0 items-center gap-2.5">
                     <Building className="size-4 shrink-0 text-muted-foreground" />
                     <span className="truncate text-xs font-semibold text-foreground">
-                      {access.departmentName}
+                      {labelOfDepartment(
+                        access.departmentId,
+                        access.departmentName
+                      )}
                     </span>
                   </div>
                   {access.accessLevel !== null &&
@@ -402,6 +411,15 @@ export function UserDetailDialog({
           </div>
         </CardContent>
       </Card>
+
+      <DetailPageActions onBack={handleBack}>
+        {canUpdate ? (
+          <Button onClick={handleEdit} type="button">
+            <Pencil className="mr-2 size-4" />
+            Chỉnh sửa người dùng
+          </Button>
+        ) : null}
+      </DetailPageActions>
     </div>
   )
 }

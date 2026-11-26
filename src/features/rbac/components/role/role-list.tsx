@@ -35,6 +35,12 @@ import type { StatusFilter } from "@/features/rbac/hooks/use-rbac-dashboard"
 import type { AccessRole } from "@/features/rbac/schemas/rbac-schemas"
 import { formatAuditDate } from "@/utils/date-format"
 import type { SelectionStatusCounts } from "@/utils/selection"
+import { getResourceTypeLabel } from "@/constants/resource-types"
+import {
+  getActionLabel,
+  splitPermissionName,
+} from "@/features/rbac/utils/rbac-formatters"
+import { roleDisplayName } from "@/utils/display-labels"
 
 type RoleListProps = {
   canDeleteRoles: boolean
@@ -67,6 +73,14 @@ type RoleListProps = {
   totalPages: number
 }
 
+/** "Người dùng · Xem" instead of the raw `USER_READ` code (kept as the tooltip). */
+function permissionLabel(name: string) {
+  if (name === "SUPER_ADMIN_ALL") return "Toàn quyền hệ thống"
+  const { action, resource } = splitPermissionName(name)
+  if (action === resource) return getResourceTypeLabel(name)
+  return `${getResourceTypeLabel(resource)} · ${getActionLabel(action)}`
+}
+
 function RolePermissionBadges({ role }: { role: AccessRole }) {
   if (!role.permissions.length) {
     return <span className="text-xs text-muted-foreground">Chưa cấp quyền</span>
@@ -76,27 +90,28 @@ function RolePermissionBadges({ role }: { role: AccessRole }) {
   const rest = role.permissions.slice(2)
 
   return (
-    <div className="flex max-w-72 flex-wrap gap-1.5">
+    <div className="flex max-w-72 flex-nowrap items-center gap-1.5">
       {visible.map((permission) => (
         <Badge
-          className="max-w-44 truncate"
+          className="min-w-0 shrink"
           key={permission.id}
+          title={permission.name}
           variant="outline"
         >
-          {permission.name}
+          <span className="truncate">{permissionLabel(permission.name)}</span>
         </Badge>
       ))}
       {rest.length ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge className="cursor-default" variant="secondary">
+            <Badge className="shrink-0 cursor-default" variant="secondary">
               +{rest.length}
             </Badge>
           </TooltipTrigger>
           <TooltipContent className="max-w-64">
             <ul className="space-y-0.5">
               {rest.map((permission) => (
-                <li key={permission.id}>{permission.name}</li>
+                <li key={permission.id}>{permissionLabel(permission.name)}</li>
               ))}
             </ul>
           </TooltipContent>
@@ -231,7 +246,9 @@ export function RoleList({
       {
         cell: ({ row }) => (
           <>
-            <p className="font-semibold">{row.original.name}</p>
+            <p className="font-semibold">
+              {roleDisplayName(row.original.name)}
+            </p>
             <p className="mt-0.5 max-w-52 truncate text-xs text-muted-foreground">
               {row.original.description || "Không có mô tả"}
             </p>
@@ -255,10 +272,14 @@ export function RoleList({
         meta: { className: "text-sm" },
       },
       {
-        cell: ({ row }) => row.original.createdByName || "System",
+        cell: ({ row }) => row.original.createdByName || "Hệ thống",
         header: "Người tạo",
         id: "createdBy",
-        meta: { className: "text-sm" },
+        // Least useful column; dropped below 1536px so the table fits.
+        meta: {
+          className: "hidden text-sm 2xl:table-cell",
+          headerClassName: "hidden 2xl:table-cell",
+        },
       },
       {
         cell: ({ row }) => formatAuditDate(row.original.createdAt),
@@ -307,6 +328,7 @@ export function RoleList({
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
       <ListToolbar
+        autoApplyKey={`${permission}|${status}`}
         isFiltered={isFiltered}
         onApplyFilters={onApplyFilters}
         onResetFilters={onResetFilters}
@@ -382,7 +404,9 @@ export function RoleList({
                     <p className="text-xs text-muted-foreground">
                       #{firstRowNumber + index}
                     </p>
-                    <p className="truncate font-semibold">{role.name}</p>
+                    <p className="truncate font-semibold">
+                      {roleDisplayName(role.name)}
+                    </p>
                     <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
                       {role.description || "Không có mô tả"}
                     </p>
@@ -401,7 +425,7 @@ export function RoleList({
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3">
                   <div className="text-xs text-muted-foreground">
-                    <p>{role.createdByName || "System"}</p>
+                    <p>{role.createdByName || "Hệ thống"}</p>
                     <p className="mt-1">{formatAuditDate(role.createdAt)}</p>
                   </div>
                   <EntityStatusBadge isActive={role.isActive} />

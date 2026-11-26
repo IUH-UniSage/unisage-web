@@ -30,6 +30,14 @@ type DataTableProps<TData> = {
   getRowId?: (row: TData) => string
 }
 
+// The row-actions column stays pinned to the right edge, so on a laptop-width
+// screen where the table scrolls sideways the "…" menu is still reachable.
+const ACTIONS_COLUMN_ID = "actions"
+const STICKY_HEAD_CLASSNAME =
+  "sticky right-0 z-10 border-l bg-card bg-linear-to-r from-muted/45 to-muted/45"
+const STICKY_CELL_CLASSNAME =
+  "sticky right-0 z-10 border-l bg-card group-hover/row:bg-linear-to-r group-hover/row:from-muted/35 group-hover/row:to-muted/35"
+
 export function DataTable<TData>({
   columns,
   data,
@@ -49,7 +57,11 @@ export function DataTable<TData>({
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <TableHead
-                className={cn(header.column.columnDef.meta?.headerClassName)}
+                className={cn(
+                  header.column.id === ACTIONS_COLUMN_ID &&
+                    STICKY_HEAD_CLASSNAME,
+                  header.column.columnDef.meta?.headerClassName
+                )}
                 key={header.id}
               >
                 {header.isPlaceholder
@@ -65,10 +77,13 @@ export function DataTable<TData>({
       </TableHeader>
       <TableBody>
         {table.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
+          <TableRow className="group/row" key={row.id}>
             {row.getVisibleCells().map((cell) => (
               <TableCell
-                className={cn(cell.column.columnDef.meta?.className)}
+                className={cn(
+                  cell.column.id === ACTIONS_COLUMN_ID && STICKY_CELL_CLASSNAME,
+                  cell.column.columnDef.meta?.className
+                )}
                 key={cell.id}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}

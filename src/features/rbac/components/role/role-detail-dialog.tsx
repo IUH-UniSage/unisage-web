@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil, ShieldCheck } from "lucide-react"
+import { Pencil, ShieldCheck } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { AuditInfo } from "@/components/shared/audit-info"
@@ -20,6 +20,7 @@ import type {
 } from "@/features/rbac/schemas/rbac-schemas"
 import { buildPermissionMatrix } from "@/features/rbac/utils/permission-matrix"
 import { expandImpliedPermissionIds } from "@/features/rbac/utils/rbac-formatters"
+import { DetailPageActions } from "@/components/shared/page/page-actions"
 
 type RoleDetailDialogProps = {
   canUpdate: boolean
@@ -74,16 +75,6 @@ export function RoleDetailDialog({
         className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
       >
         <div className="flex items-start gap-3">
-          <Button
-            aria-label="Quay lại danh sách vai trò"
-            className="mt-0.5 shrink-0"
-            onClick={handleBack}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <ArrowLeft className="size-5" />
-          </Button>
           <div>
             <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
               Quản trị · Phân quyền
@@ -102,17 +93,19 @@ export function RoleDetailDialog({
           </div>
         </div>
 
-        {canUpdate ? (
-          <Button
-            {...tourAnchor(TOUR_ANCHORS.pageActions)}
-            className="self-end sm:self-start"
-            onClick={handleEdit}
-            type="button"
-          >
-            <Pencil className="mr-2 size-4" />
-            Chỉnh sửa vai trò
-          </Button>
-        ) : null}
+        <div
+          {...tourAnchor(TOUR_ANCHORS.pageActions)}
+          className="self-end sm:self-start"
+        >
+          <DetailPageActions onBack={handleBack}>
+            {canUpdate ? (
+              <Button onClick={handleEdit} type="button">
+                <Pencil className="mr-2 size-4" />
+                Chỉnh sửa vai trò
+              </Button>
+            ) : null}
+          </DetailPageActions>
+        </div>
       </div>
 
       {/* Basic Role Metadata Card */}
@@ -195,6 +188,15 @@ export function RoleDetailDialog({
         updatedAt={role.updatedAt}
         updatedByName={role.updatedByName}
       />
+
+      <DetailPageActions onBack={handleBack}>
+        {canUpdate ? (
+          <Button onClick={handleEdit} type="button">
+            <Pencil className="mr-2 size-4" />
+            Chỉnh sửa vai trò
+          </Button>
+        ) : null}
+      </DetailPageActions>
     </div>
   )
 }

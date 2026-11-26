@@ -1,5 +1,5 @@
 import { Bookmark, Download, FileText, Loader2, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { Button } from "@/components/ui/button"
@@ -44,6 +44,31 @@ export function CitationDrawer({
   onClose,
   inline = false,
 }: CitationDrawerProps) {
+  // The sheet closes on Esc by itself (Radix); the inline column needs its own listener.
+  // Registered on `document` (bubble): Radix layers (dialogs, popovers, menus) handle
+  // Esc earlier in the capture phase and mark it handled, and this still runs before
+  // the window-level listener of an open clarification panel.
+  const isInlineOpen = inline && citation !== null
+  const onEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== "Escape" || event.defaultPrevented) return
+    if (
+      document.querySelector(
+        '[role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper]'
+      )
+    ) {
+      return
+    }
+    event.preventDefault()
+    onClose()
+  })
+
+  useEffect(() => {
+    if (!isInlineOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => onEscape(event)
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [isInlineOpen])
+
   if (inline) {
     if (!citation) return null
     return (

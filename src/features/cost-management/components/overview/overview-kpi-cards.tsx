@@ -148,22 +148,21 @@ export function OverviewKpiCards({
         </CardContent>
       </Card>
 
-      <Card className="border border-dashed bg-card shadow-none sm:col-span-2 xl:col-span-4">
-        <CardContent className="flex items-center justify-between gap-4 p-5">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">
-              Chưa định giá (ước tính)
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Các lệnh gọi chưa xác định được đơn giá - không tính vào chi phí
-              thực tế ở trên
-            </p>
-          </div>
-          <p className="text-xl font-bold text-muted-foreground">
+      {/* A side note, not a KPI: it is a guess for calls with no price yet,
+          so it must not read as weightier than the real cost above. */}
+      <div className="flex flex-col gap-1 rounded-lg border border-dashed px-4 py-3 text-xs text-muted-foreground sm:col-span-2 sm:flex-row sm:items-center sm:justify-between xl:col-span-4">
+        <p>
+          <span className="font-medium text-foreground">Chưa có bảng giá:</span>{" "}
+          một số lệnh gọi chưa xác định được đơn giá nên không tính vào chi phí
+          ở trên. Thêm đơn giá ở tab “Mô hình và Bảng giá”.
+        </p>
+        <p className="shrink-0 tabular-nums">
+          Ước tính ≈{" "}
+          <span className="font-semibold text-foreground">
             {formatUsd(thisMonthUnpricedCost)}
-          </p>
-        </CardContent>
-      </Card>
+          </span>
+        </p>
+      </div>
     </div>
   )
 }

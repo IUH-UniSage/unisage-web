@@ -76,7 +76,13 @@ export type HealthHistoryPage = z.infer<typeof healthHistoryPageSchema>
 // `getComponentLabel`/`getComponentIcon` fallbacks in
 // `components/component-health-card.tsx`), so an unexpected key from the
 // real backend degrades gracefully instead of disappearing.
-export const KNOWN_COMPONENT_KEYS = ["db", "gateway", "agent", "minio"] as const
+export const KNOWN_COMPONENT_KEYS = [
+  "db",
+  "gateway",
+  "agent",
+  "minio",
+  "redis",
+] as const
 
 export type KnownComponentKey = (typeof KNOWN_COMPONENT_KEYS)[number]
 
@@ -85,6 +91,7 @@ export const COMPONENT_LABELS: Record<KnownComponentKey, string> = {
   db: "Cơ sở dữ liệu",
   gateway: "Cổng API (Gateway)",
   minio: "Lưu trữ file",
+  redis: "Hàng đợi (Redis)",
 }
 
 // One-line explanation of what each dependency actually is, naming the real
@@ -96,6 +103,7 @@ export const COMPONENT_DESCRIPTIONS: Record<KnownComponentKey, string> = {
   db: "PostgreSQL - dữ liệu chính của hệ thống.",
   gateway: "Spring Cloud Gateway - định tuyến API.",
   minio: "MinIO - lưu file tài liệu tải lên.",
+  redis: "Redis - kênh sự kiện với Trợ lý AI.",
 }
 
 export function getComponentLabel(key: string): string {

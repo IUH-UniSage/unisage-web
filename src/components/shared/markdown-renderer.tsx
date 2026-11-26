@@ -96,7 +96,9 @@ function CitationMarker({ indexes }: { indexes: number[] }) {
         markers?.indexes.includes(index) ? (
           <button
             aria-label={`Xem nguồn ${markers.numbers?.[index] ?? index}`}
-            className="ml-0.5 cursor-pointer rounded bg-primary/10 px-1 align-super text-[11px] leading-none font-semibold text-primary transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            // An inline pill rather than an 11px superscript: big enough to see
+            // and to tap on a phone.
+            className="relative -top-px ml-1 inline-flex h-5 min-w-5 cursor-pointer items-center justify-center rounded-md border border-primary/20 bg-primary/10 px-1 align-middle text-xs leading-none font-semibold text-primary tabular-nums transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             key={index}
             onClick={() => markers.onSelect(index)}
             type="button"
@@ -105,7 +107,7 @@ function CitationMarker({ indexes }: { indexes: number[] }) {
           </button>
         ) : (
           <sup
-            className="ml-0.5 rounded bg-primary/10 px-1 text-[11px] font-semibold text-primary"
+            className="ml-1 rounded-md bg-primary/10 px-1 text-xs font-semibold text-primary"
             key={index}
           >
             {index}

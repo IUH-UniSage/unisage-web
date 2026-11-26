@@ -19,12 +19,14 @@ import { LogoutButton } from "@/features/auth/components/logout-button"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import { ClientOverviewTour, ClientTourButton } from "@/features/product-tour"
 
-const userNavigation = [
+const userNavigation: { comingSoon?: boolean; label: string; to: string }[] = [
   {
     label: "Trợ lý UniSage",
     to: ROUTES.chat,
   },
   {
+    // Still a placeholder page - flagged so nobody clicks in expecting content.
+    comingSoon: true,
     label: "Thư viện tri thức",
     to: ROUTES.knowledge,
   },
@@ -54,6 +56,11 @@ function UserNavigation({ mobile = false }: { mobile?: boolean }) {
               to={item.to}
             >
               {item.label}
+              {item.comingSoon ? (
+                <span className="ml-1.5 rounded-full bg-knowledge/20 px-1.5 py-0.5 text-[10px] font-semibold tracking-normal text-primary normal-case dark:text-knowledge">
+                  Sắp ra mắt
+                </span>
+              ) : null}
             </Link>
           </li>
         ))}

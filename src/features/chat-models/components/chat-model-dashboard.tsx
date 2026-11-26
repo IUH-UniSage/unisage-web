@@ -133,6 +133,7 @@ export function ChatModelDashboard() {
 
             <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
               <ListToolbar
+                autoApplyKey={`${dashboard.activeFilter}|${dashboard.purposeFilter}|${dashboard.modelStatusFilter}|${dashboard.prioritySort}`}
                 isFiltered={dashboard.isFiltered}
                 onApplyFilters={dashboard.applyFilters}
                 onResetFilters={dashboard.resetFilters}

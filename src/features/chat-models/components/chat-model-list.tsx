@@ -285,9 +285,11 @@ function ChatModelCard({
           </div>
         </div>
 
-        {/* Badges: Soft-delete status + Registry status + Purpose + Source Type + Priority */}
+        {/* Badges: Registry status + Purpose + Source Type + Priority. The
+            soft-delete badge only shows once a model is deactivated - an
+            always-on "Hoạt động" next to "Chưa kích hoạt" read as a contradiction. */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <EntityStatusBadge isActive={chatModel.isActive} />
+          {chatModel.isActive ? null : <EntityStatusBadge isActive={false} />}
 
           <Badge
             className={cn(

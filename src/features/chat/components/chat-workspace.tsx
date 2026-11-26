@@ -1,5 +1,5 @@
 import { Share2 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 
 import {
@@ -32,7 +32,13 @@ import { useAuth } from "@/features/auth/hooks/use-auth"
 import type { Conversation } from "@/features/chat/schemas/chat-schemas"
 import { cn } from "@/lib/utils"
 
-export function ChatPage() {
+type ChatPageProps = {
+  // A shared-link snapshot (`/share/:token`): rendered in the centre column
+  // instead of the live conversation, inside the same shell (history, header).
+  sharedContent?: ReactNode
+}
+
+export function ChatPage({ sharedContent }: ChatPageProps = {}) {
   const workspace = useChatWorkspace()
   const [sidebarWidth, setSidebarWidth] = useState(260)
   const [isResizing, setIsResizing] = useState(false)
@@ -122,6 +128,11 @@ export function ChatPage() {
     activeConversationId: workspace.activeConversationId,
     conversations: workspace.conversations,
     onClose: () => workspace.setIsHistoryOpen(false),
+    isDeletingAllConversations: workspace.isDeletingAllConversations,
+    // Guests can't delete server-side (owner-only endpoint), same as sharing.
+    onDeleteAllConversations: canShare
+      ? workspace.deleteAllConversations
+      : undefined,
     onDeleteConversation: workspace.deleteConversation,
     onNewConversation: workspace.startNewConversation,
     onOpenSearch: () => setIsSearchDialogOpen(true),
@@ -225,7 +236,9 @@ export function ChatPage() {
           />
 
           <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
-            {workspace.activeConversationId ? (
+            {sharedContent ? (
+              sharedContent
+            ) : workspace.activeConversationId ? (
               <ActiveConversation
                 clarification={{
                   errors: workspace.clarificationErrors,

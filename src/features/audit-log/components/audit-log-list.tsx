@@ -35,6 +35,7 @@ import {
 import { useAuditLogsQuery } from "@/features/audit-log/queries/use-queries"
 import {
   formatAuditRow,
+  getAuditEntityLabel,
   getAuditObjectLabel,
   parseAuditDetails,
 } from "@/features/audit-log/utils/format-details"
@@ -147,7 +148,9 @@ function AuditObjectCell({ log }: { log: AuditLog }) {
   const objectLabel = getAuditObjectLabel(log.details)
   const extra = describeAuditExtra(log, objectLabel)
   const typeLabel =
-    log.resourceType === "OTHER" ? null : getResourceTypeLabel(log.resourceType)
+    log.resourceType === "OTHER"
+      ? getAuditEntityLabel(log.details)
+      : getResourceTypeLabel(log.resourceType)
   const text = [[typeLabel, objectLabel].filter(Boolean).join(": "), extra]
     .filter(Boolean)
     .join(" · ")
@@ -267,7 +270,11 @@ function AuditLogDetailDialog({ log }: { log: AuditLog }) {
           </dd>
           <dt className="text-muted-foreground">Đối tượng</dt>
           <dd className="col-span-2">
-            <p>{getResourceTypeLabel(log.resourceType)}</p>
+            <p>
+              {(log.resourceType === "OTHER" &&
+                getAuditEntityLabel(log.details)) ||
+                getResourceTypeLabel(log.resourceType)}
+            </p>
             {log.resourceId ? (
               <CopyableId className="mt-0.5" value={log.resourceId} />
             ) : null}
@@ -385,6 +392,7 @@ export function AuditLogList() {
     <div className="space-y-4">
       <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
         <ListToolbar
+          autoApplyKey={`${draft.resourceType ?? ""}|${draft.action ?? ""}|${draft.fromDate}|${draft.toDate}`}
           isFiltered={isFiltered}
           onApplyFilters={applyFilters}
           onResetFilters={resetFilters}

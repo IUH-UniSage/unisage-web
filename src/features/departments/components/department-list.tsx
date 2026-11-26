@@ -98,6 +98,7 @@ export function DepartmentList({
     <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
       {/* Standard ListToolbar matching Users and RBAC */}
       <ListToolbar
+        autoApplyKey={`${type}|${status}`}
         isFiltered={isFiltered}
         onApplyFilters={onApplyFilters}
         onResetFilters={onResetFilters}
@@ -155,21 +156,6 @@ export function DepartmentList({
           >
             <button
               type="button"
-              onClick={() => onViewModeChange("tree")}
-              aria-label="Chế độ xem sơ đồ tổ chức"
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-150",
-                viewMode === "tree"
-                  ? "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <LayoutGrid className="size-3.5" aria-hidden="true" />
-              <span>Sơ đồ tổ chức</span>
-            </button>
-
-            <button
-              type="button"
               onClick={() => onViewModeChange("table")}
               aria-label="Chế độ xem danh sách"
               className={cn(
@@ -181,6 +167,21 @@ export function DepartmentList({
             >
               <TableIcon className="size-3.5" aria-hidden="true" />
               <span>Danh sách</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onViewModeChange("tree")}
+              aria-label="Chế độ xem sơ đồ tổ chức"
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-150",
+                viewMode === "tree"
+                  ? "bg-card text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <LayoutGrid className="size-3.5" aria-hidden="true" />
+              <span>Sơ đồ tổ chức</span>
             </button>
           </div>
         </div>

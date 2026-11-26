@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { DepartmentNode } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import { findDepartmentNode } from "@/features/departments/utils/tree"
 import { cn } from "@/lib/utils"
 
@@ -72,7 +73,7 @@ function DepartmentParentOption({
             aria-hidden="true"
             className="size-3.5 shrink-0 text-muted-foreground"
           />
-          <span className="truncate">{node.name}</span>
+          <span className="truncate">{departmentLabel(node)}</span>
         </button>
       </div>
 
@@ -109,7 +110,8 @@ export function DepartmentParentPicker({
 
   const selectedName = useMemo(() => {
     if (!value) return null
-    return findDepartmentNode(tree, value)?.name ?? null
+    const node = findDepartmentNode(tree, value)
+    return node ? departmentLabel(node) : null
   }, [tree, value])
 
   return (

@@ -15,7 +15,7 @@ import {
 import { MemoryRouter, Route, Routes, useParams } from "react-router-dom"
 
 import { chatKeys } from "@/features/chat/queries/keys"
-import { SharedConversationPage } from "@/pages/user/shared-conversation-page"
+import { SharedConversationView } from "@/features/conversations/components/shared-conversation-view"
 import {
   apiError,
   apiOk,
@@ -57,7 +57,7 @@ function renderPage() {
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[`/share/${SHARE_TOKEN}`]}>
         <Routes>
-          <Route element={<SharedConversationPage />} path="/share/:token" />
+          <Route element={<SharedViewRoute />} path="/share/:token" />
           <Route element={<ChatStub />} path="/chat/:conversationId?" />
         </Routes>
       </MemoryRouter>
@@ -74,7 +74,14 @@ function serveSnapshot(body: object, status = 200) {
   )
 }
 
-describe("SharedConversationPage", () => {
+// The page wraps the view in the whole chat shell (history, header); the view is what carries the
+// behaviour under test, so it is rendered on its own.
+function SharedViewRoute() {
+  const { token = "" } = useParams<{ token: string }>()
+  return <SharedConversationView key={token} token={token} />
+}
+
+describe("SharedConversationView", () => {
   it("renders the snapshot read-only", async () => {
     serveSnapshot(apiOk(buildSharedConversation()))
     renderPage()

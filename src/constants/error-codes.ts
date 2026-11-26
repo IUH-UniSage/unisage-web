@@ -32,6 +32,7 @@ export const ERROR_CODE_MESSAGES: Record<number, string> = {
   2115: "Email này đã được dùng rồi.",
   2116: "Số điện thoại này đã được dùng rồi.",
   2117: "Mã người dùng này đã tồn tại.",
+  2170: "Mã GV/SV không thể thay đổi sau khi tạo.",
   2119: "Vai trò này đã tồn tại.",
   2120: "Tên danh mục này đã tồn tại.",
   2126: "Phân quyền phòng ban này đã có rồi.",

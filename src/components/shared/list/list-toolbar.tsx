@@ -1,11 +1,17 @@
 import { Filter, RotateCcw, Search } from "lucide-react"
-import type { ReactNode } from "react"
+import { useEffect, useEffectEvent, useRef, type ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 type ListToolbarProps = {
+  /**
+   * The dropdown filters' current values, joined into one string. When it
+   * changes the filters apply straight away, so picking "Vô hiệu hóa" doesn't
+   * also need a click on "Lọc" (still there for the search text).
+   */
+  autoApplyKey?: string
   children?: ReactNode
   isFiltered: boolean
   onApplyFilters: () => void
@@ -17,6 +23,7 @@ type ListToolbarProps = {
 }
 
 export function ListToolbar({
+  autoApplyKey,
   children,
   isFiltered,
   onApplyFilters,
@@ -26,6 +33,17 @@ export function ListToolbar({
   searchAriaLabel,
   searchPlaceholder,
 }: ListToolbarProps) {
+  const appliedKey = useRef(autoApplyKey)
+  const applyFilters = useEffectEvent(onApplyFilters)
+
+  useEffect(() => {
+    if (autoApplyKey === undefined || appliedKey.current === autoApplyKey) {
+      return
+    }
+    appliedKey.current = autoApplyKey
+    applyFilters()
+  }, [autoApplyKey])
+
   return (
     <div
       {...tourAnchor(TOUR_ANCHORS.listToolbar)}

@@ -34,6 +34,7 @@ import {
 import { UsageLimitCard } from "@/features/usage-limits/components/usage-limit-card"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { formatAuditDate } from "@/utils/date-format"
+import { roleDisplayName } from "@/utils/display-labels"
 
 // Admin-facing profile: follows the admin detail-page style (header row + cards).
 export function AdminProfile({ me }: { me: AppUser }) {
@@ -65,7 +66,7 @@ export function AdminProfile({ me }: { me: AppUser }) {
                 {me.email}
               </span>
               {me.roleName ? (
-                <Badge variant="outline">{me.roleName}</Badge>
+                <Badge variant="outline">{roleDisplayName(me.roleName)}</Badge>
               ) : null}
               <EntityStatusBadge isActive={me.status === "ACTIVE"} />
             </div>
@@ -143,7 +144,9 @@ export function AdminProfile({ me }: { me: AppUser }) {
             <ProfileInfoItem
               icon={Shield}
               label="Vai trò hệ thống"
-              value={me.roleName || "Chưa gán vai trò"}
+              value={
+                me.roleName ? roleDisplayName(me.roleName) : "Chưa gán vai trò"
+              }
             />
             <ProfileInfoItem
               icon={ShieldAlert}
