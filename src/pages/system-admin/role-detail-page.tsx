@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom"
 
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { adminRoleEditPath, ROUTES } from "@/constants/paths"
 import { usePermissions } from "@/features/auth/hooks/use-permissions"
@@ -26,9 +27,18 @@ export function RoleDetailPage() {
 
   if (!role) {
     return (
-      <p className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive">
-        Không tìm thấy vai trò.
-      </p>
+      <div className="space-y-4">
+        <p className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive">
+          Không tìm thấy vai trò.
+        </p>
+        <Button
+          onClick={() => navigate(ROUTES.adminRbac)}
+          type="button"
+          variant="outline"
+        >
+          Quay lại
+        </Button>
+      </div>
     )
   }
 

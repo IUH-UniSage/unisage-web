@@ -1,4 +1,4 @@
-import { Check, Plus, Search, Trash2 } from "lucide-react"
+import { Check, Pencil, Plus, Search, Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -21,6 +21,7 @@ import {
 import { useAccessLevelsQuery } from "@/features/access-level/queries/use-queries"
 import type { AccessLevel } from "@/features/access-level/schemas/access-level-schemas"
 import type { DepartmentNode } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import {
   flattenDepartmentTreeWithDepth,
   getDepthLevelStyle,
@@ -67,7 +68,7 @@ function buildNodeIndex(tree: DepartmentNode[]): Map<string, NodeInfo> {
   flattenDepartmentTreeWithDepth(tree).forEach((node, position) => {
     index.set(node.id, {
       depth: node.depth,
-      name: node.name,
+      name: departmentLabel(node),
       parentId: node.parentId ?? null,
       position,
     })
@@ -467,6 +468,7 @@ function DepartmentMultiSelectAdd({
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
+  const hasSelection = selectedIds.size > 0
 
   const options = useMemo(() => flattenDepartmentTreeWithDepth(tree), [tree])
   const departmentIndex = useMemo(() => buildDepartmentIndex(tree), [tree])
@@ -475,7 +477,9 @@ function DepartmentMultiSelectAdd({
     const normalizedQuery = normalize(query.trim())
     if (!normalizedQuery) return options
     return options.filter((option) =>
-      normalize(option.name).includes(normalizedQuery)
+      normalize(`${departmentLabel(option)} ${option.name}`).includes(
+        normalizedQuery
+      )
     )
   }, [options, query])
 
@@ -510,14 +514,23 @@ function DepartmentMultiSelectAdd({
     >
       <PopoverTrigger asChild>
         <Button className="w-full" type="button" variant="outline">
-          <Plus className="mr-2 size-4" />
-          Thêm phòng ban
+          {hasSelection ? (
+            <Pencil className="mr-2 size-4" />
+          ) : (
+            <Plus className="mr-2 size-4" />
+          )}
+          {hasSelection ? "Chỉnh sửa danh sách phòng ban" : "Thêm phòng ban"}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
         className="w-(--radix-popover-trigger-width) p-0"
       >
+        <p className="border-b px-3 py-2 text-xs text-muted-foreground">
+          {hasSelection
+            ? "Tích để thêm, bỏ tích để gỡ phòng ban khỏi danh sách. Cấp độ đã đặt được giữ nguyên."
+            : "Tích chọn các phòng ban cần cấp quyền truy cập."}
+        </p>
         <div className="flex items-center gap-2 border-b px-3 py-2">
           <Search
             aria-hidden="true"
@@ -606,7 +619,7 @@ function DepartmentMultiSelectOption({
         className="min-w-0 flex-1 cursor-pointer truncate text-sm font-normal"
         htmlFor={`multiselect-${option.id}`}
       >
-        {option.name}
+        {departmentLabel(option)}
       </Label>
     </div>
   )

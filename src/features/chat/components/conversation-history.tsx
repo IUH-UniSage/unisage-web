@@ -20,6 +20,7 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
 import { BrandMark } from "@/components/shared/brand/brand-mark"
+import { ConfirmDeleteDialog } from "@/components/shared/dialog/confirm-delete-dialog"
 import { UserAvatar } from "@/components/shared/navigation/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,7 +48,13 @@ import { cn } from "@/lib/utils"
 export type ConversationHistoryProps = {
   activeConversationId: string | null
   conversations: Conversation[]
+  isDeletingAllConversations?: boolean
   onClose?: () => void
+  /**
+   * Signed-in users only ("Xóa tất cả" next to "Gần đây"). Rejects on failure
+   * so the confirm dialog stays open to retry.
+   */
+  onDeleteAllConversations?: () => Promise<void>
   onDeleteConversation: (id: string) => void
   onNewConversation: () => void
   onOpenSearch: () => void
@@ -211,7 +218,9 @@ export function CollapsedHistoryRail({
 export function ConversationHistory({
   activeConversationId,
   conversations,
+  isDeletingAllConversations = false,
   onClose,
+  onDeleteAllConversations,
   onDeleteConversation,
   onNewConversation,
   onOpenSearch,
@@ -222,7 +231,20 @@ export function ConversationHistory({
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false)
   const isGuest = status === "unauthenticated"
+  const canDeleteAll =
+    !isGuest && !!onDeleteAllConversations && conversations.length > 0
+
+  const confirmDeleteAll = async () => {
+    if (!onDeleteAllConversations) return
+    try {
+      await onDeleteAllConversations()
+      setIsDeleteAllOpen(false)
+    } catch {
+      // Toasted by the mutation; keep the dialog open to retry.
+    }
+  }
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -299,8 +321,21 @@ export function ConversationHistory({
         className="min-h-0 flex-1 overflow-hidden"
       >
         <div className="w-full min-w-0 px-2.5 py-2">
-          <div className="mb-2 px-2 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase dark:text-neutral-400">
-            Gần đây
+          <div className="mb-2 flex items-center justify-between gap-2 px-2">
+            <span className="text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase dark:text-neutral-400">
+              Gần đây
+            </span>
+            {canDeleteAll ? (
+              <button
+                aria-label="Xóa tất cả đoạn chat"
+                className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-2 focus-visible:outline-primary dark:text-neutral-400"
+                onClick={() => setIsDeleteAllOpen(true)}
+                type="button"
+              >
+                <Trash2 aria-hidden="true" className="size-3" />
+                Xóa tất cả
+              </button>
+            ) : null}
           </div>
           {conversations.length ? (
             <div className="min-w-0 space-y-0.5">
@@ -317,6 +352,7 @@ export function ConversationHistory({
                   <button
                     className="min-w-0 flex-1 cursor-pointer overflow-hidden px-2 py-2 text-left"
                     onClick={() => onSelectConversation(conversation.id)}
+                    title={conversation.title}
                     type="button"
                   >
                     <span className="block truncate text-sm">
@@ -490,6 +526,20 @@ export function ConversationHistory({
         onOpenChange={setIsPasswordDialogOpen}
         open={isPasswordDialogOpen}
       />
+
+      {isDeleteAllOpen ? (
+        <ConfirmDeleteDialog
+          confirmLabel="Xóa tất cả"
+          description={`Toàn bộ ${conversations.length} đoạn chat trong lịch sử sẽ bị xóa và mọi liên kết chia sẻ của chúng sẽ không mở được nữa.`}
+          entityLabel="đoạn chat"
+          isSubmitting={isDeletingAllConversations}
+          onConfirm={confirmDeleteAll}
+          onOpenChange={(open) => {
+            if (!open) setIsDeleteAllOpen(false)
+          }}
+          title="Xóa tất cả đoạn chat?"
+        />
+      ) : null}
     </div>
   )
 }

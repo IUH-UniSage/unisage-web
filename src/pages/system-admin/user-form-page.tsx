@@ -57,6 +57,7 @@ export function UserFormPage() {
   return (
     <UserDialog
       isSaving={createUser.isPending || updateUser.isPending}
+      isLoadingRoles={rolesQuery.isPending}
       onOpenChange={(open) => {
         // Cancel returns to the list, also from edit (not to the detail page).
         if (!open) navigate(ROUTES.adminUsers)

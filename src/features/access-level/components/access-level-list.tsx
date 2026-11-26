@@ -131,7 +131,7 @@ export function AccessLevelList({
         id: "status",
       },
       {
-        cell: ({ row }) => row.original.createdByName || "System",
+        cell: ({ row }) => row.original.createdByName || "Hệ thống",
         header: "Người tạo",
         id: "createdBy",
         meta: { className: "text-sm" },
@@ -215,7 +215,7 @@ export function AccessLevelList({
               </div>
               <div className="mt-4 flex items-center justify-between gap-3 border-t pt-3">
                 <div className="text-xs text-muted-foreground">
-                  <p>{accessLevel.createdByName || "System"}</p>
+                  <p>{accessLevel.createdByName || "Hệ thống"}</p>
                   <p className="mt-1">
                     {formatAuditDate(accessLevel.createdAt)}
                   </p>

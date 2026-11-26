@@ -95,27 +95,29 @@ function SharedConversationContent({
     : null
 
   return (
-    <div className="flex min-h-[calc(100svh-4rem)] flex-col">
-      <ReadOnlyConversation
-        header={
-          <div className="animate-in rounded-xl border bg-card px-4 py-3 duration-300 fade-in">
-            <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <MessageSquareShare aria-hidden="true" className="size-3.5" />
-              Hội thoại được chia sẻ · {formatDate(conversation.createdAt)}
-            </p>
-            <h1 className="mt-1 text-lg font-semibold break-words">
-              {conversation.title || "Đoạn chat không có tiêu đề"}
-            </h1>
-          </div>
-        }
-        messages={messages}
-        onOpenCitation={openCitation}
-      />
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <ReadOnlyConversation
+          header={
+            <div className="animate-in rounded-xl border bg-card px-4 py-3 duration-300 fade-in">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <MessageSquareShare aria-hidden="true" className="size-3.5" />
+                Hội thoại được chia sẻ · {formatDate(conversation.createdAt)}
+              </p>
+              <h1 className="mt-1 text-lg font-semibold break-words">
+                {conversation.title || "Đoạn chat không có tiêu đề"}
+              </h1>
+            </div>
+          }
+          messages={messages}
+          onOpenCitation={openCitation}
+        />
+      </div>
 
-      <div className="sticky bottom-0 mt-auto border-t bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        {/* Same column as the messages above (max-w-3xl, px-4 md:px-8). */}
-        <div className="mx-auto flex max-w-3xl flex-col items-stretch gap-2 px-4 sm:flex-row sm:items-center sm:justify-between md:px-8">
-          <p className="text-xs text-muted-foreground">
+      {/* Takes the composer's place: same bottom spot and column as the chat input. */}
+      <div className="shrink-0 border-t bg-background px-4 pt-3 pb-4 md:px-8">
+        <div className="mx-auto flex max-w-3xl flex-col items-stretch gap-3 rounded-3xl border bg-card px-4 py-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
             {conversation.isOwner
               ? "Đây là liên kết bạn đã chia sẻ."
               : "Tiếp tục để hỏi thêm trong một bản sao của riêng bạn."}

@@ -156,6 +156,7 @@ export function AdminTickets() {
 
       <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
         <ListToolbar
+          autoApplyKey={`${draft.status ?? ""}|${draft.type ?? ""}`}
           isFiltered={isFiltered}
           onApplyFilters={applyFilters}
           onResetFilters={resetFilters}

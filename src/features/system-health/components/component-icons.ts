@@ -1,5 +1,12 @@
 import type { LucideIcon } from "lucide-react"
-import { Bot, Database, HardDrive, Network, Puzzle } from "lucide-react"
+import {
+  Bot,
+  Database,
+  HardDrive,
+  MemoryStick,
+  Network,
+  Puzzle,
+} from "lucide-react"
 
 import type { KnownComponentKey } from "@/features/system-health/schemas/system-health-schemas"
 
@@ -18,6 +25,7 @@ export const COMPONENT_ICONS: Record<KnownComponentKey, LucideIcon> = {
   db: Database,
   gateway: Network,
   minio: HardDrive,
+  redis: MemoryStick,
 }
 
 export const FALLBACK_COMPONENT_ICON: LucideIcon = Puzzle

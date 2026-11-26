@@ -1,0 +1,107 @@
+{
+  "doc_id": "D1",
+  "file_name": "D1_quy-dinh-phong-thuc-hanh-may-chu-gpu-bm-cnpm-2026-2027.pdf",
+  "title": "QUY ĐỊNH SỬ DỤNG PHÒNG THỰC HÀNH VÀ MÁY CHỦ GPU CỦA BỘ MÔN CÔNG NGHỆ PHẦN MỀM NĂM HỌC 2026–2027",
+  "parent_org": "KHOA CÔNG NGHỆ THÔNG TIN",
+  "issuer": "BỘ MÔN CÔNG NGHỆ PHẦN MỀM",
+  "number": "Số: 0417/QĐ-BMCNPM",
+  "place_date": "TP. Hồ Chí Minh, ngày 18 tháng 9 năm 2026",
+  "confidential": "TÀI LIỆU NỘI BỘ – CẤP ĐỘ 3 – Bộ môn Công nghệ Phần mềm",
+  "blocks": [
+    { "type": "h1", "text": "I. PHẠM VI VÀ ĐỐI TƯỢNG ÁP DỤNG" },
+    {
+      "type": "p",
+      "text": "Quy định này áp dụng cho giảng viên, nghiên cứu viên và sinh viên thực hiện khóa luận, đề tài nghiên cứu khoa học thuộc Bộ môn Công nghệ Phần mềm khi sử dụng phòng thực hành chuyên đề và máy chủ GPU do Bộ môn quản lý trong năm học 2026–2027."
+    },
+    { "type": "h1", "text": "II. PHÒNG THỰC HÀNH CHUYÊN ĐỀ" },
+    {
+      "type": "table",
+      "header": ["Phòng", "Số máy", "Cấu hình chính", "Khung giờ mở cửa"],
+      "widths": [0.14, 0.12, 0.42, 0.32],
+      "rows": [
+        [
+          "H7.0318",
+          "40",
+          "CPU 16 nhân, RAM 32 GB, card đồ họa 12 GB",
+          "Thứ Hai – Thứ Sáu: 07h00–21h00"
+        ],
+        [
+          "H7.0322",
+          "32",
+          "CPU 12 nhân, RAM 32 GB",
+          "Thứ Hai – Thứ Bảy: 07h00–17h00"
+        ],
+        [
+          "H7.0405",
+          "24",
+          "Máy trạm phát triển di động, thiết bị kiểm thử Android và iOS",
+          "Thứ Ba, Thứ Năm: 13h00–21h00"
+        ]
+      ]
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Sử dụng phòng ngoài khung giờ trên hoặc vào Chủ nhật phải đăng ký bằng Mẫu PTH-CNPM-02 gửi thư ký Bộ môn trước ít nhất 03 ngày làm việc.",
+        "Mỗi lượt đăng ký ngoài giờ không quá 04 giờ; người đăng ký chịu trách nhiệm tắt máy, khóa phòng và ghi sổ bàn giao.",
+        "Không cài đặt phần mềm không có bản quyền; phần mềm cần cho đề tài phải được kỹ thuật viên Bộ môn cài đặt."
+      ]
+    },
+    { "type": "h1", "text": "III. MÁY CHỦ GPU CNPM-GPU-02" },
+    {
+      "type": "p",
+      "text": "Máy chủ CNPM-GPU-02 gồm 04 GPU, mỗi GPU 48 GB bộ nhớ, dùng cho huấn luyện và đánh giá mô hình học máy. Tài khoản được cấp theo nhóm; trưởng nhóm gửi đề nghị kèm xác nhận của giảng viên hướng dẫn."
+    },
+    {
+      "type": "table",
+      "header": [
+        "Đối tượng",
+        "Hạn mức GPU mỗi tháng",
+        "Số GPU tối đa mỗi tác vụ",
+        "Thời gian chạy tối đa mỗi tác vụ"
+      ],
+      "widths": [0.3, 0.24, 0.22, 0.24],
+      "rows": [
+        ["Nhóm khóa luận tốt nghiệp", "36 giờ GPU", "01 GPU", "12 giờ"],
+        ["Đề tài NCKH cấp bộ môn", "120 giờ GPU", "02 GPU", "48 giờ"],
+        ["Giảng viên, nghiên cứu viên", "200 giờ GPU", "04 GPU", "72 giờ"]
+      ]
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Hạn mức được làm mới vào ngày 01 hằng tháng; giờ chưa dùng không được cộng dồn sang tháng sau.",
+        "Nhóm dùng vượt hạn mức bị tạm khóa tài khoản đến hết tháng; trường hợp cần thêm giờ, giảng viên hướng dẫn đề nghị Trưởng Bộ môn xem xét, tối đa thêm 50% hạn mức.",
+        "Dữ liệu trên máy chủ được giữ 30 ngày sau khi kết thúc đề tài, sau đó bị xóa."
+      ]
+    },
+    { "type": "h1", "text": "IV. HIỆU LỰC" },
+    {
+      "type": "p",
+      "text": "Quy định có hiệu lực từ ngày 01 tháng 10 năm 2026."
+    }
+  ],
+  "signature": { "title": "TRƯỞNG BỘ MÔN", "name": "TS. Phan Thanh Hải" },
+  "recipients": [
+    "Giảng viên Bộ môn Công nghệ Phần mềm;",
+    "Kỹ thuật viên phòng thực hành;",
+    "Lưu: VT, BM."
+  ],
+  "questions": [
+    {
+      "question": "Nhóm khóa luận tốt nghiệp được dùng tối đa bao nhiêu giờ GPU mỗi tháng trên máy chủ của bộ môn CNPM?",
+      "expected_answer": "36 giờ GPU mỗi tháng, tối đa 01 GPU và 12 giờ cho mỗi tác vụ.",
+      "evidence": "Nhóm khóa luận tốt nghiệp | 36 giờ GPU | 01 GPU | 12 giờ"
+    },
+    {
+      "question": "Muốn dùng phòng thực hành của bộ môn CNPM vào Chủ nhật thì phải đăng ký thế nào?",
+      "expected_answer": "Đăng ký bằng Mẫu PTH-CNPM-02 gửi thư ký Bộ môn trước ít nhất 03 ngày làm việc; mỗi lượt không quá 04 giờ.",
+      "evidence": "Sử dụng phòng ngoài khung giờ trên hoặc vào Chủ nhật phải đăng ký bằng Mẫu PTH-CNPM-02 gửi thư ký Bộ môn trước ít nhất 03 ngày làm việc."
+    },
+    {
+      "question": "Phòng H7.0318 có bao nhiêu máy và mở cửa lúc nào?",
+      "expected_answer": "40 máy; Thứ Hai – Thứ Sáu, 07h00–21h00.",
+      "evidence": "H7.0318 | 40 | ... | Thứ Hai – Thứ Sáu: 07h00–21h00"
+    }
+  ]
+}

@@ -73,16 +73,6 @@ export const userRoutes: RouteObject[] = [
         ),
       },
       {
-        // A shared conversation link (UNISAGE-107): signed-in users only; the
-        // sign-in page comes back here afterwards (PrivateRoute `from`).
-        path: `${ROUTE_SEGMENTS.share}/:token`,
-        element: (
-          <PrivateRoute>
-            <SharedConversationPage />
-          </PrivateRoute>
-        ),
-      },
-      {
         path: ROUTE_SEGMENTS.sharedLinks,
         element: (
           <PrivateRoute>
@@ -97,6 +87,23 @@ export const userRoutes: RouteObject[] = [
       {
         path: ROUTE_SEGMENTS.profile,
         element: <ProfilePage />,
+      },
+    ],
+  },
+  {
+    // A shared conversation link (UNISAGE-107): signed-in users only; the sign-in page comes back
+    // here afterwards (PrivateRoute `from`). Inside the chat shell, so the snapshot reads like
+    // the chat itself, with "continue" in place of the composer.
+    path: `${ROUTES.share}/:token`,
+    element: <ChatLayout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <PrivateRoute>
+            <SharedConversationPage />
+          </PrivateRoute>
+        ),
       },
     ],
   },

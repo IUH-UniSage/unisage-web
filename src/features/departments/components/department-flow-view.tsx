@@ -45,6 +45,7 @@ import type {
   Department,
   DepartmentNode,
 } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import {
   collectExpandableIds,
   layoutDepartmentGraph,
@@ -91,6 +92,8 @@ function DepartmentFlowNode({
     onToggleCollapse,
   } = data
   const isActive = department.isActive ?? true
+  // With a description the title is that readable name, so the code is shown underneath.
+  const hasCode = Boolean(department.description?.trim())
   const canManage = canCreate || canUpdate || canDelete
   const palette = getDepthLevelStyle(depth)
 
@@ -117,7 +120,7 @@ function DepartmentFlowNode({
           <DropdownMenuTrigger asChild>
             <Button
               {...tourAnchor(TOUR_ANCHORS.deptNodeActions)}
-              aria-label={`Tùy chọn cho ${department.name}`}
+              aria-label={`Tùy chọn cho ${departmentLabel(department)}`}
               className="nodrag absolute top-1.5 right-1.5 size-5 shrink-0 text-muted-foreground hover:text-foreground"
               onClick={(event) => event.stopPropagation()}
               size="icon-sm"
@@ -226,10 +229,10 @@ function DepartmentFlowNode({
                     "text-muted-foreground line-through decoration-muted-foreground/50"
                 )}
               >
-                {department.name}
+                {departmentLabel(department)}
               </p>
             </TooltipTrigger>
-            <TooltipContent>{department.name}</TooltipContent>
+            <TooltipContent>{departmentLabel(department)}</TooltipContent>
           </Tooltip>
         </div>
 
@@ -242,10 +245,10 @@ function DepartmentFlowNode({
       </div>
 
       <div className="mt-1 flex items-center gap-1.5 pl-6.5 text-[10px] text-muted-foreground">
-        {department.description ? (
-          <span className="truncate">{department.description}</span>
+        {hasCode ? (
+          <span className="truncate font-mono">{department.name}</span>
         ) : null}
-        {department.description && childCount > 0 && isCollapsed ? (
+        {hasCode && childCount > 0 && isCollapsed ? (
           <span
             aria-hidden="true"
             className="shrink-0 text-muted-foreground/50"

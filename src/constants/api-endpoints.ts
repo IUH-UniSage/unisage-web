@@ -101,6 +101,7 @@ export const API_ENDPOINTS = {
     conversationClaim: (conversationId: string) =>
       `/conversations/${conversationId}/claim`,
     conversations: "/conversations",
+    conversationsDeleteBatch: "/conversations/delete-batch",
     conversationsGuest: "/conversations/guest",
   },
   messages: {

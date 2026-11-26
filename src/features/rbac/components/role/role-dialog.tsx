@@ -1,11 +1,10 @@
 import { useDeferredValue, useMemo, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, Info, Loader2, Save, ShieldCheck } from "lucide-react"
+import { Info, ShieldCheck } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -40,6 +39,7 @@ import {
 import { useUsageLimitPlansQuery } from "@/features/usage-limits/queries/use-queries"
 import { useResourcePermissions } from "@/hooks/use-resource-permissions"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
+import { FormPageActions } from "@/components/shared/page/page-actions"
 
 // Radix Select cannot hold an empty value, so "no plan of its own" gets a stand-in.
 const DEFAULT_PLAN_VALUE = "default"
@@ -187,17 +187,6 @@ export function RoleDialog({
         className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
       >
         <div className="flex items-start gap-3">
-          <Button
-            aria-label="Quay lại"
-            className="mt-0.5 shrink-0"
-            disabled={isBusy}
-            onClick={handleCancel}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <ArrowLeft className="size-5" />
-          </Button>
           <div>
             <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
               Quản trị · Phân quyền
@@ -214,29 +203,14 @@ export function RoleDialog({
 
         <div
           {...tourAnchor(TOUR_ANCHORS.pageActions)}
-          className="flex items-center gap-3 self-end sm:self-start"
+          className="self-end sm:self-start"
         >
-          <Button
-            disabled={isBusy}
-            onClick={handleCancel}
-            type="button"
-            variant="outline"
-          >
-            Hủy
-          </Button>
-          <Button disabled={isBusy} form="role-form" type="submit">
-            {isBusy ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                {role ? "Lưu thay đổi" : "Tạo vai trò"}
-              </>
-            )}
-          </Button>
+          <FormPageActions
+            formId="role-form"
+            isBusy={isBusy}
+            onCancel={handleCancel}
+            submitLabel={role ? "Lưu thay đổi" : "Tạo vai trò"}
+          />
         </div>
       </div>
 
@@ -407,29 +381,13 @@ export function RoleDialog({
         {/* Bottom Form Actions */}
         <div
           {...tourAnchor(TOUR_ANCHORS.formFooterActions)}
-          className="flex items-center justify-end gap-3 border-t pt-4"
+          className="border-t pt-4"
         >
-          <Button
-            disabled={isBusy}
-            onClick={handleCancel}
-            type="button"
-            variant="outline"
-          >
-            Hủy
-          </Button>
-          <Button disabled={isBusy} type="submit">
-            {isBusy ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                {role ? "Lưu thay đổi" : "Tạo vai trò"}
-              </>
-            )}
-          </Button>
+          <FormPageActions
+            isBusy={isBusy}
+            onCancel={handleCancel}
+            submitLabel={role ? "Lưu thay đổi" : "Tạo vai trò"}
+          />
         </div>
       </form>
     </div>

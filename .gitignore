@@ -35,3 +35,6 @@ test-results
 .env
 changes
 _to_delete
+# Recorded demo videos and voice-over output (docs/demo)
+output/
+__pycache__/

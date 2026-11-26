@@ -1,17 +1,12 @@
 import type { AppUser } from "@/features/users/schemas/user-schemas"
-
-const GENDER_LABELS: Record<string, string> = {
-  FEMALE: "Nữ",
-  MALE: "Nam",
-  OTHER: "Khác",
-}
+import { genderLabel } from "@/utils/display-labels"
 
 export function getProfileFullName(me: AppUser) {
   return [me.firstName, me.lastName].filter(Boolean).join(" ") || "Người dùng"
 }
 
 export function getProfileGenderLabel(me: AppUser) {
-  return (me.gender && GENDER_LABELS[me.gender]) || me.gender || "Chưa cập nhật"
+  return me.gender ? genderLabel(me.gender) : "Chưa cập nhật"
 }
 
 export function getProfileAccessLevelLabel(me: AppUser) {

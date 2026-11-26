@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Department } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import {
   getDepthLevelStyle,
   visibleDepartmentRows,
@@ -44,7 +45,7 @@ function TableDepartmentActions({
     <EntityActionsMenu
       canDelete={canDelete}
       canUpdate={canUpdate}
-      entityLabel={department.name}
+      entityLabel={departmentLabel(department)}
       isActive={isActive}
       onDetail={() => onDetail(department)}
       onEdit={() => onEdit(department)}
@@ -127,7 +128,7 @@ export function DepartmentTableView({
       {
         cell: ({ row }) => (
           <Checkbox
-            aria-label={`Chọn ${row.original.name}`}
+            aria-label={`Chọn ${departmentLabel(row.original)}`}
             checked={selectedIds.has(row.original.id)}
             onCheckedChange={() => onToggleSelection(row.original.id)}
             onClick={(event) => event.stopPropagation()}
@@ -169,7 +170,7 @@ export function DepartmentTableView({
               {hasChildren ? (
                 <button
                   aria-expanded={expanded}
-                  aria-label={`${expanded ? "Thu gọn" : "Mở rộng"} ${row.original.name}`}
+                  aria-label={`${expanded ? "Thu gọn" : "Mở rộng"} ${departmentLabel(row.original)}`}
                   className="grid size-6 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40"
                   disabled={expandAll}
                   onClick={(event) => {
@@ -208,11 +209,12 @@ export function DepartmentTableView({
                       : "text-foreground/90"
                   )}
                 >
-                  {row.original.name}
+                  {departmentLabel(row.original)}
                 </span>
-                {row.original.description ? (
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {row.original.description}
+                {/* The readable name is the description; the code stays as the second line. */}
+                {row.original.description?.trim() ? (
+                  <span className="block truncate font-mono text-xs text-muted-foreground">
+                    {row.original.name}
                   </span>
                 ) : null}
               </div>
@@ -252,6 +254,12 @@ export function DepartmentTableView({
           ),
         header: "Trực thuộc",
         id: "parentName",
+        // The tree's indentation already shows the parent; dropped below
+        // 1536px so status stays clear of the pinned actions column.
+        meta: {
+          className: "hidden 2xl:table-cell",
+          headerClassName: "hidden 2xl:table-cell",
+        },
       },
       {
         cell: ({ row }) => {

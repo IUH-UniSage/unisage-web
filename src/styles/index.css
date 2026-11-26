@@ -32,6 +32,8 @@
   --color-info: var(--info);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-caution: var(--caution);
+  --color-caution-foreground: var(--caution-foreground);
   --color-violet: var(--violet);
   --color-teal: var(--teal);
   --color-magenta: var(--magenta);
@@ -87,6 +89,9 @@
   --info: #8ed8f8;
   --warning: #ffe293;
   --warning-foreground: #5f4100;
+  /* Orange: a figure of an answer to check against its source (grounding warning). */
+  --caution: #fff3e8;
+  --caution-foreground: #b23c06;
   --violet: #4a3aa7;
   --teal: #0891b2;
   --magenta: #be185d;
@@ -140,6 +145,8 @@
   --info: #8ab4f8;
   --warning: #302c22;
   --warning-foreground: #f2dda1;
+  --caution: #33221a;
+  --caution-foreground: #fdae72;
   --violet: #9085e9;
   --teal: #22d3ee;
   --magenta: #d55181;

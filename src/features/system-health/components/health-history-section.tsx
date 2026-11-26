@@ -7,6 +7,7 @@ import { SearchEmpty } from "@/components/shared/list/search-empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { HealthStatusBadge } from "@/features/system-health/components/health-status-badge"
+import { UptimeStrip } from "@/features/system-health/components/uptime-strip"
 import { useSystemHealthHistoryQuery } from "@/features/system-health/queries/use-queries"
 import {
   getComponentLabel,
@@ -91,6 +92,8 @@ export function HealthHistorySection() {
           định kỳ.
         </p>
       </div>
+
+      <UptimeStrip />
 
       <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
         {isPending ? (

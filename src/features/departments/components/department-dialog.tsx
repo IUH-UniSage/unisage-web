@@ -30,6 +30,7 @@ import {
   type DepartmentNode,
   type DepartmentRequest,
 } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import {
   collectSubtreeIds,
   flattenDepartmentTreeWithDepth,
@@ -135,7 +136,8 @@ export function DepartmentDialog({
 
   const selectedParentName = useMemo(() => {
     if (!selectedParentId) return undefined
-    return flatOptions.find((opt) => opt.id === selectedParentId)?.name
+    const parent = flatOptions.find((opt) => opt.id === selectedParentId)
+    return parent ? departmentLabel(parent) : undefined
   }, [flatOptions, selectedParentId])
 
   const handleTypeChange = (type: DepartmentUnitType) => {
@@ -285,7 +287,7 @@ export function DepartmentDialog({
                   <SelectContent className="max-h-60">
                     {parentOptions.map((opt) => (
                       <SelectItem key={opt.id} value={opt.id}>
-                        {opt.name}
+                        {departmentLabel(opt)}
                       </SelectItem>
                     ))}
                   </SelectContent>

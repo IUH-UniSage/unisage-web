@@ -1,6 +1,7 @@
 import { Position, type Edge, type Node } from "@xyflow/react"
 
 import type { DepartmentNode } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 
 export type FlowDirection = "LR" | "TB"
 
@@ -18,7 +19,7 @@ const CHAR_WIDTH = 7.5
 
 function collectNames(tree: DepartmentNode[], names: string[] = []) {
   for (const node of tree) {
-    names.push(node.name)
+    names.push(departmentLabel(node))
     if (node.children?.length) collectNames(node.children, names)
   }
   return names

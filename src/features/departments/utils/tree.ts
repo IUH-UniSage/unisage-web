@@ -1,4 +1,5 @@
 import type { DepartmentNode } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 
 export interface FlattenedDepartmentNode extends DepartmentNode {
   depth: number
@@ -179,7 +180,11 @@ export function flattenDepartmentTreeWithDepth(
 
     if (node.children?.length) {
       result.push(
-        ...flattenDepartmentTreeWithDepth(node.children, depth + 1, node.name)
+        ...flattenDepartmentTreeWithDepth(
+          node.children,
+          depth + 1,
+          departmentLabel(node)
+        )
       )
     }
   }

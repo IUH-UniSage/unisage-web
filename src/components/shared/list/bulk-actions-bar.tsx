@@ -12,7 +12,7 @@ type BulkActionsBarProps = {
   selectedCount: number
   /**
    * Active / inactive split of the selected rows (see `countSelectedByStatus`). "Vô hiệu hóa"
-   * shows only when some selected row is active, "Khôi phục" only when some is inactive.
+   * shows only when some selected row is active, "Khôi phục" only when some is inactive; with no selection both show, disabled.
    */
   statusCounts: SelectionStatusCounts
 }
@@ -25,62 +25,69 @@ export function BulkActionsBar({
   selectedCount,
   statusCounts,
 }: BulkActionsBarProps) {
-  const isOpen = selectedCount > 0
+  const hasSelection = selectedCount > 0
+  // Nothing selected → show both actions (disabled); otherwise only those that apply.
+  const showDeactivate = !hasSelection || statusCounts.active > 0
+  const showRecover = !hasSelection || statusCounts.inactive > 0
 
   return (
     <div
-      aria-hidden={!isOpen}
       className={cn(
-        "grid transition-[grid-template-rows] duration-200 ease-out",
-        isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        "flex flex-wrap items-center justify-between gap-3 border-b px-3 py-2 transition-colors duration-200 md:px-4",
+        hasSelection ? "border-primary/20 bg-primary/8" : "bg-muted/30"
       )}
     >
-      <div className={cn("overflow-hidden", !isOpen && "pointer-events-none")}>
-        <div
-          className={cn(
-            "flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 bg-primary/8 px-3 py-2 transition-opacity duration-200 md:px-4",
-            isOpen ? "opacity-100" : "opacity-0"
-          )}
+      <p
+        className={cn(
+          "text-sm",
+          hasSelection ? "font-semibold text-primary" : "text-muted-foreground"
+        )}
+      >
+        {hasSelection ? `Đã chọn ${selectedCount} mục` : "Chưa chọn mục nào"}
+      </p>
+      <div className="flex items-center gap-2">
+        {showDeactivate ? (
+          <Button
+            className={cn(
+              hasSelection
+                ? "border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                : "text-muted-foreground"
+            )}
+            disabled={isSubmitting || !hasSelection}
+            onClick={onDeactivate}
+            size="sm"
+            variant="outline"
+          >
+            <Power aria-hidden="true" />
+            Vô hiệu hóa
+          </Button>
+        ) : null}
+        {showRecover ? (
+          <Button
+            className={cn(
+              hasSelection
+                ? "border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                : "text-muted-foreground"
+            )}
+            disabled={isSubmitting || !hasSelection}
+            onClick={onRecover}
+            size="sm"
+            variant="outline"
+          >
+            <RotateCcw aria-hidden="true" />
+            Khôi phục
+          </Button>
+        ) : null}
+        <Button
+          aria-label="Bỏ chọn"
+          className={cn(!hasSelection && "invisible")}
+          disabled={isSubmitting || !hasSelection}
+          onClick={onClear}
+          size="icon-sm"
+          variant="ghost"
         >
-          <p className="text-sm font-semibold text-primary">
-            Đã chọn {selectedCount} mục
-          </p>
-          <div className="flex items-center gap-2">
-            {statusCounts.active > 0 ? (
-              <Button
-                className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                disabled={isSubmitting}
-                onClick={onDeactivate}
-                size="sm"
-                variant="outline"
-              >
-                <Power aria-hidden="true" />
-                Vô hiệu hóa
-              </Button>
-            ) : null}
-            {statusCounts.inactive > 0 ? (
-              <Button
-                className="border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                disabled={isSubmitting}
-                onClick={onRecover}
-                size="sm"
-                variant="outline"
-              >
-                <RotateCcw aria-hidden="true" />
-                Khôi phục
-              </Button>
-            ) : null}
-            <Button
-              aria-label="Bỏ chọn"
-              disabled={isSubmitting}
-              onClick={onClear}
-              size="icon-sm"
-              variant="ghost"
-            >
-              <X aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
+          <X aria-hidden="true" />
+        </Button>
       </div>
     </div>
   )

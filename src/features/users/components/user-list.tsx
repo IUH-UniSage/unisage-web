@@ -30,12 +30,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { useDepartmentLabels } from "@/features/departments/hooks/use-department-labels"
 import {
   USER_PAGE_SIZE,
   type StatusFilter,
 } from "@/features/users/hooks/use-user-dashboard"
 import type { AppUser } from "@/features/users/schemas/user-schemas"
 import { formatAuditDate } from "@/utils/date-format"
+import { roleDisplayName } from "@/utils/display-labels"
 import type { SelectionStatusCounts } from "@/utils/selection"
 
 function userDisplayName(user: AppUser) {
@@ -160,6 +162,7 @@ export function UserList({
   const allSelectedOnPage =
     userIdsOnPage.length > 0 && userIdsOnPage.every((id) => selectedIds.has(id))
   const firstRowNumber = (currentPage - 1) * USER_PAGE_SIZE + 1
+  const labelOfDepartment = useDepartmentLabels()
 
   const columns = useMemo<ColumnDef<AppUser, unknown>[]>(
     () => [
@@ -192,35 +195,26 @@ export function UserList({
         },
       },
       {
+        // Name, code and email share one cell so the table fits a 1280px
+        // screen without clipping the actions column. The name opens detail.
         cell: ({ row }) => (
-          <p className="font-semibold">{userDisplayName(row.original)}</p>
+          <div className="max-w-64 min-w-0">
+            <button
+              className="block max-w-full truncate text-left font-semibold hover:text-primary hover:underline focus-visible:underline focus-visible:outline-none"
+              onClick={() => onDetail(row.original)}
+              type="button"
+            >
+              {userDisplayName(row.original)}
+            </button>
+            <p className="truncate text-xs text-muted-foreground">
+              {[row.original.code, row.original.email]
+                .filter(Boolean)
+                .join(" · ") || "—"}
+            </p>
+          </div>
         ),
         header: "Người dùng",
         id: "name",
-      },
-      {
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.code ?? "—"}
-          </span>
-        ),
-        header: "Mã GV/SV",
-        id: "code",
-        meta: {
-          className: "text-sm",
-        },
-      },
-      {
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.email ?? "—"}
-          </span>
-        ),
-        header: "Email",
-        id: "email",
-        meta: {
-          className: "text-sm",
-        },
       },
       {
         cell: ({ row }) => {
@@ -229,30 +223,39 @@ export function UserList({
             return <span className="text-xs text-muted-foreground">—</span>
           }
           return (
-            <div className="flex max-w-48 flex-wrap gap-1">
-              {departmentAccesses.slice(0, 2).map((da) => (
-                <Badge
-                  key={da.departmentId}
-                  variant="outline"
-                  className="max-w-36 truncate text-xs"
-                >
-                  {da.departmentName}
-                </Badge>
-              ))}
-              {departmentAccesses.length > 2 ? (
+            <div className="flex max-w-48 flex-nowrap items-center gap-1">
+              {departmentAccesses.slice(0, 1).map((da) => {
+                const label = labelOfDepartment(
+                  da.departmentId,
+                  da.departmentName
+                )
+                return (
+                  <Badge
+                    key={da.departmentId}
+                    variant="outline"
+                    className="min-w-0 shrink text-xs"
+                    title={label}
+                  >
+                    <span className="truncate">{label}</span>
+                  </Badge>
+                )
+              })}
+              {departmentAccesses.length > 1 ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Badge
                       variant="secondary"
-                      className="cursor-default text-xs"
+                      className="shrink-0 cursor-default text-xs"
                     >
-                      +{departmentAccesses.length - 2}
+                      +{departmentAccesses.length - 1}
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
                     {departmentAccesses
-                      .slice(2)
-                      .map((da) => da.departmentName)
+                      .slice(1)
+                      .map((da) =>
+                        labelOfDepartment(da.departmentId, da.departmentName)
+                      )
                       .join(", ")}
                   </TooltipContent>
                 </Tooltip>
@@ -267,7 +270,15 @@ export function UserList({
       {
         cell: ({ row }) =>
           row.original.roleName ? (
-            <Badge variant="outline">{row.original.roleName}</Badge>
+            <Badge
+              className="max-w-40"
+              title={row.original.roleName}
+              variant="outline"
+            >
+              <span className="truncate">
+                {roleDisplayName(row.original.roleName)}
+              </span>
+            </Badge>
           ) : (
             <span className="text-xs text-muted-foreground">Chưa gán</span>
           ),
@@ -278,7 +289,11 @@ export function UserList({
         cell: ({ row }) => formatAuditDate(row.original.createdAt),
         header: "Ngày tạo",
         id: "createdAt",
-        meta: { className: "text-sm" },
+        // Dropped below 1440px so status and actions stay visible.
+        meta: {
+          className: "hidden text-sm 2xl:table-cell",
+          headerClassName: "hidden 2xl:table-cell",
+        },
       },
       {
         cell: ({ row }) => (
@@ -308,6 +323,7 @@ export function UserList({
       canDelete,
       canUpdate,
       firstRowNumber,
+      labelOfDepartment,
       onDetail,
       onEdit,
       onStatusRequest,
@@ -321,6 +337,7 @@ export function UserList({
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
       <ListToolbar
+        autoApplyKey={status}
         isFiltered={isFiltered}
         onApplyFilters={onApplyFilters}
         onResetFilters={onResetFilters}
@@ -383,15 +400,19 @@ export function UserList({
                     <p className="text-xs text-muted-foreground">
                       #{firstRowNumber + index}
                     </p>
-                    <p className="truncate font-semibold">
+                    <button
+                      className="block max-w-full truncate text-left font-semibold hover:text-primary"
+                      onClick={() => onDetail(user)}
+                      type="button"
+                    >
                       {userDisplayName(user)}
-                    </p>
+                    </button>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {user.email ?? "—"}
                     </p>
                     {user.roleName ? (
                       <Badge className="mt-1 text-xs" variant="outline">
-                        {user.roleName}
+                        {roleDisplayName(user.roleName)}
                       </Badge>
                     ) : null}
                   </div>

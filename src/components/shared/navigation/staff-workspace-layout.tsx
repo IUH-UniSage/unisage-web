@@ -65,7 +65,9 @@ export function StaffWorkspaceLayout({
             </Sheet>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs text-muted-foreground">
+              {/* Phones only get the workspace name: both lines truncated to
+                  "Không gian l… / Quản trị …" said nothing. */}
+              <p className="hidden truncate text-xs text-muted-foreground sm:block">
                 Không gian làm việc
               </p>
               <p className="truncate text-sm font-semibold text-foreground">
@@ -93,7 +95,12 @@ export function StaffWorkspaceLayout({
             </Button>
             <ProductTourButton pathname={pathname} workspace={workspace} />
             <ThemeToggle />
-            <Button aria-label="Thông báo" size="icon" variant="ghost">
+            <Button
+              aria-label="Thông báo"
+              className="hidden sm:inline-flex"
+              size="icon"
+              variant="ghost"
+            >
               <Bell aria-hidden="true" />
             </Button>
             <UserAccountMenu />

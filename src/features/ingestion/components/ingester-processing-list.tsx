@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { useDepartmentLabels } from "@/features/departments/hooks/use-department-labels"
 import { DOCUMENT_PAGE_SIZE } from "@/features/documents/hooks/use-document-dashboard"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import {
@@ -32,6 +33,8 @@ export function IngesterProcessingList({
   totalItems,
   totalPages,
 }: IngesterProcessingListProps) {
+  const labelOfDepartment = useDepartmentLabels()
+
   return (
     <Card
       {...tourAnchor(TOUR_ANCHORS.processingList)}
@@ -65,7 +68,12 @@ export function IngesterProcessingList({
                       {document.title}
                     </p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {document.departmentName ?? "Không có phòng ban"}
+                      {document.departmentName
+                        ? labelOfDepartment(
+                            document.departmentId,
+                            document.departmentName
+                          )
+                        : "Không có phòng ban"}
                     </p>
                   </div>
                 </div>

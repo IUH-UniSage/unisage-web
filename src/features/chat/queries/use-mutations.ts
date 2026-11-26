@@ -43,6 +43,18 @@ export function useDeleteConversationMutation(userId: string) {
   })
 }
 
+export function useDeleteAllConversationsMutation(userId: string) {
+  return useMutation({
+    meta: {
+      invalidatesQuery: chatKeys.conversations(userId),
+      // Deleting conversations revokes their share links (UNISAGE-107 R11).
+      invalidatesQueries: [shareKeys.all],
+      successMessage: "Đã xóa tất cả đoạn chat.",
+    },
+    mutationFn: () => chatApi.softDeleteAllConversations(),
+  })
+}
+
 /**
  * Đúng/Sai on one AI-computed calculation result (contract §5b). On success the
  * verdict is written into the cached message's `metadata.calculation_feedback`

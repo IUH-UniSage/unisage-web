@@ -14,13 +14,17 @@ import { useTurnProgress } from "@/features/chat/hooks/use-turn-progress"
 import { chatKeys } from "@/features/chat/queries/keys"
 import {
   useCreateConversationMutation,
+  useDeleteAllConversationsMutation,
   useDeleteConversationMutation,
 } from "@/features/chat/queries/use-mutations"
 import {
   useConversationsQuery,
   useMessagesQuery,
 } from "@/features/chat/queries/use-queries"
-import type { Message } from "@/features/chat/schemas/chat-schemas"
+import type {
+  Conversation,
+  Message,
+} from "@/features/chat/schemas/chat-schemas"
 import type {
   Answer,
   ClarificationAnswers,
@@ -96,6 +100,12 @@ export function useChatWorkspace() {
     })
   }
   const [isStreaming, setIsStreaming] = useState(false)
+  // Tracked here instead of reading `createConversationMutation.isPending`:
+  // the home page's question is sent from ChatPage's mount effect, and under
+  // StrictMode the mutation observer is unsubscribed/resubscribed right after
+  // `mutateAsync` starts - it never hears back from that mutation and reports
+  // `isPending` forever, which kept the composer locked after the first answer.
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false)
   const [isCancellingClarification, setIsCancellingClarification] =
     useState(false)
   // Server-side (4010) errors of the last submit, shown under their tabs.
@@ -120,19 +130,26 @@ export function useChatWorkspace() {
   const messagesQuery = useMessagesQuery(activeConversationId ?? "")
   const createConversationMutation = useCreateConversationMutation(userId)
   const deleteConversationMutation = useDeleteConversationMutation(userId)
+  const deleteAllConversationsMutation =
+    useDeleteAllConversationsMutation(userId)
 
   const conversations = conversationsQuery.data ?? []
   const messages = messagesQuery.data ?? []
 
   // The id in the URL cannot be read (deleted, someone else's, or a stale link): back
   // to the empty composer, with one message instead of the generic error toast.
+  // Only when nothing is cached for it: a failed *refetch* (e.g. the reconcile after a
+  // reply) keeps the transcript already on screen and the composer usable.
+  const hasNoMessagesData = messagesQuery.data === undefined
   useEffect(() => {
-    if (!routeConversationId || !messagesQuery.isError) return
+    if (!routeConversationId || !messagesQuery.isError || !hasNoMessagesData) {
+      return
+    }
     toast.error("Không mở được đoạn chat này. Có thể nó đã bị xoá.")
     void navigate(ROUTES.chat, { replace: true })
     // Only the (id, error) pair matters; `navigate` is stable for the router's lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeConversationId, messagesQuery.isError])
+  }, [routeConversationId, messagesQuery.isError, hasNoMessagesData])
   const activeConversation =
     conversations.find(
       (conversation) => conversation.id === activeConversationId
@@ -276,9 +293,18 @@ export function useChatWorkspace() {
     let conversationId = activeConversationId
 
     if (!conversationId) {
-      const created = await createConversationMutation.mutateAsync({
-        title: content.slice(0, CONVERSATION_TITLE_MAX_LENGTH),
-      })
+      setIsCreatingConversation(true)
+      let created: Conversation
+      try {
+        created = await createConversationMutation.mutateAsync({
+          title: content.slice(0, CONVERSATION_TITLE_MAX_LENGTH),
+        })
+      } catch {
+        // The global mutation error handler already showed the toast.
+        return
+      } finally {
+        setIsCreatingConversation(false)
+      }
       conversationId = created.id
       // Replace, not push: "back" from the new conversation should not land on
       // the empty composer that created it.
@@ -568,6 +594,16 @@ export function useChatWorkspace() {
     }
   }
 
+  /** Rejects on failure (already toasted) so the confirm dialog can stay open. */
+  const deleteAllConversations = async () => {
+    await deleteAllConversationsMutation.mutateAsync()
+
+    if (activeConversationId) {
+      setActiveConversationId(null, { replace: true })
+      setIsSourcesOpen(false)
+    }
+  }
+
   const openPanel = deriveOpenPanel(messages)
 
   return {
@@ -584,9 +620,11 @@ export function useChatWorkspace() {
     openPanel,
     submitClarification,
     conversations,
+    deleteAllConversations,
     deleteConversation,
+    isDeletingAllConversations: deleteAllConversationsMutation.isPending,
     isHistoryOpen,
-    isSendingMessage: createConversationMutation.isPending || isStreaming,
+    isSendingMessage: isCreatingConversation || isStreaming,
     isSourcesOpen,
     isStreaming,
     messages,

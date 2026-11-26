@@ -10,7 +10,7 @@ import {
   Trash2,
   UploadCloud,
 } from "lucide-react"
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { DataTable } from "@/components/shared/list/data-table"
@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { DOCUMENT_PAGE_SIZE } from "@/features/documents/hooks/use-document-dashboard"
+import { useDepartmentLabels } from "@/features/departments/hooks/use-department-labels"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
 import {
@@ -77,7 +78,10 @@ function DocumentActions({
         </Button>
       </DropdownMenuTrigger>
       {/* The base content is as wide as its trigger; this one is an icon button, so text wrapped. */}
-      <DropdownMenuContent align="end" className="w-auto min-w-52">
+      <DropdownMenuContent
+        align="end"
+        className="w-auto min-w-64 [&_[role=menuitem]]:whitespace-nowrap"
+      >
         <DropdownMenuItem onSelect={() => onViewDetail(document)}>
           <Eye aria-hidden="true" />
           Xem chi tiết
@@ -196,6 +200,14 @@ export function DocumentList({
   totalPages,
 }: DocumentListProps) {
   const firstRowNumber = (currentPage - 1) * DOCUMENT_PAGE_SIZE + 1
+  const labelOfDepartment = useDepartmentLabels()
+  const departmentOf = useCallback(
+    (document: Document) =>
+      document.departmentName
+        ? labelOfDepartment(document.departmentId, document.departmentName)
+        : "—",
+    [labelOfDepartment]
+  )
 
   const columns = useMemo<ColumnDef<Document, unknown>[]>(
     () => [
@@ -228,7 +240,7 @@ export function DocumentList({
         meta: { className: "text-sm" },
       },
       {
-        cell: ({ row }) => row.original.departmentName || "—",
+        cell: ({ row }) => departmentOf(row.original),
         header: "Phòng ban",
         id: "department",
         meta: { className: "text-sm" },
@@ -273,6 +285,7 @@ export function DocumentList({
       canDelete,
       canProcess,
       canUpdate,
+      departmentOf,
       firstRowNumber,
       onEdit,
       onProcess,
@@ -335,8 +348,7 @@ export function DocumentList({
                   <p className="font-semibold">{document.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {document.fileType?.toUpperCase() || "—"} ·{" "}
-                    {document.categoryName || "—"} ·{" "}
-                    {document.departmentName || "—"}
+                    {document.categoryName || "—"} · {departmentOf(document)}
                   </p>
                 </div>
                 <DocumentActions

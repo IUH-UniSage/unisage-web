@@ -29,11 +29,13 @@ import {
 } from "@/constants/doc-status"
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
+import { useDepartmentLabels } from "@/features/departments/hooks/use-department-labels"
 import { DocumentChunksSection } from "@/features/documents/components/document-chunks-section"
 import { DocumentVersionHistorySection } from "@/features/documents/components/document-version-history-section"
 import { useDocumentQuery } from "@/features/documents/queries/use-queries"
 import type { Document } from "@/features/documents/schemas/document-schemas"
 import { cn } from "@/lib/utils"
+import { DetailPageActions } from "@/components/shared/page/page-actions"
 
 type DocumentDetailDialogProps = {
   canUpdate: boolean
@@ -54,6 +56,7 @@ export function DocumentDetailDialog({
 }: DocumentDetailDialogProps) {
   const documentQuery = useDocumentQuery(documentId)
   const document = documentQuery.data
+  const labelOfDepartment = useDepartmentLabels()
 
   const handleBack = () => {
     onOpenChange(false)
@@ -125,25 +128,24 @@ export function DocumentDetailDialog({
           {...tourAnchor(TOUR_ANCHORS.pageActions)}
           className="flex flex-wrap items-center justify-end gap-3 self-end sm:self-center"
         >
-          <Button onClick={handleBack} type="button" variant="outline">
-            Quay lại
-          </Button>
-          {onReprocess && document?.status === "COMPLETED" ? (
-            <Button
-              onClick={() => onReprocess(document)}
-              type="button"
-              variant="outline"
-            >
-              <RotateCcw className="mr-2 size-4" />
-              Chunk & embed lại
-            </Button>
-          ) : null}
-          {canUpdate ? (
-            <Button onClick={handleEdit} type="button">
-              <Pencil className="mr-2 size-4" />
-              Chỉnh sửa tài liệu
-            </Button>
-          ) : null}
+          <DetailPageActions onBack={handleBack}>
+            {onReprocess && document?.status === "COMPLETED" ? (
+              <Button
+                onClick={() => onReprocess(document)}
+                type="button"
+                variant="outline"
+              >
+                <RotateCcw className="mr-2 size-4" />
+                Chunk & embed lại
+              </Button>
+            ) : null}
+            {canUpdate ? (
+              <Button onClick={handleEdit} type="button">
+                <Pencil className="mr-2 size-4" />
+                Chỉnh sửa tài liệu
+              </Button>
+            ) : null}
+          </DetailPageActions>
         </div>
       </div>
 
@@ -186,7 +188,12 @@ export function DocumentDetailDialog({
                   Phòng ban sở hữu
                 </span>
                 <span className="block truncate text-sm font-semibold text-foreground">
-                  {document.departmentName || "Không có phòng ban"}
+                  {document.departmentName
+                    ? labelOfDepartment(
+                        document.departmentId,
+                        document.departmentName
+                      )
+                    : "Không có phòng ban"}
                 </span>
               </div>
             </div>
@@ -334,6 +341,25 @@ export function DocumentDetailDialog({
           />
         </CardContent>
       </Card>
+
+      <DetailPageActions onBack={handleBack}>
+        {onReprocess && document?.status === "COMPLETED" ? (
+          <Button
+            onClick={() => onReprocess(document)}
+            type="button"
+            variant="outline"
+          >
+            <RotateCcw className="mr-2 size-4" />
+            Chunk & embed lại
+          </Button>
+        ) : null}
+        {canUpdate ? (
+          <Button onClick={handleEdit} type="button">
+            <Pencil className="mr-2 size-4" />
+            Chỉnh sửa tài liệu
+          </Button>
+        ) : null}
+      </DetailPageActions>
     </div>
   )
 }

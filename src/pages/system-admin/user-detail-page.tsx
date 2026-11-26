@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom"
 
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { adminUserEditPath, ROUTES } from "@/constants/paths"
 import { UserDetailDialog } from "@/features/users/components/user-detail-dialog"
@@ -23,9 +24,18 @@ export function UserDetailPage() {
 
   if (!user) {
     return (
-      <p className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive">
-        Không tìm thấy người dùng.
-      </p>
+      <div className="space-y-4">
+        <p className="rounded-lg border border-destructive/20 bg-destructive/8 px-3 py-2.5 text-sm text-destructive">
+          Không tìm thấy người dùng.
+        </p>
+        <Button
+          onClick={() => navigate(ROUTES.adminUsers)}
+          type="button"
+          variant="outline"
+        >
+          Quay lại
+        </Button>
+      </div>
     )
   }
 

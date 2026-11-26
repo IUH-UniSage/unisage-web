@@ -9,6 +9,7 @@ import { DepartmentList } from "@/features/departments/components/department-lis
 import { DepartmentRecoverDialog } from "@/features/departments/components/department-recover-dialog"
 import { DepartmentStatusDialog } from "@/features/departments/components/department-status-dialog"
 import { useDepartmentDashboard } from "@/features/departments/hooks/use-department-dashboard"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 
 export function DepartmentDashboard() {
@@ -120,7 +121,7 @@ export function DepartmentDashboard() {
             if (!open) dashboard.closeStatusDialog()
           }}
           onRecover={dashboard.confirmStatusChange}
-          subject={dashboard.statusDepartment.name}
+          subject={departmentLabel(dashboard.statusDepartment)}
         />
       ) : dashboard.statusDepartment ? (
         <DepartmentStatusDialog

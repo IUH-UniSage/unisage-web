@@ -1,14 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMemo } from "react"
-import {
-  FileText,
-  Folder,
-  Globe,
-  Loader2,
-  Save,
-  UploadCloud,
-  X,
-} from "lucide-react"
+import { FileText, Folder, Globe, UploadCloud, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 // TODO(url-source): re-enable when the "Dán đường dẫn URL" flow is
@@ -37,6 +29,7 @@ import { ToggleOptionCard } from "@/components/shared/form/toggle-option-card"
 import { useAccessLevelsQuery } from "@/features/access-level/queries/use-queries"
 import { useCategoriesQuery } from "@/features/categories/queries/use-queries"
 import { useDepartmentsQuery } from "@/features/departments/queries/use-queries"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import { flattenDepartmentTreeWithDepth } from "@/features/departments/utils/tree"
 import { DocumentFilePreview } from "@/components/shared/document-file-preview"
 import { useAllowedFileExtensions } from "@/features/documents/hooks/use-allowed-file-extensions"
@@ -47,6 +40,7 @@ import {
   type DocumentFormValues,
 } from "@/features/documents/schemas/document-schemas"
 import { applyFieldErrors, getErrorMessage } from "@/utils/error-handler"
+import { FormPageActions } from "@/components/shared/page/page-actions"
 
 type DocumentDialogProps = {
   document?: Document
@@ -158,29 +152,14 @@ export function DocumentDialog({
 
         <div
           {...tourAnchor(TOUR_ANCHORS.pageActions)}
-          className="flex items-center gap-3 self-end sm:self-center"
+          className="self-end sm:self-center"
         >
-          <Button
-            disabled={isBusy}
-            onClick={handleCancel}
-            type="button"
-            variant="outline"
-          >
-            Hủy
-          </Button>
-          <Button disabled={isBusy} form="document-form" type="submit">
-            {isBusy ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                {isEdit ? "Lưu thay đổi" : "Tạo tài liệu"}
-              </>
-            )}
-          </Button>
+          <FormPageActions
+            formId="document-form"
+            isBusy={isBusy}
+            onCancel={handleCancel}
+            submitLabel={isEdit ? "Lưu thay đổi" : "Tạo tài liệu"}
+          />
         </div>
       </div>
 
@@ -562,7 +541,7 @@ export function DocumentDialog({
                     {flatDepartments.map((department) => (
                       <SelectItem key={department.id} value={department.id}>
                         {"— ".repeat(department.depth)}
-                        {department.name}
+                        {departmentLabel(department)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -652,29 +631,13 @@ export function DocumentDialog({
         {/* Bottom Actions */}
         <div
           {...tourAnchor(TOUR_ANCHORS.formFooterActions)}
-          className="flex items-center justify-end gap-3 border-t pt-4"
+          className="border-t pt-4"
         >
-          <Button
-            disabled={isBusy}
-            onClick={handleCancel}
-            type="button"
-            variant="outline"
-          >
-            Hủy
-          </Button>
-          <Button disabled={isBusy} type="submit">
-            {isBusy ? (
-              <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 size-4" />
-                {isEdit ? "Lưu thay đổi" : "Tạo tài liệu"}
-              </>
-            )}
-          </Button>
+          <FormPageActions
+            isBusy={isBusy}
+            onCancel={handleCancel}
+            submitLabel={isEdit ? "Lưu thay đổi" : "Tạo tài liệu"}
+          />
         </div>
       </form>
     </div>

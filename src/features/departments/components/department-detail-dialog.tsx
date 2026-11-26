@@ -19,6 +19,7 @@ import type {
   Department,
   DepartmentNode,
 } from "@/features/departments/schemas/department-schemas"
+import { departmentLabel } from "@/features/departments/utils/department-label"
 import {
   findDepartmentNode,
   getDepthLevelStyle,
@@ -62,7 +63,8 @@ export function DepartmentDetailDialog({
 
   const parentName = useMemo(() => {
     if (!department?.parentId) return undefined
-    return findDepartmentNode(tree, department.parentId)?.name
+    const parent = findDepartmentNode(tree, department.parentId)
+    return parent ? departmentLabel(parent) : undefined
   }, [tree, department])
 
   if (!department) return null
@@ -78,7 +80,7 @@ export function DepartmentDetailDialog({
         <DialogHeader {...tourAnchor(TOUR_ANCHORS.dialogHeader)}>
           <div className="flex items-center gap-2">
             <DialogTitle className="truncate text-lg">
-              {department.name}
+              {departmentLabel(department)}
             </DialogTitle>
             <EntityStatusBadge isActive={isActive} />
           </div>
@@ -86,6 +88,10 @@ export function DepartmentDetailDialog({
             <Badge variant="outline" className={depthStyle.badge}>
               {depthStyle.label}
             </Badge>
+            {/* The code (`name`) is what the admin edits in the form - kept visible here. */}
+            <span className="font-mono text-xs text-muted-foreground">
+              Mã: {department.name}
+            </span>
             {parentName ? (
               <span className="truncate text-xs text-muted-foreground">
                 Trực thuộc:{" "}
@@ -136,7 +142,7 @@ export function DepartmentDetailDialog({
                     className="flex items-center justify-between px-3 py-2 text-xs"
                   >
                     <span className="truncate font-medium text-foreground">
-                      {child.name}
+                      {departmentLabel(child)}
                     </span>
                     <EntityStatusBadge isActive={child.isActive ?? true} />
                   </div>
