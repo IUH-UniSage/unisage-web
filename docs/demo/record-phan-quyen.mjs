@@ -10,6 +10,8 @@ import path from "node:path"
 
 import { chromium } from "@playwright/test"
 
+import { secret } from "./lib/demo-kit.mjs"
+
 const BASE = "http://localhost:5173"
 const API = "http://localhost:8400/api/v1/master"
 const OUT = path.resolve(process.argv[2] ?? "output/demo")
@@ -17,10 +19,10 @@ const LOGO_FILE = process.argv[3] ?? "/home/huy/Main/image.png"
 const LOGO = `data:image/png;base64,${fs.readFileSync(LOGO_FILE).toString("base64")}`
 
 const ACCOUNTS = {
-  cnpmL0: ["TST-CNPM-L0", "Test@2026"],
-  cnpmL2: ["TST-CNPM-L2", "Test@2026"],
-  ktL5: ["TST-KT-L5", "Test@2026"],
-  admin: ["SA-001", "123123"],
+  cnpmL0: ["TST-CNPM-L0", secret("DEMO_TEST_PASSWORD")],
+  cnpmL2: ["TST-CNPM-L2", secret("DEMO_TEST_PASSWORD")],
+  ktL5: ["TST-KT-L5", secret("DEMO_TEST_PASSWORD")],
+  admin: ["SA-001", secret("DEMO_ADMIN_PASSWORD")],
 }
 // A2 - Quy chế chấm khóa luận BM CNPM (cấp tối thiểu 2).
 const DOC_A2 = "25546455-fd87-4dfc-88c3-3e7444029a9d"

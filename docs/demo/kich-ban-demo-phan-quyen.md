@@ -24,13 +24,13 @@ Khi không có quyền, UniSage **không dùng** tài liệu đó để trả l�
 
 ## 2. Nhân vật và tài liệu dùng trong video
 
-| Tài khoản     | Mật khẩu          | Đơn vị                    | Cấp        | Vai trò trong video                 |
-| ------------- | ----------------- | ------------------------- | ---------- | ----------------------------------- |
-| Khách         | (không đăng nhập) | –                         | –          | Chỉ xem được tài liệu công khai     |
-| `TST-CNPM-L0` | `Test@2026`       | Bộ môn Công nghệ Phần mềm | 0          | Giảng viên mới của bộ môn           |
-| `TST-CNPM-L2` | `Test@2026`       | Bộ môn Công nghệ Phần mềm | 2          | Giảng viên được giao chấm khóa luận |
-| `TST-KT-L5`   | `Test@2026`       | Bộ môn Kế toán            | 5          | Cấp cao nhất nhưng ở bộ môn khác    |
-| `SA-001`      | `123123`          | Tất cả                    | Toàn quyền | Chỉ dùng ở cảnh 9 (tùy chọn)        |
+| Tài khoản     | Mật khẩu (biến trong `.env.local`) | Đơn vị                    | Cấp        | Vai trò trong video                 |
+| ------------- | ---------------------------------- | ------------------------- | ---------- | ----------------------------------- |
+| Khách         | (không đăng nhập)                  | –                         | –          | Chỉ xem được tài liệu công khai     |
+| `TST-CNPM-L0` | `DEMO_TEST_PASSWORD`               | Bộ môn Công nghệ Phần mềm | 0          | Giảng viên mới của bộ môn           |
+| `TST-CNPM-L2` | `DEMO_TEST_PASSWORD`               | Bộ môn Công nghệ Phần mềm | 2          | Giảng viên được giao chấm khóa luận |
+| `TST-KT-L5`   | `DEMO_TEST_PASSWORD`               | Bộ môn Kế toán            | 5          | Cấp cao nhất nhưng ở bộ môn khác    |
+| `SA-001`      | `DEMO_ADMIN_PASSWORD`              | Tất cả                    | Toàn quyền | Chỉ dùng ở cảnh 9 (tùy chọn)        |
 
 | Mã  | Tài liệu                                                   | Đơn vị                   | Công khai | Cấp tối thiểu |
 | --- | ---------------------------------------------------------- | ------------------------ | --------- | ------------- |

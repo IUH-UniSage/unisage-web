@@ -12,13 +12,33 @@ import { chromium } from "@playwright/test"
 export const BASE = "http://localhost:5173"
 export const API = "http://localhost:8400/api/v1/master"
 
+const WEB_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../..")
+
+/**
+ * A secret for the demo scripts: the environment first, else unisage-web's .env.local / .env
+ * (both git-ignored). Passwords are never written into these scripts.
+ */
+export function secret(name) {
+  if (process.env[name]) return process.env[name]
+  for (const file of [".env.local", ".env"]) {
+    const full = path.join(WEB_ROOT, file)
+    if (!fs.existsSync(full)) continue
+    const match = fs.readFileSync(full, "utf8").match(new RegExp(`^${name}=(.*)$`, "m"))
+    const value = match?.[1]?.trim().replace(/^["']|["']$/g, "")
+    if (value) return value
+  }
+  throw new Error(`${name} is not set (environment, .env.local or .env of unisage-web)`)
+}
+
+// Local test-lab accounts (passwords in .env.local: DEMO_TEST_PASSWORD, DEMO_ADMIN_PASSWORD).
+const TEST_PASSWORD = secret("DEMO_TEST_PASSWORD")
 export const ACCOUNTS = {
-  cnpmL0: ["TST-CNPM-L0", "Test@2026"],
-  cnpmL1: ["TST-CNPM-L1", "Test@2026"],
-  cnpmL2: ["TST-CNPM-L2", "Test@2026"],
-  cnpmL3: ["TST-CNPM-L3", "Test@2026"],
-  ktL5: ["TST-KT-L5", "Test@2026"],
-  admin: ["SA-001", "123123"],
+  cnpmL0: ["TST-CNPM-L0", TEST_PASSWORD],
+  cnpmL1: ["TST-CNPM-L1", TEST_PASSWORD],
+  cnpmL2: ["TST-CNPM-L2", TEST_PASSWORD],
+  cnpmL3: ["TST-CNPM-L3", TEST_PASSWORD],
+  ktL5: ["TST-KT-L5", TEST_PASSWORD],
+  admin: ["SA-001", secret("DEMO_ADMIN_PASSWORD")],
 }
 
 const t0 = Date.now()
