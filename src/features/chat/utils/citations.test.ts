@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest"
 
 import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
 import {
+  distinctTitles,
   groupCitationsByDocument,
   markerNumbers,
   latestCitations,
+  stripTrailingSourceLine,
+  thinCitationMarkers,
   webCitationUrl,
 } from "@/features/chat/utils/citations"
 
@@ -142,5 +145,102 @@ describe("web-search citations", () => {
     expect(
       webCitationUrl(citation({ url: "https://pdt.iuh.edu.vn/x" }))
     ).toBeNull()
+  })
+})
+
+describe("thinCitationMarkers", () => {
+  const numbers = { 1: 1, 2: 1, 3: 2 }
+
+  it("moves a list's shared sources onto the line that introduces it", () => {
+    const content =
+      "Các điều kiện như sau:\n\n- Ý một [1].\n- Ý hai [2].\n- Ý ba [1]."
+    expect(thinCitationMarkers(content, numbers)).toBe(
+      "Các điều kiện như sau [1, 2]:\n\n- Ý một.\n- Ý hai.\n- Ý ba."
+    )
+  })
+
+  it("keeps each item's marker when nothing introduces the list", () => {
+    const content = "- Ý một [1].\n- Ý hai [1]."
+    expect(thinCitationMarkers(content, numbers)).toBe(content)
+  })
+
+  it("keeps markers when items cite different documents", () => {
+    const content = "Gồm:\n- Ý một [1].\n- Ý hai [3]."
+    expect(thinCitationMarkers(content, numbers)).toBe(content)
+  })
+
+  it("drops a repeated number within a line, keeping its last marker", () => {
+    expect(thinCitationMarkers("Câu A [1], câu B [2] và C [3].", numbers)).toBe(
+      "Câu A, câu B [2] và C [3]."
+    )
+  })
+
+  it("leaves tables, plain paragraphs and links alone", () => {
+    const content =
+      "Đoạn một [1].\nĐoạn hai [1].\n| a | 1 [1] |\n| b | 2 [1] |\n[Xem](https://x.vn) [1]"
+    expect(thinCitationMarkers(content, numbers)).toBe(content)
+  })
+})
+
+describe("stripTrailingSourceLine", () => {
+  it("drops a final model-written source line", () => {
+    expect(
+      stripTrailingSourceLine(
+        "Trả lời [1].\n\n**Nguồn:** Quy chế đào tạo, tr. 3"
+      )
+    ).toBe("Trả lời [1].")
+  })
+
+  it("drops a source label with a list of documents under it", () => {
+    expect(
+      stripTrailingSourceLine(
+        "Trả lời [1].\n\nNguồn tham khảo:\n- Quy chế đào tạo\n- Thông báo học phí"
+      )
+    ).toBe("Trả lời [1].")
+  })
+
+  it("drops a closing aside about where the answer came from", () => {
+    expect(
+      stripTrailingSourceLine(
+        "- Ý một [1].\n\n*(Mọi mục trên được trích từ các bản mô tả chương trình đào tạo.)*"
+      )
+    ).toBe("- Ý một [1].")
+  })
+
+  it("keeps a last line that starts with the label but cites a source", () => {
+    const content = "Có hai khoản.\nNguồn: quỹ học bổng của trường [1]."
+    expect(stripTrailingSourceLine(content)).toBe(content)
+  })
+
+  it("keeps a sentence that only starts with the word", () => {
+    const content = "Trả lời.\nNguồn gốc quy định là Bộ GD&ĐT [1]."
+    expect(stripTrailingSourceLine(content)).toBe(content)
+  })
+
+  it("keeps the grounding note lines and ordinary asides", () => {
+    const grounding = "Trả lời.\n\n> Nguồn của 930.000: [1]."
+    expect(stripTrailingSourceLine(grounding)).toBe(grounding)
+    const aside = "Trả lời [1].\n(Áp dụng từ học kỳ 1 năm 2026.)"
+    expect(stripTrailingSourceLine(aside)).toBe(aside)
+  })
+})
+
+describe("distinctTitles", () => {
+  const group = (key: string, title: string) =>
+    groupCitationsByDocument([
+      citation({ documentId: key, index: 1, title }),
+    ])[0]
+
+  it("keeps what differs when titles start the same", () => {
+    const groups = [
+      group("a", "Bản mô tả chương trình đào tạo ngành Kỹ thuật phần mềm"),
+      group("b", "Bản mô tả chương trình đào tạo ngành Khoa học máy tính"),
+      group("c", "Quy chế đào tạo"),
+    ]
+    expect(distinctTitles(groups)).toEqual({
+      a: "… ngành Kỹ thuật phần mềm",
+      b: "… ngành Khoa học máy tính",
+      c: "Quy chế đào tạo",
+    })
   })
 })

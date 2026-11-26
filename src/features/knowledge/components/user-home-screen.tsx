@@ -3,6 +3,7 @@ import {
   ArrowRight,
   BookMarked,
   CalendarDays,
+  CircleCheck,
   FileQuestion,
   GraduationCap,
   MessageSquareText,
@@ -47,6 +48,12 @@ const quickLinks: QuickLink[] = [
     icon: FileQuestion,
     label: "Yêu cầu hỗ trợ",
   },
+]
+
+const verifySteps = [
+  "Bấm số trích dẫn để mở đúng trang tài liệu",
+  "Tải văn bản gốc về máy",
+  "Báo cáo nếu câu trả lời chưa đúng",
 ]
 
 const suggestions = [
@@ -107,6 +114,7 @@ export function UserHomePage() {
               value={question}
             />
             <Button
+              aria-label="Gửi câu hỏi"
               className="size-10 shrink-0 rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90"
               disabled={!question.trim()}
               size="icon"
@@ -167,15 +175,7 @@ export function UserHomePage() {
                 className="group relative overflow-hidden border bg-card shadow-none transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg dark:border-white/[0.06] dark:bg-card dark:hover:border-primary/30 dark:hover:bg-muted"
                 key={item.label}
               >
-                <div
-                  className={
-                    index === 0
-                      ? "absolute inset-x-0 top-0 h-1 bg-primary"
-                      : index === 1
-                        ? "absolute inset-x-0 top-0 h-1 bg-knowledge"
-                        : "absolute inset-x-0 top-0 h-1 bg-info"
-                  }
-                />
+                <div className="absolute inset-x-0 top-0 h-1 bg-primary dark:bg-info" />
                 <CardContent className="p-6">
                   <div className="mb-5 grid size-11 place-items-center rounded-xl bg-secondary text-primary dark:text-info">
                     <Icon aria-hidden="true" className="size-5" />
@@ -214,6 +214,26 @@ export function UserHomePage() {
                 UniSage hiển thị tài liệu tham chiếu và đoạn trích liên quan để
                 bạn kiểm chứng thông tin học vụ trước khi đưa ra quyết định.
               </p>
+              <ul className="mt-5 grid max-w-xl gap-2 text-sm text-white/85 sm:grid-cols-3">
+                {verifySteps.map((step) => (
+                  <li className="flex items-start gap-2" key={step}>
+                    <CircleCheck
+                      aria-hidden="true"
+                      className="mt-0.5 size-4 shrink-0 text-info"
+                    />
+                    {step}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                asChild
+                className="mt-6 bg-white text-primary hover:bg-white/90"
+              >
+                <Link to={ROUTES.chat}>
+                  Đặt câu hỏi cho UniSage
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+              </Button>
             </CardContent>
           </Card>
 

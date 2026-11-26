@@ -127,8 +127,8 @@ describe("SharedLinksPage", () => {
       await screen.findByText("Bạn chưa chia sẻ liên kết nào")
     ).toBeInTheDocument()
     expect(
-      screen.getByRole("button", { name: "Thu hồi tất cả" })
-    ).toBeDisabled()
+      screen.queryByRole("button", { name: "Thu hồi tất cả" })
+    ).not.toBeInTheDocument()
   })
 
   it("opens the original conversation from the title", async () => {

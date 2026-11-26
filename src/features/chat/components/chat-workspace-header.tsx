@@ -46,7 +46,9 @@ export function MobileChatHeader({
           </Button>
         </SheetTrigger>
         <SheetContent
-          className="w-[88vw] max-w-[320px] gap-0 p-0"
+          // Full screen on a phone (the list needs the whole width to be usable),
+          // a side panel from tablet width up.
+          className="gap-0 border-r-0 p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] data-[side=left]:w-full data-[side=left]:sm:max-w-sm data-[side=left]:sm:border-r"
           showCloseButton={false}
           side="left"
         >

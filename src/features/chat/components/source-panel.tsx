@@ -10,8 +10,12 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import type { Citation } from "@/features/chat/schemas/chat-schemas"
-import { groupCitationsByDocument } from "@/features/chat/utils/citations"
+import {
+  distinctTitles,
+  groupCitationsByDocument,
+} from "@/features/chat/utils/citations"
 
 type SourcePanelProps = {
   citations: Citation[]
@@ -27,9 +31,13 @@ export function SourcePanel({
   width = 280,
 }: SourcePanelProps) {
   const groups = groupCitationsByDocument(citations)
+  const labels = distinctTitles(groups)
 
   return (
     <aside
+      // Desktop has no source chips under the reply: the reply tour's sources step
+      // points here instead (the first visible anchor wins).
+      {...tourAnchor(TOUR_ANCHORS.chatReplyCitations)}
       className="hidden min-h-0 shrink-0 flex-col overflow-hidden border-l border-border/60 bg-muted/30 backdrop-blur-xs xl:flex dark:border-white/[0.08] dark:bg-muted/10"
       style={{ width: `${width}px` }}
     >
@@ -78,6 +86,7 @@ export function SourcePanel({
               className="group relative flex w-full flex-col gap-2 rounded-xl border border-border/70 bg-card p-3.5 text-left shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md dark:border-border/50 dark:bg-card/70 dark:hover:border-primary/50 dark:hover:bg-card"
               key={group.key}
               onClick={() => onOpenCitation(group.first)}
+              title={group.first.title}
               type="button"
             >
               {/* Header row: Badge + Title + Arrow */}
@@ -86,8 +95,9 @@ export function SourcePanel({
                   <div className="grid size-6 shrink-0 place-items-center rounded-md bg-primary/10 font-mono text-xs font-bold text-primary ring-1 ring-primary/20 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     {position + 1}
                   </div>
+                  {/* Titles that start the same lead with what differs (the programme…). */}
                   <p className="line-clamp-2 text-xs leading-snug font-semibold tracking-tight break-words text-foreground transition-colors group-hover:text-primary">
-                    {group.first.title}
+                    {labels[group.key]}
                   </p>
                 </div>
                 {group.site ? (

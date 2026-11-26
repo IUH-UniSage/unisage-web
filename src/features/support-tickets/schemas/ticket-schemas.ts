@@ -11,10 +11,22 @@ export const ticketTypeSchema = z.enum([
   "AI_INAPPROPRIATE",
   "OTHER",
   "AI_CALCULATION_WRONG",
+  "GENERAL_QUESTION",
+  "ACCOUNT_ISSUE",
 ])
-// AI_CALCULATION_WRONG is filed by the calculation feedback flow only - POST /tickets rejects it.
+// A request not tied to a chat answer ("Tạo yêu cầu" on the support page): the
+// backend accepts only these types without a message, and refuses them with one.
+export const generalTicketTypeSchema = ticketTypeSchema.extract([
+  "GENERAL_QUESTION",
+  "ACCOUNT_ISSUE",
+  "OTHER",
+])
+// Reporting one answer. AI_CALCULATION_WRONG is filed by the calculation feedback
+// flow only - POST /tickets rejects it.
 export const reportableTicketTypeSchema = ticketTypeSchema.exclude([
   "AI_CALCULATION_WRONG",
+  "GENERAL_QUESTION",
+  "ACCOUNT_ISSUE",
 ])
 export const ticketStatusSchema = z.enum([
   "OPEN",
@@ -27,11 +39,13 @@ export type TicketType = z.infer<typeof ticketTypeSchema>
 export type TicketStatus = z.infer<typeof ticketStatusSchema>
 
 export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
+  ACCOUNT_ISSUE: "Tài khoản và đăng nhập",
   AI_CALCULATION_WRONG: "AI tính sai theo quy chế",
   AI_INAPPROPRIATE: "Nội dung không phù hợp",
   AI_SECURITY_BREACH: "Nghi ngờ lộ thông tin bảo mật",
   AI_SYSTEM_ERROR: "AI trả lời sai hoặc lỗi hệ thống",
   AI_UNANSWERED: "AI không trả lời được",
+  GENERAL_QUESTION: "Hỏi đáp chung",
   OTHER: "Khác",
 }
 
@@ -49,7 +63,8 @@ export const ticketSchema = z.object({
   createdAt: z.string().nullish(),
   description: z.string(),
   id: z.uuid(),
-  messageId: z.uuid(),
+  // Null for a general request made from the support page (no chat answer).
+  messageId: z.uuid().nullish(),
   resolution: z.string().nullish(),
   status: ticketStatusSchema,
   title: z.string(),
@@ -105,7 +120,7 @@ export type TicketWebSource = z.infer<typeof ticketWebSourceSchema>
 export const ticketDetailSchema = ticketSchema.extend({
   citations: z.array(citationSchema).nullish().catch(null),
   contextChunks: z.array(ticketContextChunkSchema).nullish().catch(null),
-  conversationId: z.uuid(),
+  conversationId: z.uuid().nullish(),
   messageContent: z.string().nullish(),
   questionContent: z.string().nullish(),
   traceId: z.string().nullish(),
@@ -133,12 +148,19 @@ export const updateTicketRequestSchema = z.object({
 
 export type UpdateTicketRequest = z.infer<typeof updateTicketRequestSchema>
 
-export const createTicketRequestSchema = z.object({
-  description: z.string(),
-  messageId: z.uuid(),
-  title: z.string(),
-  type: reportableTicketTypeSchema,
-})
+export const createTicketRequestSchema = z.union([
+  z.object({
+    description: z.string(),
+    messageId: z.uuid(),
+    title: z.string(),
+    type: reportableTicketTypeSchema,
+  }),
+  z.object({
+    description: z.string(),
+    title: z.string(),
+    type: generalTicketTypeSchema,
+  }),
+])
 
 export type CreateTicketRequest = z.infer<typeof createTicketRequestSchema>
 
@@ -164,3 +186,12 @@ export const createTicketFormSchema = z.object({
 })
 
 export type CreateTicketFormValues = z.infer<typeof createTicketFormSchema>
+
+// "Tạo yêu cầu" on the support page: same fields, the general types only.
+export const createGeneralTicketFormSchema = createTicketFormSchema.extend({
+  type: generalTicketTypeSchema,
+})
+
+export type CreateGeneralTicketFormValues = z.infer<
+  typeof createGeneralTicketFormSchema
+>

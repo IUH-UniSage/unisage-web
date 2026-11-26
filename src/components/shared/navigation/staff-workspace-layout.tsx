@@ -1,8 +1,9 @@
-import { Bell, Menu, Search, X } from "lucide-react"
+import { Menu, Search, X } from "lucide-react"
 import type { ReactNode } from "react"
 import { useState } from "react"
 import { Outlet, useLocation } from "react-router-dom"
 
+import { ChatAssistantBubble } from "@/components/shared/navigation/chat-assistant-bubble"
 import {
   StaffSidebar,
   type StaffWorkspace,
@@ -95,14 +96,6 @@ export function StaffWorkspaceLayout({
             </Button>
             <ProductTourButton pathname={pathname} workspace={workspace} />
             <ThemeToggle />
-            <Button
-              aria-label="Thông báo"
-              className="hidden sm:inline-flex"
-              size="icon"
-              variant="ghost"
-            >
-              <Bell aria-hidden="true" />
-            </Button>
             <UserAccountMenu />
           </div>
           {isMobileSearchOpen ? (
@@ -121,6 +114,8 @@ export function StaffWorkspaceLayout({
           <Outlet />
         </main>
       </div>
+
+      <ChatAssistantBubble />
     </div>
   )
 }

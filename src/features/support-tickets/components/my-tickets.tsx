@@ -1,8 +1,9 @@
-import { LifeBuoy } from "lucide-react"
+import { LifeBuoy, Plus } from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 
 import { Pagination } from "@/components/shared/list/pagination"
+import { Button } from "@/components/ui/button"
 import { SearchEmpty } from "@/components/shared/list/search-empty"
 import {
   Card,
@@ -19,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ticketDetailPath } from "@/constants/paths"
+import { ticketDetailPath, ticketNewPath } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { TicketStatusBadge } from "@/features/support-tickets/components/ticket-status-badge"
 import { useMyTicketsQuery } from "@/features/support-tickets/queries/use-queries"
@@ -29,6 +30,11 @@ import {
   ticketStatusSchema,
   type TicketStatus,
 } from "@/features/support-tickets/schemas/ticket-schemas"
+import {
+  ownerTicketDescription,
+  ownerTicketTitle,
+  ticketSummary,
+} from "@/features/support-tickets/utils/owner-ticket-text"
 import { formatAuditDate } from "@/utils/date-format"
 import { getErrorMessage } from "@/utils/error-handler"
 
@@ -58,7 +64,7 @@ export function MyTickets() {
             <LifeBuoy aria-hidden="true" className="size-6 sm:size-7" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-white/80">Hỗ trợ sinh viên</p>
+            <p className="text-xs text-white/80">Hỗ trợ</p>
             <h1 className="text-xl font-bold text-white sm:truncate sm:text-2xl">
               Yêu cầu hỗ trợ của tôi
             </h1>
@@ -67,6 +73,16 @@ export function MyTickets() {
             </p>
           </div>
         </div>
+
+        <Button
+          asChild
+          className="shrink-0 bg-white text-primary hover:bg-white/90"
+        >
+          <Link to={ticketNewPath()}>
+            <Plus aria-hidden="true" className="mr-1 size-4" />
+            Tạo yêu cầu
+          </Link>
+        </Button>
       </div>
 
       <Card className="border bg-card shadow-none">
@@ -120,7 +136,7 @@ export function MyTickets() {
             </p>
           ) : tickets.length === 0 ? (
             <SearchEmpty
-              description="Bạn có thể báo cáo một câu trả lời của trợ lý bằng biểu tượng lá cờ dưới câu trả lời trong khung chat."
+              description="Bấm “Tạo yêu cầu” để gửi câu hỏi tới nhà trường, hoặc báo một câu trả lời sai của trợ lý bằng biểu tượng lá cờ dưới câu trả lời đó."
               title={
                 status
                   ? "Không có yêu cầu nào ở trạng thái này"
@@ -137,12 +153,12 @@ export function MyTickets() {
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <p className="min-w-0 flex-1 font-semibold break-words">
-                        {ticket.title}
+                        {ownerTicketTitle(ticket)}
                       </p>
                       <TicketStatusBadge status={ticket.status} />
                     </div>
                     <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                      {ticket.description}
+                      {ticketSummary(ownerTicketDescription(ticket))}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">
                       {TICKET_TYPE_LABELS[ticket.type]} ·{" "}

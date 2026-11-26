@@ -1,7 +1,10 @@
 import { FileText, Globe } from "lucide-react"
 
 import type { Citation } from "@/features/chat/schemas/chat-schemas"
-import { groupCitationsByDocument } from "@/features/chat/utils/citations"
+import {
+  distinctTitles,
+  groupCitationsByDocument,
+} from "@/features/chat/utils/citations"
 
 type CitationChipsProps = {
   citations: Citation[]
@@ -15,6 +18,7 @@ export function CitationChips({
 }: CitationChipsProps) {
   const groups = groupCitationsByDocument(citations)
   if (!groups.length) return null
+  const labels = distinctTitles(groups)
 
   return (
     <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -26,6 +30,7 @@ export function CitationChips({
             className="flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-left text-xs text-foreground transition-colors hover:border-primary/40 hover:bg-muted"
             key={group.key}
             onClick={() => onOpenCitation(group.first)}
+            title={group.first.title}
             type="button"
           >
             <SourceIcon
@@ -35,7 +40,7 @@ export function CitationChips({
             <span className="shrink-0 font-semibold text-primary">
               {position + 1}
             </span>
-            <span className="truncate">{group.first.title}</span>
+            <span className="truncate">{labels[group.key]}</span>
             {group.pages || group.site ? (
               <span className="shrink-0 text-muted-foreground">
                 {group.pages ?? group.site}

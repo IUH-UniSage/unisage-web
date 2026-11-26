@@ -215,7 +215,7 @@ export const CLIENT_OVERVIEW_STOPS: readonly OverviewStop[] = [
       fieldStep(
         TOUR_ANCHORS.userNav,
         "Điều hướng",
-        "Chuyển nhanh giữa Trợ lý UniSage, Thư viện tri thức và Hỗ trợ sinh viên."
+        "Chuyển nhanh giữa Trợ lý UniSage, Thư viện tri thức và Hỗ trợ."
       ),
       fieldStep(
         TOUR_ANCHORS.userMobileMenu,

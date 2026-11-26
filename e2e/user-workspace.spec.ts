@@ -209,7 +209,7 @@ test("links only to supported user workspaces", async ({ page }, testInfo) => {
     navigation.getByRole("link", { name: "Thư viện tri thức" })
   ).toHaveAttribute("href", "/knowledge")
   await expect(
-    navigation.getByRole("link", { name: "Hỗ trợ sinh viên" })
+    navigation.getByRole("link", { name: "Hỗ trợ", exact: true })
   ).toHaveAttribute("href", "/tickets")
 })
 
@@ -230,9 +230,9 @@ test("opens the mobile navigation drawer", async ({ page }, testInfo) => {
     drawer.getByRole("link", { name: "Thư viện tri thức" })
   ).toBeVisible()
   await expect(
-    drawer.getByRole("link", { name: "Hỗ trợ sinh viên" })
+    drawer.getByRole("link", { name: "Hỗ trợ", exact: true })
   ).toBeVisible()
-  await expect(drawer.getByRole("link", { name: "Thông báo" })).toBeVisible()
+  await expect(drawer.getByRole("link", { name: "Thông báo" })).toHaveCount(0)
   await expect(
     drawer.getByRole("link", { name: "Hồ sơ và quyền truy cập" })
   ).toBeVisible()

@@ -27,6 +27,7 @@ import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { ChangePasswordDialog } from "@/features/profile/components/change-password-dialog"
 import { ProfileInfoItem } from "@/features/profile/components/profile-info-item"
 import {
+  formatPhoneNumber,
   getProfileAccessLevelLabel,
   getProfileFullName,
   getProfileGenderLabel,
@@ -115,7 +116,7 @@ export function AdminProfile({ me }: { me: AppUser }) {
             <ProfileInfoItem
               icon={Phone}
               label="Số điện thoại"
-              value={me.phone || "Chưa cập nhật"}
+              value={formatPhoneNumber(me.phone)}
             />
             <ProfileInfoItem
               icon={Users}

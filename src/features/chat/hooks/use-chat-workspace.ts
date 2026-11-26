@@ -16,6 +16,7 @@ import {
   useCreateConversationMutation,
   useDeleteAllConversationsMutation,
   useDeleteConversationMutation,
+  usePinConversationMutation,
 } from "@/features/chat/queries/use-mutations"
 import {
   useConversationsQuery,
@@ -132,6 +133,7 @@ export function useChatWorkspace() {
   const deleteConversationMutation = useDeleteConversationMutation(userId)
   const deleteAllConversationsMutation =
     useDeleteAllConversationsMutation(userId)
+  const pinConversationMutation = usePinConversationMutation(userId)
 
   const conversations = conversationsQuery.data ?? []
   const messages = messagesQuery.data ?? []
@@ -604,6 +606,14 @@ export function useChatWorkspace() {
     }
   }
 
+  // Signed-in users only (the endpoint is owner-only; guests have no pin).
+  const togglePinConversation = (conversation: Conversation) => {
+    pinConversationMutation.mutate({
+      conversationId: conversation.id,
+      pinned: !conversation.pinnedAt,
+    })
+  }
+
   const openPanel = deriveOpenPanel(messages)
 
   return {
@@ -636,6 +646,7 @@ export function useChatWorkspace() {
     setSearchQuery,
     startNewConversation,
     stopGenerating,
+    togglePinConversation,
     turnProgress: turnProgress.progress,
   }
 }

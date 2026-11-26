@@ -154,15 +154,17 @@ export function SharedLinks() {
               qua liên kết; bản sao người khác đã tạo không bị ảnh hưởng.
             </CardDescription>
           </div>
-          <Button
-            className="w-full sm:w-auto"
-            disabled={!data?.totalItems}
-            onClick={() => setPendingRevoke({ kind: "all" })}
-            variant="outline"
-          >
-            <Trash2 aria-hidden="true" />
-            Thu hồi tất cả
-          </Button>
+          {/* Nothing to revoke: no button (on a phone it took a whole row). */}
+          {data?.totalItems ? (
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => setPendingRevoke({ kind: "all" })}
+              variant="outline"
+            >
+              <Trash2 aria-hidden="true" />
+              Thu hồi tất cả
+            </Button>
+          ) : null}
         </CardHeader>
         <CardContent className="space-y-4">
           {isPending ? (

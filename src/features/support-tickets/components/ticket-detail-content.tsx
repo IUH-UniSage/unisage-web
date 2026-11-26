@@ -61,21 +61,26 @@ export function TicketDetailContent({
         <p className="break-words whitespace-pre-wrap">{ticket.description}</p>
       </Block>
 
-      <Block title="Câu hỏi của người dùng">
-        {ticket.questionContent ? (
-          <p className="break-words whitespace-pre-wrap">
-            {ticket.questionContent}
-          </p>
-        ) : (
-          <p className="text-muted-foreground italic">Không xác định.</p>
-        )}
-      </Block>
+      {/* A general request from the support page is not about a chat answer. */}
+      {ticket.messageId ? (
+        <>
+          <Block title="Câu hỏi của người dùng">
+            {ticket.questionContent ? (
+              <p className="break-words whitespace-pre-wrap">
+                {ticket.questionContent}
+              </p>
+            ) : (
+              <p className="text-muted-foreground italic">Không xác định.</p>
+            )}
+          </Block>
 
-      <Block title="Câu trả lời được báo cáo">
-        <div className="max-h-56 overflow-y-auto">
-          <MarkdownRenderer content={ticket.messageContent ?? ""} />
-        </div>
-      </Block>
+          <Block title="Câu trả lời được báo cáo">
+            <div className="max-h-56 overflow-y-auto">
+              <MarkdownRenderer content={ticket.messageContent ?? ""} />
+            </div>
+          </Block>
+        </>
+      ) : null}
 
       <div {...tourAnchor(TOUR_ANCHORS.ticketDetailResolution)}>
         <Block title="Phản hồi từ cán bộ">

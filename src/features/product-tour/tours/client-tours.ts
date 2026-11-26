@@ -85,7 +85,7 @@ export const CLIENT_PAGE_TOURS: readonly ClientPageTour[] = [
       fieldStep(
         TOUR_ANCHORS.userNav,
         "Điều hướng",
-        "Chuyển nhanh giữa Trợ lý UniSage, Thư viện tri thức và Hỗ trợ sinh viên."
+        "Chuyển nhanh giữa Trợ lý UniSage, Thư viện tri thức và Hỗ trợ."
       ),
       fieldStep(
         TOUR_ANCHORS.userMobileMenu,

@@ -10,13 +10,14 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Pin,
+  PinOff,
   Search,
   Share2,
   SquarePen,
   Trash2,
   UserRound,
 } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState, type MouseEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
 import { BrandMark } from "@/components/shared/brand/brand-mark"
@@ -38,10 +39,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ROUTES } from "@/constants/paths"
+import { chatConversationPath, ROUTES } from "@/constants/paths"
 import { TOUR_ANCHORS, tourAnchor } from "@/constants/tour-anchors"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import type { Conversation } from "@/features/chat/schemas/chat-schemas"
+import {
+  ambiguousTitleHints,
+  splitPinned,
+} from "@/features/chat/utils/conversation-list"
 import { ChangePasswordDialog } from "@/features/profile/components/change-password-dialog"
 import { cn } from "@/lib/utils"
 
@@ -61,6 +66,8 @@ export type ConversationHistoryProps = {
   onSelectConversation: (id: string) => void
   /** Signed-in users only: guest conversations can't be shared (spec R1). */
   onShareConversation?: (conversation: Conversation) => void
+  /** Signed-in users only: pins to / unpins from the "Đã ghim" section. */
+  onTogglePinConversation?: (conversation: Conversation) => void
 }
 
 type CollapsedHistoryRailProps = {
@@ -226,6 +233,7 @@ export function ConversationHistory({
   onOpenSearch,
   onSelectConversation,
   onShareConversation,
+  onTogglePinConversation,
 }: ConversationHistoryProps) {
   const { logout, session, status } = useAuth()
   const navigate = useNavigate()
@@ -235,6 +243,8 @@ export function ConversationHistory({
   const isGuest = status === "unauthenticated"
   const canDeleteAll =
     !isGuest && !!onDeleteAllConversations && conversations.length > 0
+  const { pinned, recent } = splitPinned(conversations)
+  const titleHints = ambiguousTitleHints(conversations)
 
   const confirmDeleteAll = async () => {
     if (!onDeleteAllConversations) return
@@ -321,6 +331,27 @@ export function ConversationHistory({
         className="min-h-0 flex-1 overflow-hidden"
       >
         <div className="w-full min-w-0 px-2.5 py-2">
+          {pinned.length ? (
+            <div className="mb-4 min-w-0">
+              <p className="mb-2 px-2 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase dark:text-neutral-400">
+                Đã ghim
+              </p>
+              <div className="min-w-0 space-y-0.5">
+                {pinned.map((conversation) => (
+                  <ConversationRow
+                    conversation={conversation}
+                    hint={titleHints[conversation.id]}
+                    isActive={conversation.id === activeConversationId}
+                    key={conversation.id}
+                    onDelete={onDeleteConversation}
+                    onSelect={onSelectConversation}
+                    onShare={isGuest ? undefined : onShareConversation}
+                    onTogglePin={isGuest ? undefined : onTogglePinConversation}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="mb-2 flex items-center justify-between gap-2 px-2">
             <span className="text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase dark:text-neutral-400">
               Gần đây
@@ -339,74 +370,23 @@ export function ConversationHistory({
           </div>
           {conversations.length ? (
             <div className="min-w-0 space-y-0.5">
-              {conversations.map((conversation) => (
-                <div
-                  className={cn(
-                    "group flex w-full max-w-full min-w-0 items-center overflow-hidden rounded-xl transition-colors",
-                    conversation.id === activeConversationId
-                      ? "bg-neutral-200/80 font-medium text-foreground hover:bg-neutral-200/90 dark:bg-neutral-800/80 dark:text-white dark:hover:bg-neutral-800"
-                      : "text-foreground/80 hover:bg-neutral-200/50 hover:text-foreground dark:text-neutral-300 dark:hover:bg-neutral-800/50 dark:hover:text-white"
-                  )}
+              {recent.map((conversation) => (
+                <ConversationRow
+                  conversation={conversation}
+                  hint={titleHints[conversation.id]}
+                  isActive={conversation.id === activeConversationId}
                   key={conversation.id}
-                >
-                  <button
-                    className="min-w-0 flex-1 cursor-pointer overflow-hidden px-2 py-2 text-left"
-                    onClick={() => onSelectConversation(conversation.id)}
-                    title={conversation.title}
-                    type="button"
-                  >
-                    <span className="block truncate text-sm">
-                      {conversation.title}
-                    </span>
-                  </button>
-
-                  {/* Actions (Pin & More options) only visible on hover/focus */}
-                  <div className="flex items-center gap-0.5 pr-1.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-                    <button
-                      aria-label={`Ghim ${conversation.title}`}
-                      className="cursor-pointer p-1 text-muted-foreground transition-colors hover:bg-transparent! hover:text-foreground dark:text-neutral-400 dark:hover:text-white"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                      }}
-                      type="button"
-                    >
-                      <Pin aria-hidden="true" className="size-3.5" />
-                    </button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          aria-label={`Tùy chọn cho ${conversation.title}`}
-                          className="cursor-pointer p-1 text-muted-foreground transition-colors hover:bg-transparent! hover:text-foreground dark:text-neutral-400 dark:hover:text-white"
-                          type="button"
-                        >
-                          <MoreHorizontal
-                            aria-hidden="true"
-                            className="size-3.5"
-                          />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        {onShareConversation && !isGuest ? (
-                          <DropdownMenuItem
-                            onSelect={() => onShareConversation(conversation)}
-                          >
-                            <Share2 aria-hidden="true" />
-                            Chia sẻ
-                          </DropdownMenuItem>
-                        ) : null}
-                        <DropdownMenuItem
-                          onSelect={() => onDeleteConversation(conversation.id)}
-                          variant="destructive"
-                        >
-                          <Trash2 aria-hidden="true" />
-                          Xóa đoạn chat
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
+                  onDelete={onDeleteConversation}
+                  onSelect={onSelectConversation}
+                  onShare={isGuest ? undefined : onShareConversation}
+                  onTogglePin={isGuest ? undefined : onTogglePinConversation}
+                />
               ))}
+              {recent.length === 0 ? (
+                <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                  Mọi đoạn chat đều đã được ghim.
+                </p>
+              ) : null}
             </div>
           ) : (
             <div className="mx-2 rounded-xl border border-dashed py-6 text-center">
@@ -540,6 +520,154 @@ export function ConversationHistory({
           title="Xóa tất cả đoạn chat?"
         />
       ) : null}
+    </div>
+  )
+}
+
+// How long a finger rests on a row before its menu opens (phones have no hover).
+const LONG_PRESS_MS = 500
+
+type ConversationRowProps = {
+  conversation: Conversation
+  // Shown when another title starts the same way (they'd truncate identically).
+  hint?: string
+  isActive: boolean
+  onDelete: (id: string) => void
+  onSelect: (id: string) => void
+  onShare?: (conversation: Conversation) => void
+  onTogglePin?: (conversation: Conversation) => void
+}
+
+function ConversationRow({
+  conversation,
+  hint,
+  isActive,
+  onDelete,
+  onSelect,
+  onShare,
+  onTogglePin,
+}: ConversationRowProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const pressTimer = useRef<number | null>(null)
+  // A long press opened the menu: the click that follows the lifted finger must not navigate.
+  const didLongPress = useRef(false)
+  const isPinned = Boolean(conversation.pinnedAt)
+
+  const cancelPress = () => {
+    if (pressTimer.current !== null) {
+      window.clearTimeout(pressTimer.current)
+      pressTimer.current = null
+    }
+  }
+
+  // A real link, so middle-click / Ctrl+click open the conversation in a new tab; a plain
+  // click stays in the page (stops the stream, keeps the sidebar state).
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (didLongPress.current) {
+      event.preventDefault()
+      didLongPress.current = false
+      return
+    }
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+    event.preventDefault()
+    onSelect(conversation.id)
+  }
+
+  return (
+    <div
+      className={cn(
+        "group flex w-full max-w-full min-w-0 items-center overflow-hidden rounded-xl transition-colors",
+        isActive
+          ? "bg-neutral-200/80 font-medium text-foreground hover:bg-neutral-200/90 dark:bg-neutral-800/80 dark:text-white dark:hover:bg-neutral-800"
+          : "text-foreground/80 hover:bg-neutral-200/50 hover:text-foreground dark:text-neutral-300 dark:hover:bg-neutral-800/50 dark:hover:text-white"
+      )}
+    >
+      <Link
+        aria-current={isActive ? "page" : undefined}
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 overflow-hidden px-2 py-2 text-left select-none [-webkit-touch-callout:none] focus-visible:outline-2 focus-visible:outline-primary"
+        onClick={handleClick}
+        onContextMenu={(event) => {
+          // Long press on Android (and right-click): the row's own menu, not the browser's.
+          event.preventDefault()
+          setIsMenuOpen(true)
+        }}
+        onTouchEnd={cancelPress}
+        onTouchMove={cancelPress}
+        onTouchStart={() => {
+          didLongPress.current = false
+          cancelPress()
+          pressTimer.current = window.setTimeout(() => {
+            didLongPress.current = true
+            setIsMenuOpen(true)
+          }, LONG_PRESS_MS)
+        }}
+        title={conversation.title}
+        to={chatConversationPath(conversation.id)}
+      >
+        <span className="block min-w-0 flex-1 truncate text-sm">
+          {conversation.title}
+        </span>
+        {hint ? (
+          <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums">
+            {hint}
+          </span>
+        ) : null}
+      </Link>
+
+      <div className="flex shrink-0 items-center gap-0.5 pr-1.5">
+        {isPinned ? (
+          <Pin
+            aria-label="Đã ghim"
+            className="size-3.5 text-muted-foreground group-focus-within:hidden group-hover:hidden pointer-coarse:hidden"
+            role="img"
+          />
+        ) : null}
+        <DropdownMenu onOpenChange={setIsMenuOpen} open={isMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label={`Tùy chọn cho ${conversation.title}`}
+              // Hover/focus reveal on desktop; always shown on touch screens, which have no hover.
+              className="cursor-pointer rounded-md p-1 text-muted-foreground opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 hover:text-foreground data-[state=open]:opacity-100 dark:text-neutral-400 dark:hover:text-white pointer-coarse:p-1.5 pointer-coarse:opacity-100"
+              type="button"
+            >
+              <MoreHorizontal aria-hidden="true" className="size-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            {onTogglePin ? (
+              <DropdownMenuItem onSelect={() => onTogglePin(conversation)}>
+                {isPinned ? (
+                  <PinOff aria-hidden="true" />
+                ) : (
+                  <Pin aria-hidden="true" />
+                )}
+                {isPinned ? "Bỏ ghim" : "Ghim"}
+              </DropdownMenuItem>
+            ) : null}
+            {onShare ? (
+              <DropdownMenuItem onSelect={() => onShare(conversation)}>
+                <Share2 aria-hidden="true" />
+                Chia sẻ
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem
+              onSelect={() => onDelete(conversation.id)}
+              variant="destructive"
+            >
+              <Trash2 aria-hidden="true" />
+              Xóa đoạn chat
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

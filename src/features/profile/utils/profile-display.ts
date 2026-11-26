@@ -14,3 +14,16 @@ export function getProfileAccessLevelLabel(me: AppUser) {
     ? "Không giới hạn"
     : `Cấp ${me.accessLevel}`
 }
+
+/** "0912345678" -> "0912 345 678", "+84912345678" -> "+84 912 345 678"; other shapes as typed. */
+export function formatPhoneNumber(phone: string | null | undefined): string {
+  if (!phone?.trim()) return "Chưa cập nhật"
+  const digits = phone.replace(/[^\d+]/g, "")
+  const local = digits.match(/^0(\d{3})(\d{3})(\d{3})$/)
+  if (local) return `0${local[1]} ${local[2]} ${local[3]}`
+  const international = digits.match(/^\+84(\d{3})(\d{3})(\d{3})$/)
+  if (international) {
+    return `+84 ${international[1]} ${international[2]} ${international[3]}`
+  }
+  return phone.trim()
+}

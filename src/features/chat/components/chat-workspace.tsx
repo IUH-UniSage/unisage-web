@@ -25,6 +25,7 @@ import type { Citation } from "@/features/chat/schemas/chat-schemas"
 import {
   groupCitationsByDocument,
   latestCitations,
+  sameDocumentCitations,
   webCitationUrl,
 } from "@/features/chat/utils/citations"
 import { ShareConversationDialog } from "@/features/conversations/components/share-conversation-dialog"
@@ -58,6 +59,9 @@ export function ChatPage({ sharedContent }: ChatPageProps = {}) {
   // smaller screens it slides over the page as a sheet.
   const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY)
   // A web-search source opens its page in a new tab; a document opens the drawer.
+  // Whether the history was open when the document took its room, so closing the
+  // document gives it back instead of leaving the sidebar folded.
+  const historyOpenBeforeCitation = useRef<boolean | null>(null)
   const openCitation = (citation: Citation) => {
     const url = webCitationUrl(citation)
     if (url) {
@@ -65,9 +69,20 @@ export function ChatPage({ sharedContent }: ChatPageProps = {}) {
       return
     }
     setActiveCitation(citation)
-    if (isDesktop) workspace.setIsHistoryOpen(false)
+    if (isDesktop) {
+      historyOpenBeforeCitation.current ??= workspace.isHistoryOpen
+      workspace.setIsHistoryOpen(false)
+    }
+  }
+  const closeCitation = () => {
+    setActiveCitation(null)
+    if (historyOpenBeforeCitation.current) workspace.setIsHistoryOpen(true)
+    historyOpenBeforeCitation.current = null
   }
   const isCitationColumnOpen = isDesktop && activeCitation !== null
+  const relatedCitations = activeCitation
+    ? sameDocumentCitations(workspace.messages, activeCitation)
+    : []
   const sourceCitations = latestCitations(workspace.messages)
   // Closing the low-usage warning lasts until the page is reloaded.
   const [isUsageWarningDismissed, setIsUsageWarningDismissed] = useState(false)
@@ -138,6 +153,9 @@ export function ChatPage({ sharedContent }: ChatPageProps = {}) {
     onOpenSearch: () => setIsSearchDialogOpen(true),
     onSelectConversation: workspace.selectConversation,
     onShareConversation: canShare ? setSharingConversation : undefined,
+    onTogglePinConversation: canShare
+      ? workspace.togglePinConversation
+      : undefined,
   }
 
   const startResizing = (mouseDownEvent: React.MouseEvent) => {
@@ -228,7 +246,7 @@ export function ChatPage({ sharedContent }: ChatPageProps = {}) {
             activeConversation={workspace.activeConversation}
             isSourcesOpen={workspace.isSourcesOpen && !isCitationColumnOpen}
             onOpenSources={() => {
-              setActiveCitation(null)
+              closeCitation()
               workspace.setIsSourcesOpen(true)
             }}
             onShare={shareActiveConversation}
@@ -281,7 +299,8 @@ export function ChatPage({ sharedContent }: ChatPageProps = {}) {
           <CitationDrawer
             citation={activeCitation}
             inline
-            onClose={() => setActiveCitation(null)}
+            onClose={closeCitation}
+            relatedCitations={relatedCitations}
           />
         ) : workspace.isSourcesOpen ? (
           <SourcePanel
@@ -296,7 +315,8 @@ export function ChatPage({ sharedContent }: ChatPageProps = {}) {
       {/* Smaller screens: the document slides over the page instead */}
       <CitationDrawer
         citation={isDesktop ? null : activeCitation}
-        onClose={() => setActiveCitation(null)}
+        onClose={closeCitation}
+        relatedCitations={relatedCitations}
       />
 
       <ShareConversationDialog
