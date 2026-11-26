@@ -25,6 +25,7 @@ import {
 import { ChangePasswordDialog } from "@/features/profile/components/change-password-dialog"
 import { ProfileInfoItem } from "@/features/profile/components/profile-info-item"
 import {
+  formatPhoneNumber,
   getProfileAccessLevelLabel,
   getProfileFullName,
   getProfileGenderLabel,
@@ -92,7 +93,7 @@ export function UserProfile({ me }: { me: AppUser }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <ProfileInfoItem
               icon={CreditCard}
-              label="Mã / Username"
+              label="Mã tài khoản"
               mono
               value={me.code || "Chưa có"}
             />
@@ -105,7 +106,7 @@ export function UserProfile({ me }: { me: AppUser }) {
             <ProfileInfoItem
               icon={Phone}
               label="Số điện thoại"
-              value={me.phone || "Chưa cập nhật"}
+              value={formatPhoneNumber(me.phone)}
             />
             <ProfileInfoItem
               icon={Users}

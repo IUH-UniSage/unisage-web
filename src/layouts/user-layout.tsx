@@ -1,4 +1,4 @@
-import { Bell, LayoutDashboard, Menu, UserRound } from "lucide-react"
+import { LayoutDashboard, Menu, UserRound } from "lucide-react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 
 import { BrandLogo } from "@/components/shared/brand/brand-logo"
@@ -31,7 +31,7 @@ const userNavigation: { comingSoon?: boolean; label: string; to: string }[] = [
     to: ROUTES.knowledge,
   },
   {
-    label: "Hỗ trợ sinh viên",
+    label: "Hỗ trợ",
     to: ROUTES.tickets,
   },
 ]
@@ -79,21 +79,10 @@ export function UserLayout() {
       <ClientOverviewTour />
       <header className="sticky top-0 z-30 shadow-[0_8px_24px_rgb(21_56_152_/_0.08)]">
         <div className="hidden bg-sidebar text-white lg:block dark:border-b dark:border-white/[0.05]">
-          <div className="mx-auto flex h-10 max-w-[1200px] items-center justify-between px-4 text-[11px] font-medium">
+          <div className="mx-auto flex h-10 max-w-[1200px] items-center px-4 text-[11px] font-medium">
             <p className="truncate tracking-[0.02em]">
               Trường Đại học Công nghiệp Thành phố Hồ Chí Minh
             </p>
-            <div className="ml-4 flex shrink-0 items-center gap-3 text-white/78">
-              <span className="hidden sm:inline">Không gian sinh viên</span>
-              <span
-                aria-hidden="true"
-                className="hidden h-3 w-px bg-white/25 sm:block"
-              />
-              <span>Trợ lý học thuật</span>
-              <span className="rounded-sm border border-white/25 px-1.5 py-0.5 font-semibold text-white">
-                VI
-              </span>
-            </div>
           </div>
         </div>
 
@@ -120,23 +109,18 @@ export function UserLayout() {
               <UserNavigation />
             </div>
 
+            {/* The tour button exists on some pages only: it sits left of the rest, so the
+                theme toggle and avatar keep their place from page to page. */}
             <div className="ml-auto flex shrink-0 items-center gap-1">
+              <ClientTourButton
+                className="text-white hover:bg-white/10 hover:text-white lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground"
+                pathname={location.pathname}
+              />
+
               <div className="hidden items-center gap-1 lg:flex">
                 <ThemeToggle />
                 {session ? (
-                  <>
-                    <Button
-                      asChild
-                      aria-label="Thông báo"
-                      size="icon"
-                      variant="ghost"
-                    >
-                      <Link to={ROUTES.notifications}>
-                        <Bell aria-hidden="true" />
-                      </Link>
-                    </Button>
-                    <UserAccountMenu />
-                  </>
+                  <UserAccountMenu />
                 ) : (
                   <Button
                     {...tourAnchor(TOUR_ANCHORS.userSignIn)}
@@ -147,11 +131,6 @@ export function UserLayout() {
                   </Button>
                 )}
               </div>
-
-              <ClientTourButton
-                className="text-white hover:bg-white/10 hover:text-white lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground"
-                pathname={location.pathname}
-              />
 
               <Sheet>
                 <SheetTrigger asChild>
@@ -198,13 +177,6 @@ export function UserLayout() {
                   <div className="mt-auto border-t border-primary/10 p-5">
                     {session ? (
                       <>
-                        <Link
-                          className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
-                          to={ROUTES.notifications}
-                        >
-                          <Bell aria-hidden="true" className="size-4" />
-                          Thông báo
-                        </Link>
                         <Link
                           className="flex min-h-11 items-center gap-3 text-sm font-medium text-primary"
                           to={ROUTES.profile}
