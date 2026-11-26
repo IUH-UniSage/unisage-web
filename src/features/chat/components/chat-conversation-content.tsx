@@ -45,6 +45,8 @@ import type { TurnProgress } from "@/features/chat/hooks/use-turn-progress"
 import {
   groupCitationsByDocument,
   markerNumbers,
+  stripTrailingSourceLine,
+  thinCitationMarkers,
 } from "@/features/chat/utils/citations"
 import { formatResponseTime } from "@/features/chat/utils/turn-progress"
 import { findQuestionBefore } from "@/features/chat/utils/question-before"
@@ -338,6 +340,11 @@ function AssistantReply({
   const feedback = readCalculationFeedback(message)
   const citations = message.citations ?? []
   const numbers = markerNumbers(groupCitationsByDocument(citations))
+  // Sources are listed by the app (chips, panel), so a model-written "Nguồn: …" line
+  // goes, and a document cited on every bullet keeps one marker per run of lines.
+  const shownText = citations.length
+    ? thinCitationMarkers(stripTrailingSourceLine(text), numbers)
+    : text
   const grounding = readGrounding(message)
   const openSource = (index: number) => {
     const citation = citations.find((item) => item.index === index)
@@ -357,7 +364,7 @@ function AssistantReply({
                 }
               : undefined
           }
-          content={text}
+          content={shownText}
         />
       </div>
       {grounding ? (
@@ -383,7 +390,12 @@ function AssistantReply({
         </div>
       ) : null}
       {citations.length ? (
-        <div {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyCitations) : {})}>
+        <div
+          {...(isLatest ? tourAnchor(TOUR_ANCHORS.chatReplyCitations) : {})}
+          // The live chat lists sources in the side panel on desktop; chips are for
+          // smaller screens (and the shared snapshot, which has no panel).
+          className={readOnly ? undefined : "xl:hidden"}
+        >
           <CitationChips
             citations={citations}
             onOpenCitation={onOpenCitation}

@@ -63,6 +63,9 @@ export function DocumentFilePreview({
           "h-125 w-full rounded-xl border bg-background shadow-xs",
           frameClassName
         )}
+        // Only the `#page=` fragment differs between two pages of one PDF, and the browser's
+        // viewer ignores a fragment change: a new frame per page makes the jump happen.
+        key={isPdf ? (page ?? 0) : undefined}
         sandbox={isPdf ? undefined : "allow-same-origin"}
         src={isPdf && page ? `${fileUrl}#page=${page}` : fileUrl}
         title={`Xem trước ${title}`}

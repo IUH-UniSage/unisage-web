@@ -14,7 +14,10 @@ import { chatConversationPath, ROUTES } from "@/constants/paths"
 import { ReadOnlyConversation } from "@/features/chat/components/chat-conversation-content"
 import { CitationDrawer } from "@/features/chat/components/citation-drawer"
 import type { Citation } from "@/features/chat/schemas/chat-schemas"
-import { webCitationUrl } from "@/features/chat/utils/citations"
+import {
+  sameDocumentCitations,
+  webCitationUrl,
+} from "@/features/chat/utils/citations"
 import { useContinueShareMutation } from "@/features/conversations/queries/use-mutations"
 import { useSharedConversationQuery } from "@/features/conversations/queries/use-queries"
 import type { SharedConversation } from "@/features/conversations/schemas/share-schemas"
@@ -150,6 +153,9 @@ function SharedConversationContent({
       <CitationDrawer
         citation={activeCitation}
         onClose={() => setActiveCitation(null)}
+        relatedCitations={
+          activeCitation ? sameDocumentCitations(messages, activeCitation) : []
+        }
       />
     </div>
   )
