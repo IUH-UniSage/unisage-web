@@ -28,12 +28,12 @@ Tổng cộng khoảng 21 phút. Video 1 gộp phần nguồn trích dẫn và p
 
 ### Tài khoản và tài liệu
 
-| Tài khoản                                            | Mật khẩu    | Vai trò     | Phòng ban · cấp                                |
-| ---------------------------------------------------- | ----------- | ----------- | ---------------------------------------------- |
-| `SA-001`                                             | `123123`    | SUPER_ADMIN | Toàn quyền                                     |
-| `TST-CNPM-L0`, `TST-CNPM-L1`, `TST-CNPM-L2`          | `Test@2026` | USER        | BM Công nghệ Phần mềm · cấp 0 / 1 / 2          |
-| `TST-KT-L5`                                          | `Test@2026` | USER        | BM Kế toán · cấp 5                             |
-| `DEMO-GV-01` (tạo trong video 4, dùng lại ở video 7) | đặt lúc tạo | USER        | BM Công nghệ Phần mềm · cấp 1, sau đổi thành 2 |
+| Tài khoản                                            | Mật khẩu (biến trong `.env.local`) | Vai trò     | Phòng ban · cấp                                |
+| ---------------------------------------------------- | ---------------------------------- | ----------- | ---------------------------------------------- |
+| `SA-001`                                             | `DEMO_ADMIN_PASSWORD`              | SUPER_ADMIN | Toàn quyền                                     |
+| `TST-CNPM-L0`, `TST-CNPM-L1`, `TST-CNPM-L2`          | `DEMO_TEST_PASSWORD`               | USER        | BM Công nghệ Phần mềm · cấp 0 / 1 / 2          |
+| `TST-KT-L5`                                          | `DEMO_TEST_PASSWORD`               | USER        | BM Kế toán · cấp 5                             |
+| `DEMO-GV-01` (tạo trong video 4, dùng lại ở video 7) | đặt lúc tạo                        | USER        | BM Công nghệ Phần mềm · cấp 1, sau đổi thành 2 |
 
 | Mã  | Tài liệu                                                                                                           | Phạm vi            | Trạng thái (kiểm tra Qdrant 24/11)                                                                        |
 | --- | ------------------------------------------------------------------------------------------------------------------ | ------------------ | --------------------------------------------------------------------------------------------------------- |

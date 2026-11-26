@@ -11,7 +11,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
-import { ACCOUNTS, BASE, api, log, recordVideo } from "./lib/demo-kit.mjs"
+import { ACCOUNTS, BASE, api, log, recordVideo, secret } from "./lib/demo-kit.mjs"
 import { Q } from "./lib/questions.mjs"
 
 const outDir = path.resolve(process.argv[2] ?? "output/demo")
@@ -86,7 +86,7 @@ if (!only || only === "04") {
   const state = saveState({
     suffix,
     userCode: `DEMO-GV-${suffix}`,
-    password: "Demo@2026",
+    password: secret("DEMO_NEW_USER_PASSWORD"),
     email: `demo.gv${suffix}@unisage.test`,
     // Unique: the backend rejects an empty phone as "already used" when another account
     // has none either ("Số điện thoại này đã được sử dụng!").
@@ -471,7 +471,7 @@ if (!only || only === "07") {
   const state = {
     suffix,
     userCode: `DEMO-HM-${suffix}`,
-    password: "Demo@2026",
+    password: secret("DEMO_NEW_USER_PASSWORD"),
   }
   const roles = await api("admin", "GET", "/rbac/roles?page=1&limit=100")
   const roleList = roles?.data ?? roles?.content ?? roles
