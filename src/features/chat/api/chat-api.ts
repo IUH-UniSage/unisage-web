@@ -106,6 +106,19 @@ export const chatApi = {
     )
   },
 
+  /** Pins (or unpins) a conversation of the caller to the top of the sidebar. */
+  async setConversationPinned(
+    conversationId: string,
+    pinned: boolean
+  ): Promise<Conversation> {
+    const response = await httpClient.patch<ApiResponse<Conversation>>(
+      API_ENDPOINTS.conversations.conversationPin(conversationId),
+      { pinned }
+    )
+
+    return readSuccessData(response.data, conversationSchema)
+  },
+
   async softDeleteConversation(conversationId: string): Promise<void> {
     const response = await httpClient.delete<ApiResponse<null>>(
       API_ENDPOINTS.conversations.conversation(conversationId)

@@ -4,7 +4,6 @@ import {
   Maximize2,
   Mic,
   Minimize2,
-  Plus,
   Square,
   X,
 } from "lucide-react"
@@ -218,7 +217,7 @@ export function ChatComposer({
       <form
         {...tourAnchor(TOUR_ANCHORS.chatComposer)}
         className={cn(
-          "relative mx-auto flex max-w-3xl items-end gap-2 rounded-[26px] border border-border/60 bg-muted/60 px-3 py-1.5 shadow-sm transition-[border-color,box-shadow,height,border-radius] dark:border-white/10 dark:bg-muted/60",
+          "relative mx-auto flex max-w-3xl items-end gap-2 rounded-[26px] border border-border/60 bg-muted/60 py-1.5 pr-3 pl-5 shadow-sm transition-[border-color,box-shadow,height,border-radius] dark:border-white/10 dark:bg-muted/60",
           centered && "shadow-md dark:shadow-[0_12px_36px_rgb(0_0_0_/_0.3)]",
           isExpanded && "rounded-3xl p-3.5 shadow-xl",
           // Dictating: transcript on top, [cancel | waveform | confirm] row below.
@@ -251,19 +250,6 @@ export function ChatComposer({
             )}
           </button>
         ) : null}
-
-        {/* Plus / Attach Button pinned to bottom left */}
-        <Button
-          hidden={isListening}
-          aria-label="Đính kèm hoặc thêm tùy chọn"
-          className="mb-0.5 size-8.5 shrink-0 cursor-pointer rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-          disabled={disabled}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <Plus aria-hidden="true" className="size-5" />
-        </Button>
 
         {/* Persistent Auto-Growing Textarea with Rich HTML -> Markdown Paste.
             16px below md: iOS Safari zooms the page into a smaller field on focus. */}

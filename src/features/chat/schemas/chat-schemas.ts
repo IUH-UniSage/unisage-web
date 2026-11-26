@@ -11,9 +11,12 @@ export const msgStatusSchema = z.enum([
 export const conversationSchema = z.object({
   createdAt: z.string(),
   id: z.uuid(),
+  // When the owner pinned it to the top of the sidebar; null/absent = not pinned.
+  pinnedAt: z.string().nullish(),
   // Set on a copy made with "Tiếp tục" from a shared link (UNISAGE-107).
   sourceShareId: z.uuid().nullish(),
   title: z.string(),
+  updatedAt: z.string().nullish(),
   userId: z.uuid().nullable(),
 })
 

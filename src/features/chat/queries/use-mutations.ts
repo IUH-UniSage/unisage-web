@@ -55,6 +55,21 @@ export function useDeleteAllConversationsMutation(userId: string) {
   })
 }
 
+export function usePinConversationMutation(userId: string) {
+  return useMutation({
+    meta: {
+      invalidatesQuery: chatKeys.conversations(userId),
+    },
+    mutationFn: ({
+      conversationId,
+      pinned,
+    }: {
+      conversationId: string
+      pinned: boolean
+    }) => chatApi.setConversationPinned(conversationId, pinned),
+  })
+}
+
 /**
  * Đúng/Sai on one AI-computed calculation result (contract §5b). On success the
  * verdict is written into the cached message's `metadata.calculation_feedback`
