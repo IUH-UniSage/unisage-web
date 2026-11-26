@@ -17,6 +17,11 @@ const TicketsPage = lazy(async () => {
   return { default: TicketsPage }
 })
 
+const TicketNewPage = lazy(async () => {
+  const { TicketNewPage } = await import("@/pages/user/ticket-new-page")
+  return { default: TicketNewPage }
+})
+
 const TicketDetailPage = lazy(async () => {
   const { TicketDetailPage } = await import("@/pages/user/ticket-detail-page")
   return { default: TicketDetailPage }
@@ -61,6 +66,14 @@ export const userRoutes: RouteObject[] = [
         element: (
           <PrivateRoute>
             <TicketsPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: `${ROUTE_SEGMENTS.tickets}/new`,
+        element: (
+          <PrivateRoute>
+            <TicketNewPage />
           </PrivateRoute>
         ),
       },
