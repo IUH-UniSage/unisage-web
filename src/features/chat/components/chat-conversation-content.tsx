@@ -23,6 +23,7 @@ import {
   type ClarificationSubmitPayload,
 } from "@/features/chat/components/clarification/clarification-panel"
 import { CitationChips } from "@/features/chat/components/citation-chips"
+import { GroundingWarning } from "@/features/chat/components/grounding-warning"
 import { LegacyAskUserFormNotice } from "@/features/chat/components/legacy-ask-user-form-notice"
 import type { Citation, Message } from "@/features/chat/schemas/chat-schemas"
 import {
@@ -34,6 +35,7 @@ import {
   readCalculationFeedback,
   readFeedbackItems,
 } from "@/features/chat/utils/calculation-feedback"
+import { readGrounding } from "@/features/chat/utils/grounding"
 import { stripLegacyAskUserForm } from "@/features/chat/utils/legacy-ask-user-form"
 import {
   ElapsedTime,
@@ -336,6 +338,11 @@ function AssistantReply({
   const feedback = readCalculationFeedback(message)
   const citations = message.citations ?? []
   const numbers = markerNumbers(groupCitationsByDocument(citations))
+  const grounding = readGrounding(message)
+  const openSource = (index: number) => {
+    const citation = citations.find((item) => item.index === index)
+    if (citation) onOpenCitation(citation)
+  }
 
   return (
     <>
@@ -346,18 +353,20 @@ function AssistantReply({
               ? {
                   indexes: citations.map((citation) => citation.index),
                   numbers,
-                  onSelect: (index) => {
-                    const citation = citations.find(
-                      (item) => item.index === index
-                    )
-                    if (citation) onOpenCitation(citation)
-                  },
+                  onSelect: openSource,
                 }
               : undefined
           }
           content={text}
         />
       </div>
+      {grounding ? (
+        <GroundingWarning
+          grounding={grounding}
+          numbers={numbers}
+          onOpenSource={openSource}
+        />
+      ) : null}
       {feedbackItems.length ? (
         // One Đúng/Sai row per AI-computed result, in `items` order.
         <div className="space-y-2">
